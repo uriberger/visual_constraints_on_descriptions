@@ -26,7 +26,7 @@ class ImLingStructInfoDataset(data.Dataset):
 
         # Load image
         image_id = item_struct_data[0]
-        image_obj = Image.open(self.get_image_path_func(image_id, self.config.slice_str))
+        image_obj = Image.open(self.image_path_finder.get_image_path(image_id))
         orig_image_size = image_obj.size
         image_tensor = pil_image_trans(image_obj)
 

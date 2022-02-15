@@ -30,16 +30,17 @@ class ImLingStructInfoClassifier(nn.Module):
         dummy_output = self.backbone_model_inference(dummy_input)
         backbone_output_size = dummy_output.shape[1]
 
-        self.classification_heads = []
+        self.classification_heads = {}
         for struct_property in config.struct_properties:
             if struct_property == 'passive':
                 fc = nn.Linear(backbone_output_size, 2)
                 sm = nn.Softmax(dim=1)
-                self.classification_heads.append(nn.Sequential(fc, F.relu, sm))
+                module = nn.Sequential(fc, F.relu, sm)
             elif struct_property == 'empty_frame_slots_num':
                 fc = nn.Linear(backbone_output_size, 6)
                 sm = nn.Softmax(dim=1)
-                self.classification_heads.append(nn.Sequential(fc, F.relu, sm))
+                module = nn.Sequential(fc, F.relu, sm)
+            self.classification_heads[struct_property] = module
 
         self.dump_path = os.path.join(model_dir, model_name)
 
@@ -49,9 +50,9 @@ class ImLingStructInfoClassifier(nn.Module):
                 x = self.backbone_model_inference(x)
         else:
             x = self.backbone_model_inference(x)
-        res = []
-        for classification_head in self.classification_heads:
-            res.append(classification_head(x))
+        res = {}
+        for struct_property, classification_head in self.classification_heads.items():
+            res[struct_property] = classification_head(x)
         return res
 
     # Dumping and loading utilities
