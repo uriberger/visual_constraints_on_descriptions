@@ -19,6 +19,9 @@ project_root_dir = '.'
 models_dir = os.path.join(project_root_dir, 'models')
 # The default name of a model (assigned to new models)
 default_model_name = 'model'
+# Model and config files suffixes
+model_file_suffix = '.mdl'
+config_file_suffix = '.cfg'
 
 
 def set_write_to_log(output_dir):

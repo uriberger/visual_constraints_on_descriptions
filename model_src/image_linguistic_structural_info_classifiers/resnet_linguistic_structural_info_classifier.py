@@ -1,16 +1,13 @@
 import torchvision.models as models
-from model_src.image_linguistic_structural_info_classifier import ImLingStructInfoClassifier
+from model_src.image_linguistic_structural_info_classifiers.image_linguistic_structural_info_classifier import ImLingStructInfoClassifier
 
 
 class ResNetLingStructInfoClassifier(ImLingStructInfoClassifier):
 
-    def __init__(self, struct_properties, use_pretrained):
-        super(ResNetLingStructInfoClassifier, self).__init__(
-            struct_properties=struct_properties,
-            freeze_backbone=use_pretrained
-        )
+    def __init__(self, config, model_dir, model_name):
+        super(ResNetLingStructInfoClassifier, self).__init__(config, model_dir, model_name)
 
-        if use_pretrained:
+        if config.freeze_backbone:
             self.backbone_model.eval()
 
     def backbone_model_inference(self, input_tensor):

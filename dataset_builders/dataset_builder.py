@@ -54,7 +54,9 @@ class DatasetBuilder(LoggableObject):
     def build_dataset(self):
         self.log_print('Generating ' + self.name + ' ' + self.data_split_str + ' dataset...')
 
+        self.increment_indent()
         self.create_struct_data()
+        self.decrement_indent()
         image_path_finder = self.create_image_path_finder()
 
         return ImLingStructInfoDataset(self.struct_data_file_path, image_path_finder)

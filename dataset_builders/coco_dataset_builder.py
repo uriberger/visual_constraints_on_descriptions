@@ -56,6 +56,8 @@ class CocoDatasetBuilder(DatasetBuilder):
         self.transitivity_file_path = os.path.join(self.cached_dataset_files_dir,
                                                    'coco_transitivity_' + self.data_split_str)
 
+        self.nlp_data = None
+
     def get_caption_data(self):
         if self.data_split_str == 'train':
             external_caption_file_path = self.train_captions_file_path
@@ -70,7 +72,8 @@ class CocoDatasetBuilder(DatasetBuilder):
     """
 
     def generate_nlp_data(self):
-        return generate_dataset(self.nlp_data_file_path, self.generate_nlp_data_internal)
+        if self.nlp_data is None:
+            self.nlp_data = generate_dataset(self.nlp_data_file_path, self.generate_nlp_data_internal)
 
     def generate_nlp_data_internal(self):
         self.log_print('Generating nlp data...')
@@ -97,29 +100,25 @@ class CocoDatasetBuilder(DatasetBuilder):
     """ Passive dataset: maps image ids to list of boolean stating whether each caption is passive. """
 
     def generate_passive_dataset(self):
-        return generate_dataset(self.passive_images_file_path, self.generate_passive_dataset_internal)
-
-    def generate_passive_dataset_internal(self):
-        self.log_print('Generating passive dataset...')
-        self.matcher = Matcher(nlp.vocab)
+        matcher = Matcher(nlp.vocab)
         passive_rule = [
             {'DEP': 'nsubjpass'},
             {'DEP': 'aux', 'OP': '*'},
             {'DEP': 'auxpass'},
             {'TAG': 'VBN'}
         ]
-        self.matcher.add('Passive', [passive_rule])
+        matcher.add('Passive', [passive_rule])
 
         caption_data = self.get_caption_data()
-        self.nlp_data = self.generate_nlp_data()
-        self.image_id_to_passive = defaultdict(list)
+        self.generate_nlp_data()
+        image_id_to_passive = defaultdict(list)
 
-        self.increment_indent()
-        for_loop_with_reports(caption_data, len(caption_data), 10000, self.collect_passive_caption, self.caption_report)
-        self.decrement_indent()
+        for i in range(len(caption_data)):
+            image_id = caption_data[i]['image_id']
+            nlp_data = self.nlp_data[i]
+            image_id_to_passive[image_id].append(len(matcher(nlp_data)) > 0)
 
-        self.log_print('Finished generating passive dataset')
-        return self.image_id_to_passive
+        return image_id_to_passive
 
     def collect_passive_caption(self, index, sample, should_print):
         image_id = sample['image_id']
@@ -131,37 +130,26 @@ class CocoDatasetBuilder(DatasetBuilder):
     """
 
     def generate_transitivity_dataset(self):
-        return generate_dataset(self.transitivity_file_path, self.generate_transitivity_dataset_internal)
-
-    def generate_transitivity_dataset_internal(self):
-        self.log_print('Generating transitivity dataset...')
         caption_data = self.get_caption_data()
-        self.nlp_data = self.generate_nlp_data()
-        self.image_id_to_transitive = defaultdict(list)
+        self.generate_nlp_data()
+        image_id_to_transitive = defaultdict(list)
 
-        self.log_print('Creating dataset...')
-        self.increment_indent()
-        for_loop_with_reports(caption_data, len(caption_data), 10000, self.collect_transitive_caption,
-                              self.caption_report)
-        self.decrement_indent()
+        for i in range(len(caption_data)):
+            image_id = caption_data[i]['image_id']
+            nlp_data = self.nlp_data[i]
+            roots = [token for token in nlp_data if token.dep_ == 'ROOT']
+            if len(roots) != 1:
+                # We don't know how to deal with zero or multiple roots, for now
+                return
 
-        self.log_print('Finished generating transitivity dataset')
-        return self.image_id_to_transitive
+            root = roots[0]
+            if root.pos_ != 'VERB':
+                # We're not interested in non-verb roots
+                return
 
-    def collect_transitive_caption(self, index, sample, should_print):
-        image_id = sample['image_id']
-        nlp_data = self.nlp_data[index]
-        roots = [token for token in nlp_data if token.dep_ == 'ROOT']
-        if len(roots) > 0:
-            # We don't know how to deal with multiple roots, for now
-            return
+            image_id_to_transitive[image_id].append(is_transitive_sentence(nlp_data))
 
-        root = roots[0]
-        if root.pos_ != 'VERB':
-            # We're not interested in non-verb roots
-            return
-
-        self.image_id_to_transitive[image_id].append(is_transitive_sentence(nlp_data))
+        return image_id_to_transitive
 
     def create_struct_data_internal(self):
         self.log_print('Generating passive dataset...')
