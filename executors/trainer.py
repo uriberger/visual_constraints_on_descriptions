@@ -52,12 +52,12 @@ class Trainer(Executor):
     """ Actions that should be performed at the end of training. """
 
     def post_training(self):
-        self.dump_models()
+        self.model.dump()
 
     """ Actions that should be performed at the end of each training epoch. """
 
     def post_epoch(self):
-        self.dump_models()
+        self.model.dump()
 
         self.log_print('Evaluating after finishing the epoch...')
         self.increment_indent()
@@ -83,22 +83,22 @@ class Trainer(Executor):
 
     def train_on_batch(self, index, sampled_batch, print_info):
         # Load data
-        image_tensor = sampled_batch[0].to(self.device)
-        labels = sampled_batch[1]
+        image_tensor = sampled_batch['image'].to(self.device)
+        labels = sampled_batch['struct_info']
 
         # zero the parameter gradients
         self.optimizer.zero_grad()
 
         # forward + backward + optimize
-        outputs = self.model(image_tensor)
-        loss = self.criterion(outputs, labels)
+        output = self.model(image_tensor)
+        loss = self.criterion(output, labels)
         loss.backward()
         self.optimizer.step()
 
         # print statistics
         self.running_loss += loss.item()
         if print_info:
-            print(f'[{self.epoch_ind}, {index}] loss: {self.running_loss / BATCH_REPORT_NUM:.3f}')
+            self.log_print(f'[{self.epoch_ind}, {index}] loss: {self.running_loss / BATCH_REPORT_NUM:.3f}')
             self.running_loss = 0.0
 
     """ Train on the training set; This is the entry point of this class. """

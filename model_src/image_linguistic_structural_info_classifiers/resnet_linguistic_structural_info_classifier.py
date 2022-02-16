@@ -14,4 +14,4 @@ class ResNetLingStructInfoClassifier(ImLingStructInfoClassifier):
         return self.backbone_model(input_tensor)
 
     def generate_backbone_model(self):
-        return models.resnet50(pretrained=self.use_pretrained).to(self.device)
+        return models.resnet50(pretrained=self.config.freeze_backbone).to(self.device)

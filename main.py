@@ -1,19 +1,22 @@
-from dataset_builders.imsitu_dataset_builder import ImSituDatasetBuilder
+from utils.general_utils import init_entry_point, log_print, project_root_dir
+from model_src.model_config import ModelConfig
+from executors.trainer import Trainer
 from dataset_builders.image_caption_dataset_builders.coco_dataset_builder import CocoDatasetBuilder
 import os
 
-a1 = ImSituDatasetBuilder(os.path.join('..', 'datasets', 'ImSitu'), 'train', 'empty_frame_slots_num', 1).build_dataset()
-a2 = ImSituDatasetBuilder(os.path.join('..', 'datasets', 'ImSitu'), 'dev', 'empty_frame_slots_num', 1).build_dataset()
-a3 = ImSituDatasetBuilder(os.path.join('..', 'datasets', 'ImSitu'), 'test', 'empty_frame_slots_num', 1).build_dataset()
-b1 = CocoDatasetBuilder(os.path.join('..', 'datasets', 'coco'), 'train', 'passive', 1).build_dataset()
-b2 = CocoDatasetBuilder(os.path.join('..', 'datasets', 'coco'), 'val', 'passive', 1).build_dataset()
-c1 = CocoDatasetBuilder(os.path.join('..', 'datasets', 'coco'), 'train', 'transitivity', 1).build_dataset()
-c2 = CocoDatasetBuilder(os.path.join('..', 'datasets', 'coco'), 'val', 'transitivity', 1).build_dataset()
+function_name = 'main'
+timestamp = init_entry_point(False)
 
-print(len(a1))
-print(len(a2))
-print(len(a3))
-print(len(b1))
-print(len(b2))
-print(len(c1))
-print(len(c2))
+model_config = ModelConfig(struct_property='passive')
+log_print(function_name, 0, str(model_config))
+
+log_print(function_name, 0, 'Generating training set...')
+dataset_builder = CocoDatasetBuilder(os.path.join('..', 'datasets', 'coco'), 'train', 'passive', 1)
+training_set = dataset_builder.build_dataset()
+log_print(function_name, 0, 'Training set generated')
+
+log_print(function_name, 0, 'Training model...')
+model_root_dir = os.path.join(project_root_dir, timestamp)
+trainer = Trainer(model_root_dir, training_set, 5, 50, model_config, 1)
+trainer.train()
+log_print(function_name, 0, 'Finished training model')

@@ -26,18 +26,18 @@ class ImLingStructInfoClassifier(nn.Module):
 
         self.backbone_model = self.generate_backbone_model()
 
-        dummy_input = torch.zeros(1, 3, wanted_image_size[0], wanted_image_size)
+        dummy_input = torch.zeros(1, 3, wanted_image_size[0], wanted_image_size[1])
         dummy_output = self.backbone_model_inference(dummy_input)
         backbone_output_size = dummy_output.shape[1]
 
         if config.struct_property == 'passive':
             fc = nn.Linear(backbone_output_size, 2)
             sm = nn.Softmax(dim=1)
-            self.classification_head = nn.Sequential(fc, F.relu, sm)
+            self.classification_head = nn.Sequential(fc, nn.ReLU(), sm)
         elif config.struct_property == 'empty_frame_slots_num':
             fc = nn.Linear(backbone_output_size, 6)
             sm = nn.Softmax(dim=1)
-            self.classification_head = nn.Sequential(fc, F.relu, sm)
+            self.classification_head = nn.Sequential(fc, nn.ReLU(), sm)
 
         self.dump_path = os.path.join(model_dir, model_name)
 
@@ -83,7 +83,7 @@ class ImLingStructInfoClassifier(nn.Module):
 
     """ Dump the model to an external file. """
 
-    def dump_underlying_model(self):
+    def dump_model(self):
         torch.save(self, self.get_model_path())
 
     # Abstract methods (to be implemented by inheritors)

@@ -73,7 +73,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
             nlp_data = self.nlp_data[i]
-            passive_dataset.append((image_id, len(matcher(nlp_data)) > 0))
+            passive_dataset.append((image_id, int(len(matcher(nlp_data)) > 0)))
 
         return passive_dataset
 
