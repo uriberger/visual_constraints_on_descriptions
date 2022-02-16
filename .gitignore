@@ -2,3 +2,5 @@
 cached_dataset_files*
 .idea
 2022-*
+*~
+venv
