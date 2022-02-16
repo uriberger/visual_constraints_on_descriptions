@@ -6,6 +6,8 @@ from utils.general_utils import for_loop_with_reports, default_model_name
 from executors.executor import Executor
 from model_src.model_factory import ModelFactory
 
+BATCH_REPORT_NUM = 1000
+
 
 class Trainer(Executor):
 
@@ -31,23 +33,16 @@ class Trainer(Executor):
             self.model, self.model_config = model_factory.load_model(model_dir, model_name)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=model_config.learning_rate)
-        self.criteria = self.get_criteria(model_config.struct_properties)
+        self.criterion = self.get_criterion(model_config.struct_property)
 
-        self.running_loss = {struct_property: 0.0 for struct_property in model_config.struct_properties}
-        self.batch_count = {struct_property: 0 for struct_property in model_config.struct_properties}
-        self.num_of_batch_for_report = 1000
+        self.running_loss = 0.0
 
     @staticmethod
-    def get_criteria(struct_properties):
-        criteria = {}
-        for struct_property in struct_properties:
-            if struct_property == 'passive':
-                criterion = nn.CrossEntropyLoss()
-            elif struct_property == 'empty_frame_slots_num':
-                criterion = nn.CrossEntropyLoss()
-            criteria[struct_property] = criterion
-
-        return criteria
+    def get_criterion(struct_property):
+        if struct_property == 'passive':
+            return nn.CrossEntropyLoss()
+        elif struct_property == 'empty_frame_slots_num':
+            return nn.CrossEntropyLoss()
 
     """ Actions that should be performed at the beginning of training. """
 
@@ -89,25 +84,22 @@ class Trainer(Executor):
     def train_on_batch(self, index, sampled_batch, print_info):
         # Load data
         image_tensor = sampled_batch[0].to(self.device)
-        strucy_property_to_labels = sampled_batch[1]
+        labels = sampled_batch[1]
 
         # zero the parameter gradients
         self.optimizer.zero_grad()
 
         # forward + backward + optimize
         outputs = self.model(image_tensor)
-        for struct_property, labels in strucy_property_to_labels.items():
-            loss = self.criteria[struct_property](outputs, labels)
-            loss.backward()
-            self.optimizer.step()
-            # Check if after this line the gradients of the optimizer changed
-            # print statistics
-            self.running_loss[struct_property] += loss.item()
-            self.batch_count[struct_property] += 1
-            if self.batch_count[struct_property] % self.num_of_batch_for_report == self.num_of_batch_for_report - 1:
-                print(f'[{self.epoch_ind}, {self.batch_count[struct_property]}] loss: ' +
-                      f'{self.running_loss[struct_property] / self.num_of_batch_for_report:.3f}')
-                self.running_loss[struct_property] = 0.0
+        loss = self.criterion(outputs, labels)
+        loss.backward()
+        self.optimizer.step()
+
+        # print statistics
+        self.running_loss += loss.item()
+        if print_info:
+            print(f'[{self.epoch_ind}, {index}] loss: {self.running_loss / BATCH_REPORT_NUM:.3f}')
+            self.running_loss = 0.0
 
     """ Train on the training set; This is the entry point of this class. """
 
@@ -120,7 +112,7 @@ class Trainer(Executor):
 
             dataloader = data.DataLoader(self.training_set, batch_size=self.batch_size)
 
-            checkpoint_len = 1000
+            checkpoint_len = BATCH_REPORT_NUM
             self.increment_indent()
             for_loop_with_reports(dataloader, len(dataloader), checkpoint_len,
                                   self.train_on_batch, self.progress_report)
