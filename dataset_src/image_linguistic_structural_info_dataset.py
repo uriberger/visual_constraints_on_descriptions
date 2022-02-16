@@ -10,9 +10,9 @@ class ImLingStructInfoDataset(data.Dataset):
         was built).
     """
 
-    def __init__(self, struct_data_filepath, image_path_finder):
+    def __init__(self, struct_data, image_path_finder):
         super(ImLingStructInfoDataset, self).__init__()
-        self.struct_data = torch.load(struct_data_filepath)
+        self.struct_data = struct_data
         self.image_path_finder = image_path_finder
 
     def __len__(self):

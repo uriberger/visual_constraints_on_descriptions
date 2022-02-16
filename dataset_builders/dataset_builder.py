@@ -1,7 +1,6 @@
 import abc
 from loggable_object import LoggableObject
 import os
-import torch
 from utils.general_utils import project_root_dir, generate_dataset, for_loop_with_reports
 from utils.visual_utils import get_image_shape
 from dataset_src.image_linguistic_structural_info_dataset import ImLingStructInfoDataset
@@ -20,10 +19,11 @@ class DatasetBuilder(LoggableObject):
         images themselves).
     """
 
-    def __init__(self, name, data_split_str, indent):
+    def __init__(self, name, data_split_str, struct_property, indent):
         super(DatasetBuilder, self).__init__(indent)
         self.name = name
         self.data_split_str = data_split_str
+        self.struct_property = struct_property
 
         # The datasets are assumed to be located in a sibling directory named 'datasets'
         self.datasets_dir = datasets_dir
@@ -34,7 +34,11 @@ class DatasetBuilder(LoggableObject):
             os.mkdir(self.cached_dataset_files_dir)
 
         self.struct_data_file_path = os.path.join(self.cached_dataset_files_dir,
-                                                  self.name + '_' + self.data_split_str + '_set')
+                                                  self.name + '_' + self.data_split_str + '_set' +
+                                                  '_' + self.struct_property)
+
+        self.unwanted_image_ids_file_path = os.path.join(self.cached_dataset_files_dir,
+                                                         self.name + '_unwanted_image_ids_' + self.data_split_str)
 
     # General static setting of the datasets dir, for all datasets
 
@@ -52,14 +56,24 @@ class DatasetBuilder(LoggableObject):
     """ Load the dataset if it's cached, otherwise build it. """
 
     def build_dataset(self):
-        self.log_print('Generating ' + self.name + ' ' + self.data_split_str + ' dataset...')
+        self.log_print('Generating ' + self.name +
+                       ' ' + self.data_split_str +
+                       ' ' + self.struct_property + ' dataset...')
 
         self.increment_indent()
-        self.create_struct_data()
+        struct_data = self.create_struct_data()
         self.decrement_indent()
-        image_path_finder = self.create_image_path_finder()
 
-        return ImLingStructInfoDataset(self.struct_data_file_path, image_path_finder)
+        self.log_print('Filtering unwanted images from ' + self.name + ' ' + self.data_split_str + ' set...')
+        self.increment_indent()
+        self.image_path_finder = self.create_image_path_finder()
+        unwanted_image_ids = self.get_unwanted_image_ids()
+        unwanted_image_ids = {image_id: True for image_id in unwanted_image_ids}  # For more efficient retrieval
+        self.decrement_indent()
+
+        struct_data = [x for x in struct_data if x[0] not in unwanted_image_ids]
+
+        return ImLingStructInfoDataset(struct_data, self.image_path_finder)
 
     """ Create the image id to linguistic structural info mapping. """
 
@@ -67,7 +81,7 @@ class DatasetBuilder(LoggableObject):
         return generate_dataset(self.struct_data_file_path, self.create_struct_data_internal)
 
     @abc.abstractmethod
-    def create_struct_data_internal(self):
+    def create_struct_data_internal(self, struct_property):
         return
 
     """ Create the ImagePathFinder object for this dataset. """
@@ -83,7 +97,10 @@ class DatasetBuilder(LoggableObject):
         This function returns a list of image ids of images we want to filter.
     """
 
-    def find_unwanted_images(self):
+    def get_unwanted_image_ids(self):
+        return generate_dataset(self.unwanted_image_ids_file_path, self.get_unwanted_image_ids_internal)
+
+    def get_unwanted_image_ids_internal(self):
         struct_data = self.create_struct_data()
         image_ids_by_struct_data = list(set([x[0] for x in struct_data]))
 
@@ -120,16 +137,3 @@ class DatasetBuilder(LoggableObject):
         self.log_print('Starting image ' + str(index) +
                        ' out of ' + str(dataset_size) +
                        ', time from previous checkpoint ' + str(time_from_prev))
-
-    """ We want to filter images that are:
-        - Grayscale
-    """
-
-    def filter_unwanted_images(self):
-        self.image_path_finder = self.create_image_path_finder()
-        unwanted_image_ids = self.find_unwanted_images()
-
-        struct_data = self.create_struct_data()
-        new_struct_data = [x for x in struct_data if x[0] not in unwanted_image_ids]
-
-        torch.save(new_struct_data, self.struct_data_file_path)

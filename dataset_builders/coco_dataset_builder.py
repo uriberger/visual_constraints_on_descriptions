@@ -1,7 +1,6 @@
 from spacy.matcher import Matcher
 import os
 import json
-from collections import defaultdict
 from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
 from utils.general_utils import generate_dataset, for_loop_with_reports
@@ -35,8 +34,8 @@ class CocoDatasetBuilder(DatasetBuilder):
         test split. So we're going to ignore the test set.
     """
 
-    def __init__(self, root_dir_path, data_split_str, indent):
-        super(CocoDatasetBuilder, self).__init__('coco', data_split_str, indent)
+    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
+        super(CocoDatasetBuilder, self).__init__('coco', data_split_str, struct_property, indent)
         self.root_dir_path = root_dir_path
 
         self.train_val_annotations_dir = 'train_val_annotations2014'
@@ -111,19 +110,14 @@ class CocoDatasetBuilder(DatasetBuilder):
 
         caption_data = self.get_caption_data()
         self.generate_nlp_data()
-        image_id_to_passive = defaultdict(list)
+        passive_dataset = []
 
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
             nlp_data = self.nlp_data[i]
-            image_id_to_passive[image_id].append(len(matcher(nlp_data)) > 0)
+            passive_dataset.append((image_id, len(matcher(nlp_data)) > 0))
 
-        return image_id_to_passive
-
-    def collect_passive_caption(self, index, sample, should_print):
-        image_id = sample['image_id']
-        nlp_data = self.nlp_data[index]
-        self.image_id_to_passive[image_id].append(len(self.matcher(nlp_data)) > 0)
+        return passive_dataset
 
     """ Transitivity dataset: maps image ids to list of boolean stating whether the main verb in each caption is
         passive.
@@ -132,7 +126,7 @@ class CocoDatasetBuilder(DatasetBuilder):
     def generate_transitivity_dataset(self):
         caption_data = self.get_caption_data()
         self.generate_nlp_data()
-        image_id_to_transitive = defaultdict(list)
+        transitivity_dataset = []
 
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
@@ -147,32 +141,23 @@ class CocoDatasetBuilder(DatasetBuilder):
                 # We're not interested in non-verb roots
                 return
 
-            image_id_to_transitive[image_id].append(is_transitive_sentence(nlp_data))
+            transitivity_dataset.append(image_id, is_transitive_sentence(nlp_data))
 
-        return image_id_to_transitive
+        return transitivity_dataset
 
     def create_struct_data_internal(self):
-        self.log_print('Generating passive dataset...')
-        self.increment_indent()
-        passive_dataset = self.generate_passive_dataset()
-        self.decrement_indent()
+        if self.struct_property == 'passive':
+            self.log_print('Generating passive dataset...')
+            self.increment_indent()
+            struct_data = self.generate_passive_dataset()
+            self.decrement_indent()
+        elif self.struct_property == 'transitivity':
+            self.log_print('Generating transitivity dataset...')
+            self.increment_indent()
+            struct_data = self.generate_transitivity_dataset()
+            self.decrement_indent()
 
-        self.log_print('Generating transitivity dataset...')
-        self.increment_indent()
-        transitivity_dataset = self.generate_transitivity_dataset()
-        self.decrement_indent()
-
-        all_image_ids = list(set(passive_dataset.keys()).union(transitivity_dataset.keys()))
-        struct_data_dict = {
-            image_id: {
-                'passive': passive_dataset[image_id],
-                'transitivity': transitivity_dataset[image_id]
-            } for image_id in all_image_ids
-        }
-
-        struct_data_list = list(struct_data_dict.items())
-
-        return struct_data_list
+        return struct_data
 
     def create_image_path_finder(self):
         return CocoImagePathFinder(self.data_split_str, self.train_images_dir_path, self.val_images_dir_path)

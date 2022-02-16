@@ -1,1 +1,3 @@
 *.pyc
+cached_dataset_files*
+.idea

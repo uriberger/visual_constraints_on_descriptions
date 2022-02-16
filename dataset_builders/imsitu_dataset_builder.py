@@ -42,26 +42,29 @@ class ImSituImagePathFinder(ImagePathFinder):
 class ImSituDatasetBuilder(DatasetBuilder):
     """ This class builds the image->missing slots number dataset. """
 
-    def __init__(self, root_dir_path, data_split_str, indent):
-        super(ImSituDatasetBuilder, self).__init__('imsitu', data_split_str, indent)
+    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
+        super(ImSituDatasetBuilder, self).__init__('imsitu', data_split_str, struct_property, indent)
         self.root_dir_path = root_dir_path
         self.images_dir_path = os.path.join(root_dir_path, 'resized_256')
 
         self.verb_to_ind_file_path = os.path.join(self.cached_dataset_files_dir, 'imsitu_verb_to_ind')
 
     def create_struct_data_internal(self):
-        with open(os.path.join(self.root_dir_path, self.data_split_str + '.json')) as fp:
-            data = json.load(fp)
+        if self.struct_property == 'empty_frame_slots_num':
+            with open(os.path.join(self.root_dir_path, self.data_split_str + '.json')) as fp:
+                data = json.load(fp)
 
-        verb_to_ind = self.generate_verb_to_ind_mapping()
+            verb_to_ind = self.generate_verb_to_ind_mapping()
 
-        # For each image annotation, we count how many of the frame slots were left empty
-        struct_data = [
-            (self.image_name_to_ind(x[0], verb_to_ind), [
-                {'empty_frame_slots_num': len([z for z in y.values() if z == '']) for y in x[1]['frames']}
-            ])
-            for x in data.items()
-        ]
+            # For each image annotation, we count how many of the frame slots were left empty
+            struct_data_lists = [
+                [
+                    (self.image_name_to_ind(x[0], verb_to_ind),
+                     len([z for z in y.values() if z == ''])) for y in x[1]['frames']
+                ]
+                for x in data.items()
+            ]
+            struct_data = [x for outer in struct_data_lists for x in outer]
 
         return struct_data
 
