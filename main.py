@@ -1,5 +1,5 @@
 from dataset_builders.imsitu_dataset_builder import ImSituDatasetBuilder
-from dataset_builders.coco_dataset_builder import CocoDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.coco_dataset_builder import CocoDatasetBuilder
 import os
 
 a1 = ImSituDatasetBuilder(os.path.join('..', 'datasets', 'ImSitu'), 'train', 'empty_frame_slots_num', 1).build_dataset()
