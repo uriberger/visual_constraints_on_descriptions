@@ -3,7 +3,7 @@ import os
 import abc
 from dataset_builders.dataset_builder import DatasetBuilder
 from utils.general_utils import generate_dataset, for_loop_with_reports
-from utils.text_utils import nlp, is_transitive_sentence
+from utils.text_utils import nlp, is_transitive_sentence, tokenize_and_clean
 
 
 class ImageCaptionDatasetBuilder(DatasetBuilder):
@@ -103,6 +103,24 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
         return transitivity_dataset
 
+    """ Negation dataset: maps image ids to list of boolean stating whether each caption uses negation. """
+
+    def generate_negation_dataset(self):
+        negation_words = set(['not', 'isnt', 'arent', 'doesnt', 'dont', 'cant', 'cannot', 'shouldnt', 'wont', 'wouldnt',
+                              'no', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'without'])
+
+        caption_data = self.get_caption_data()
+        negation_dataset = []
+
+        for sample in caption_data:
+            image_id = sample['image_id']
+            caption = sample['caption']
+            tokenized_caption = tokenize_and_clean(caption)
+            negation_words_in_caption = negation_words.intersection(tokenized_caption)
+            negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
+
+        return negation_dataset
+
     def create_struct_data_internal(self):
         self.log_print(f'Generating {self.name} {self.struct_property} dataset...')
         self.increment_indent()
@@ -110,6 +128,8 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             struct_data = self.generate_passive_dataset()
         elif self.struct_property == 'transitivity':
             struct_data = self.generate_transitivity_dataset()
+        elif self.struct_property == 'negation':
+            struct_data = self.generate_negation_dataset()
         self.decrement_indent()
 
         return struct_data
