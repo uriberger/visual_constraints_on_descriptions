@@ -2,7 +2,6 @@ import abc
 import os
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from utils.general_utils import model_file_suffix, config_file_suffix
 from utils.visual_utils import wanted_image_size
@@ -33,16 +32,25 @@ class ImLingStructInfoClassifier(nn.Module):
         backbone_output_size = dummy_output.shape[1]
 
         if config.struct_property == 'passive':
-            fc = nn.Linear(backbone_output_size, 2)
-            sm = nn.Softmax(dim=1)
-            self.classification_head = nn.Sequential(fc, nn.ReLU(), sm)
+            self.classification_head = self.get_classification_head(backbone_output_size, 2)
         elif config.struct_property == 'empty_frame_slots_num':
-            fc = nn.Linear(backbone_output_size, 6)
-            sm = nn.Softmax(dim=1)
-            self.classification_head = nn.Sequential(fc, nn.ReLU(), sm)
+            self.classification_head = self.get_classification_head(backbone_output_size, 6)
+        elif config.struct_property == 'transitivity':
+            self.classification_head = self.get_classification_head(backbone_output_size, 2)
+        elif config.struct_property == 'negation':
+            self.classification_head = self.get_classification_head(backbone_output_size, 2)
+        elif config.struct_property == 'numbers':
+            self.classification_head = self.get_classification_head(backbone_output_size, 2)
+
         self.classification_head.to(self.device)
 
         self.dump_path = os.path.join(model_dir, model_name)
+
+    @staticmethod
+    def get_classification_head(input_size, class_num):
+        fc = nn.Linear(input_size, class_num)
+        sm = nn.Softmax(dim=1)
+        return nn.Sequential(fc, nn.ReLU(), sm)
 
     def forward(self, x):
         if self.config.freeze_backbone:

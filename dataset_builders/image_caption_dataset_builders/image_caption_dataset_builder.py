@@ -1,6 +1,9 @@
 from spacy.matcher import Matcher
+from recognizers_number import recognize_number, Culture
+
 import os
 import abc
+
 from dataset_builders.dataset_builder import DatasetBuilder
 from utils.general_utils import generate_dataset, for_loop_with_reports
 from utils.text_utils import nlp, is_transitive_sentence, tokenize_and_clean
@@ -121,6 +124,19 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
         return negation_dataset
 
+    """ Numbers dataset: maps image ids to list of boolean stating whether each caption contains numbers. """
+
+    def generate_numbers_dataset(self):
+        caption_data = self.get_caption_data()
+        numbers_dataset = []
+
+        for sample in caption_data:
+            image_id = sample['image_id']
+            caption = sample['caption']
+            numbers_dataset.append((image_id, int(len(recognize_number(caption, Culture.English)) > 0)))
+
+        return numbers_dataset
+
     def create_struct_data_internal(self):
         self.log_print(f'Generating {self.name} {self.struct_property} dataset...')
         self.increment_indent()
@@ -130,6 +146,8 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             struct_data = self.generate_transitivity_dataset()
         elif self.struct_property == 'negation':
             struct_data = self.generate_negation_dataset()
+        elif self.struct_property == 'numbers':
+            struct_data = self.generate_numbers_dataset()
         self.decrement_indent()
 
         return struct_data

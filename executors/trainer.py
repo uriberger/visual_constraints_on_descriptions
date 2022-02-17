@@ -39,10 +39,8 @@ class Trainer(Executor):
 
     @staticmethod
     def get_criterion(struct_property):
-        if struct_property == 'passive':
-            return nn.CrossEntropyLoss()
-        elif struct_property == 'empty_frame_slots_num':
-            return nn.CrossEntropyLoss()
+        # For now all struct properties use cross entropy loss
+        return nn.CrossEntropyLoss()
 
     """ Actions that should be performed at the beginning of training. """
 
