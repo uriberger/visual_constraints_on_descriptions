@@ -39,7 +39,7 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         for line in fp:
             split_line = line.strip().split('#')
             img_file_name = split_line[0]
-            image_id = self.image_filename_to_id(img_file_name)
+            image_id = self.image_file_name_to_id(img_file_name)
             caption = split_line[1].split('\t')[1]  # The first token is caption number
 
             image_id_captions_pairs.append({'image_id': image_id, 'caption': caption})
