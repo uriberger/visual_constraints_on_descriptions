@@ -6,7 +6,7 @@ import abc
 
 from dataset_builders.dataset_builder import DatasetBuilder
 from utils.general_utils import generate_dataset, for_loop_with_reports
-from utils.text_utils import nlp, is_transitive_sentence, tokenize_and_clean
+from utils.text_utils import TextUtils
 
 
 class ImageCaptionDatasetBuilder(DatasetBuilder):
@@ -16,8 +16,10 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         super(ImageCaptionDatasetBuilder, self).__init__(name, data_split_str, struct_property, indent)
         self.root_dir_path = root_dir_path
 
-        self.nlp_data_file_path = os.path.join(self.cached_dataset_files_dir,
-                                               name + '_nlp_data_' + self.data_split_str)
+        self.nlp_data_file_path = os.path.join(
+            self.cached_dataset_files_dir,
+            f'{name}_{TextUtils.get_language()}_nlp_data_{self.data_split_str}'
+        )
 
         self.nlp_data = None
 
@@ -50,7 +52,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
     def collect_nlp_data_from_caption(self, index, sample, should_print):
         caption = sample['caption']
-        self.nlp_data.append(nlp(caption))
+        self.nlp_data.append(TextUtils.get_nlp(caption))
 
     def caption_report(self, index, iterable_size, time_from_prev_checkpoint):
         self.log_print('Starting caption ' + str(index) +
@@ -60,7 +62,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
     """ Passive dataset: maps image ids to list of boolean stating whether each caption is passive. """
 
     def generate_passive_dataset(self):
-        matcher = Matcher(nlp.vocab)
+        matcher = Matcher(TextUtils.get_nlp().vocab)
         passive_rule = [
             {'DEP': 'nsubjpass'},
             {'DEP': 'aux', 'OP': '*'},
@@ -102,7 +104,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                 # We're not interested in non-verb roots
                 continue
 
-            transitivity_dataset.append((image_id, is_transitive_sentence(nlp_data)))
+            transitivity_dataset.append((image_id, TextUtils.is_transitive_sentence(nlp_data)))
 
         return transitivity_dataset
 
@@ -118,7 +120,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         for sample in caption_data:
             image_id = sample['image_id']
             caption = sample['caption']
-            tokenized_caption = tokenize_and_clean(caption)
+            tokenized_caption = TextUtils.tokenize_and_clean(caption)
             negation_words_in_caption = negation_words.intersection(tokenized_caption)
             negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
 

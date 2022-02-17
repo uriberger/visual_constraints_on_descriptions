@@ -22,8 +22,8 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         visual denotations: New similarity metrics for semantic inference over event descriptions' by Young et al.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(Flickr30kDatasetBuilder, self).__init__(root_dir_path, 'flickr30k', data_split_str, struct_property,
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(Flickr30kDatasetBuilder, self).__init__(root_dir_path, 'flickr30k', 'all', struct_property,
                                                       indent)
 
         tokens_dir_name = 'tokens'

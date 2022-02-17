@@ -12,23 +12,28 @@ parser.add_argument('--write_to_log', action='store_true', default=False, dest='
                     help='redirect output to a log file')
 parser.add_argument('--datasets_dir', type=str, default=os.path.join('..', 'datasets'), dest='datasets_dir',
                     help='the path to the datasets dir')
-
+parser.add_argument('--language', type=str, default='English', dest='language',
+                    help='the language of the used dataset')
+parser.add_argument('--struct_property', type=str, dest='struct_property',
+                    help='the linguistic structural property to be examined')
 args = parser.parse_args()
 write_to_log = args.write_to_log
 datasets_dir = args.datasets_dir
+language = args.language
+struct_property = args.struct_property
 
 DatasetBuilder.set_datasets_dir(datasets_dir)
 
 
 def main(should_write_to_log):
     function_name = 'main'
-    timestamp = init_entry_point(should_write_to_log)
+    timestamp = init_entry_point(should_write_to_log, language)
 
-    model_config = ModelConfig(struct_property='passive')
+    model_config = ModelConfig(struct_property=struct_property)
     log_print(function_name, 0, str(model_config))
 
     log_print(function_name, 0, 'Generating training set...')
-    dataset_builder = create_dataset_builder('COCO', 'train', 'passive')
+    dataset_builder = create_dataset_builder('multi30k-dataset', 'train', struct_property)
     training_set = dataset_builder.build_dataset()
     log_print(function_name, 0, 'Training set generated')
 
