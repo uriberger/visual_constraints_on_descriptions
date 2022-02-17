@@ -84,7 +84,7 @@ class Trainer(Executor):
     def train_on_batch(self, index, sampled_batch, print_info):
         # Load data
         image_tensor = sampled_batch['image'].to(self.device)
-        labels = sampled_batch['struct_info']
+        labels = sampled_batch['struct_info'].to(self.device)
 
         # zero the parameter gradients
         self.optimizer.zero_grad()

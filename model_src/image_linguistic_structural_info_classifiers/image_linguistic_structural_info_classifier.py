@@ -26,7 +26,7 @@ class ImLingStructInfoClassifier(nn.Module):
 
         self.backbone_model = self.generate_backbone_model()
 
-        dummy_input = torch.zeros(1, 3, wanted_image_size[0], wanted_image_size[1])
+        dummy_input = torch.zeros(1, 3, wanted_image_size[0], wanted_image_size[1]).to(self.device)
         dummy_output = self.backbone_model_inference(dummy_input)
         backbone_output_size = dummy_output.shape[1]
 
@@ -38,6 +38,7 @@ class ImLingStructInfoClassifier(nn.Module):
             fc = nn.Linear(backbone_output_size, 6)
             sm = nn.Softmax(dim=1)
             self.classification_head = nn.Sequential(fc, nn.ReLU(), sm)
+        self.classification_head.to(self.device)
 
         self.dump_path = os.path.join(model_dir, model_name)
 
