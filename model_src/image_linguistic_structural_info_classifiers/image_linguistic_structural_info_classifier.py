@@ -25,6 +25,8 @@ class ImLingStructInfoClassifier(nn.Module):
             self.device = torch.device('cpu')
 
         self.backbone_model = self.generate_backbone_model()
+        if self.config.freeze_backbone:
+            self.backbone_model.requires_grad_(False)
 
         dummy_input = torch.zeros(1, 3, wanted_image_size[0], wanted_image_size[1]).to(self.device)
         dummy_output = self.backbone_model_inference(dummy_input)
