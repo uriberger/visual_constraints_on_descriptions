@@ -1,9 +1,11 @@
 import torch.utils.data as data
 import torch.optim as optim
 import torch.nn as nn
+import os
 
 from utils.general_utils import for_loop_with_reports, default_model_name
 from executors.executor import Executor
+from executors.evaluator import Evaluator
 from model_src.model_factory import ModelFactory
 
 BATCH_REPORT_NUM = 1000
@@ -11,11 +13,12 @@ BATCH_REPORT_NUM = 1000
 
 class Trainer(Executor):
 
-    def __init__(self, model_root_dir, training_set, epoch_num, batch_size, model_config, indent,
+    def __init__(self, model_root_dir, training_set, test_set, epoch_num, batch_size, model_config, indent,
                  loaded_model_dir=None, loaded_model_name=None):
         super().__init__(indent)
 
         self.training_set = training_set
+        self.test_set = test_set
         self.epoch_num = epoch_num
         self.batch_size = batch_size
 
@@ -36,6 +39,7 @@ class Trainer(Executor):
         self.criterion = self.get_criterion(model_config.struct_property)
 
         self.running_loss = 0.0
+        self.accuracy_history = []
 
     @staticmethod
     def get_criterion(struct_property):
@@ -59,23 +63,23 @@ class Trainer(Executor):
 
         self.log_print('Evaluating after finishing the epoch...')
         self.increment_indent()
-        self.evaluate_current_model()
+        accuracy = self.evaluate_current_model()
         self.decrement_indent()
-
-        # Dump results into a csv file
-        self.dump_results_to_csv()
+        self.accuracy_history.append(accuracy)
 
         # If this is the best model, save it
         self.dump_best_model_if_needed()
 
     def evaluate_current_model(self):
-        return
-
-    def dump_results_to_csv(self):
-        return
+        model_dir = os.path.join(*(os.path.split(self.model.get_model_path())[:-1]))
+        evaluator = Evaluator(self.test_set, model_dir, default_model_name, self.indent + 1)
+        accuracy = evaluator.evaluate()
+        return accuracy
 
     def dump_best_model_if_needed(self):
-        return
+        if self.accuracy_history[-1] == max(self.accuracy_history):
+            # Current model is the best model so far
+            self.model.dump('best')
 
     """ The core function: train the model given a batch of samples. """
 
@@ -102,13 +106,13 @@ class Trainer(Executor):
     """ Train on the training set; This is the entry point of this class. """
 
     def train(self):
-        self.model.dump()
+        self.pre_training()
 
         for epoch_ind in range(self.epoch_num):
             self.log_print('Starting epoch ' + str(epoch_ind))
             self.epoch_ind = epoch_ind
 
-            dataloader = data.DataLoader(self.training_set, batch_size=self.batch_size)
+            dataloader = data.DataLoader(self.training_set, batch_size=self.batch_size, shuffle=True)
 
             checkpoint_len = BATCH_REPORT_NUM
             self.increment_indent()

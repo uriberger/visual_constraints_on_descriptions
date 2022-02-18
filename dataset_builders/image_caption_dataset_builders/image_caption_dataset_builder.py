@@ -140,8 +140,6 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         return numbers_dataset
 
     def create_struct_data_internal(self):
-        self.log_print(f'Generating {self.name} {self.struct_property} dataset...')
-        self.increment_indent()
         if self.struct_property == 'passive':
             struct_data = self.generate_passive_dataset()
         elif self.struct_property == 'transitivity':
@@ -150,7 +148,6 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             struct_data = self.generate_negation_dataset()
         elif self.struct_property == 'numbers':
             struct_data = self.generate_numbers_dataset()
-        self.decrement_indent()
 
         return struct_data
 
