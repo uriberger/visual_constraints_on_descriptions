@@ -98,3 +98,19 @@ def for_loop_with_reports(iterable, iterable_size, checkpoint_len, inner_impl, p
             should_print = True
 
         inner_impl(index, item, should_print)
+
+
+# Aggregation functions
+# This section contains function that aggregate labels.
+# This is needed because each image has multiple captions in most of the dataset.
+# If we compute some structural property of each caption (e.g., whether the main verb is passive), each image would have
+# multiple labels (e.g., 3 captions would be active and 2 would be passive). If we want to give each image a single
+# label, we use an aggregation function, that given a list of labels, produces a single label (e.g., in the case of
+# passive, we can decide that if at least on caption was passive, the image is labeled as passive).
+
+def at_least_one_agg_func(input_list):
+    """ Returns 1 if at least one label in the input list is non zero. """
+    if len(input_list) == 0:
+        assert False
+
+    return int(len([x for x in input_list if x != 0]) > 0)

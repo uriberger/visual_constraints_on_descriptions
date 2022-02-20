@@ -1,5 +1,6 @@
 import abc
 import random
+from collections import defaultdict
 from loggable_object import LoggableObject
 import os
 from utils.general_utils import project_root_dir, generate_dataset, for_loop_with_reports
@@ -71,15 +72,26 @@ class DatasetBuilder(LoggableObject):
 
         return balanced_data
 
-    """ Load the dataset if it's cached, otherwise build it. """
+    """ Load the dataset if it's cached, otherwise build it. Arguments:
+        balanced: If true, we sample randomly from the dataset so that each class would have the same number of samples.
+        aggregation_func: Each image usually has multiple captions. If aggregation_func isn't None we use it to
+        aggregate the labels of all the caption of an image to a single label.
+    """
 
-    def build_dataset(self, balanced=False):
+    def build_dataset(self, balanced=False, aggregation_func=None):
         self.log_print('Generating ' + self.name +
                        ' ' + self.data_split_str +
                        ' ' + self.struct_property + ' dataset...')
 
         self.increment_indent()
         struct_data = self.create_struct_data()
+
+        if aggregation_func is not None:
+            image_id_to_labels = defaultdict(list)
+            for image_id, label in struct_data:
+                image_id_to_labels[image_id].append(label)
+        struct_data = [(x[0], aggregation_func(x[1])) for x in image_id_to_labels.items()]
+
         if balanced:
             self.log_print('Balancing data')
             struct_data = self.balance_data(struct_data)
