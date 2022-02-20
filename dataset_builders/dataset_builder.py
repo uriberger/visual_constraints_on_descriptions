@@ -90,7 +90,7 @@ class DatasetBuilder(LoggableObject):
             image_id_to_labels = defaultdict(list)
             for image_id, label in struct_data:
                 image_id_to_labels[image_id].append(label)
-        struct_data = [(x[0], aggregation_func(x[1])) for x in image_id_to_labels.items()]
+            struct_data = [(x[0], aggregation_func(x[1])) for x in image_id_to_labels.items()]
 
         if balanced:
             self.log_print('Balancing data')

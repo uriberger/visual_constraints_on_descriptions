@@ -5,7 +5,7 @@ from utils.general_utils import for_loop_with_reports
 from executors.executor import Executor
 from model_src.model_factory import ModelFactory
 
-BATCH_REPORT_NUM = 100
+BATCH_REPORT_NUM = 1000
 
 
 class Evaluator(Executor):
@@ -50,4 +50,5 @@ class Evaluator(Executor):
         self.decrement_indent()
 
         accuracy = self.correct_count/self.overall_count
+        self.log_print(f'Accuracy: {accuracy}')
         return accuracy

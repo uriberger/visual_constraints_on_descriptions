@@ -8,3 +8,4 @@ torch_cache
 makefile
 my_script
 slurm-*
+models/*

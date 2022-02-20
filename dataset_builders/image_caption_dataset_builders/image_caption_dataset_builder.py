@@ -52,7 +52,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
     def collect_nlp_data_from_caption(self, index, sample, should_print):
         caption = sample['caption']
-        self.nlp_data.append(TextUtils.get_nlp(caption))
+        self.nlp_data.append(TextUtils.get_nlp()(caption))
 
     def caption_report(self, index, iterable_size, time_from_prev_checkpoint):
         self.log_print('Starting caption ' + str(index) +
