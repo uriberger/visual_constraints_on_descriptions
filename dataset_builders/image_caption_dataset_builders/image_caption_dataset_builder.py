@@ -69,6 +69,12 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
             nlp_data = self.nlp_data[i]
+
+            # We're only in interested in captions with a single root which is a verb
+            roots = [x for x in nlp_data if x.dep_ == 'ROOT']
+            if len(roots) != 1 or roots[0].pos_ != 'VERB':
+                continue
+
             passive_dataset.append((image_id, int(len(matcher(nlp_data)) > 0)))
 
         return passive_dataset
