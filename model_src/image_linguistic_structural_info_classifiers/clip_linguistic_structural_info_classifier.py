@@ -11,7 +11,7 @@ class CLIPLingStructInfoClassifier(ImLingStructInfoClassifier):
             self.backbone_model.eval()
 
     def backbone_model_inference(self, input_tensor):
-        return self.backbone_model_model.encode_image(input_tensor).float()
+        return self.backbone_model.encode_image(input_tensor).float()
 
     def generate_backbone_model(self):
         return clip.load('RN50', self.device)[0]
