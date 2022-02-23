@@ -1,4 +1,3 @@
-from spacy.matcher import Matcher
 from recognizers_number import recognize_number, Culture
 
 import os
@@ -62,18 +61,10 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
     """ Passive dataset: maps image ids to list of boolean stating whether each caption is passive. """
 
     def generate_passive_dataset(self):
-        matcher = Matcher(TextUtils.get_nlp().vocab)
-        passive_rule = [
-            {'DEP': 'nsubjpass'},
-            {'DEP': 'aux', 'OP': '*'},
-            {'DEP': 'auxpass'},
-            {'TAG': 'VBN'}
-        ]
-        matcher.add('Passive', [passive_rule])
-
         caption_data = self.get_caption_data()
         self.generate_nlp_data()
         passive_dataset = []
+        matcher = TextUtils.get_passive_matcher()
 
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
