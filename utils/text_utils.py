@@ -1,4 +1,5 @@
 from spacy import load
+from spacy.matcher import Matcher, DependencyMatcher
 
 
 used_language = 'English'
@@ -39,6 +40,49 @@ class TextUtils:
     @staticmethod
     def is_transitive_sentence(analyzed_sentence):
         return len([token for token in analyzed_sentence if token.dep_ == 'dobj' and token.head.dep_ == 'ROOT']) > 0
+
+    """ Get the spaCy pattern matcher for finding passive sentences.
+        Each language's dependency trees are different, so the matcher depends on the language.
+    """
+
+    @staticmethod
+    def get_passive_matcher():
+        vocab = TextUtils.get_nlp().vocab
+        if TextUtils.get_language() == 'English':
+            matcher = Matcher(vocab)
+            pattern = [
+                {'DEP': 'nsubjpass'},
+                {'DEP': 'aux', 'OP': '*'},
+                {'DEP': 'auxpass'},
+                {'TAG': 'VBN'}
+            ]
+        elif TextUtils.get_language() == 'German':
+            ''' In German, a sentence should be classified as passive if:
+            1. There's a token with the 'oc' dependency tag (clausal object), and
+            2. The POS tag of this token is a verb, and
+            3. The POS tag of this token's parent in the dependency tree is AUX
+
+            E.g., in the sentence "Der Apfel wird gegessen" ("The apple became eaten", the passive verb is "gegessen",
+            its dependency tag is 'oc', and its head is the "wird" token, with the POS tag AUX.
+            '''
+            matcher = DependencyMatcher(vocab)
+            pattern = [
+                {
+                    'RIGHT_ID': 'auxiliary_verb',
+                    'RIGHT_ATTRS': {'POS': 'AUX'}
+                },
+                {
+                    'LEFT_ID': 'auxiliary_verb',
+                    'REL_OP': '>',
+                    'RIGHT_ID': 'passive_verb',
+                    'RIGHT_ATTRS': {'DEP': 'oc', 'POS': 'VERB'}
+                }
+            ]
+        else:
+            matcher = Matcher(vocab)
+            pattern = []
+        matcher.add('Passive', [pattern])
+        return matcher
 
     @staticmethod
     def tokenize(sentence):
