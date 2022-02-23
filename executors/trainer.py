@@ -8,7 +8,7 @@ from executors.executor import Executor
 from executors.evaluator import Evaluator
 from model_src.model_factory import ModelFactory
 
-BATCH_REPORT_NUM = 1000
+BATCH_REPORT_NUM = 250
 
 
 class Trainer(Executor):
