@@ -5,6 +5,7 @@ from loggable_object import LoggableObject
 import os
 from utils.general_utils import project_root_dir, generate_dataset, for_loop_with_reports
 from utils.visual_utils import get_image_shape
+from utils.text_utils import TextUtils
 from dataset_src.image_linguistic_structural_info_dataset import ImLingStructInfoDataset
 
 
@@ -35,9 +36,10 @@ class DatasetBuilder(LoggableObject):
         if not os.path.isdir(self.cached_dataset_files_dir):
             os.mkdir(self.cached_dataset_files_dir)
 
-        self.struct_data_file_path = os.path.join(self.cached_dataset_files_dir,
-                                                  self.name + '_' + self.data_split_str + '_set' +
-                                                  '_' + self.struct_property)
+        self.struct_data_file_path = os.path.join(
+            self.cached_dataset_files_dir,
+            f'{self.name}_{TextUtils.get_language()}_{self.data_split_str}_set_{self.struct_property}'
+        )
 
         self.unwanted_image_ids_file_path = os.path.join(self.cached_dataset_files_dir,
                                                          self.name + '_unwanted_image_ids_' + self.data_split_str)
