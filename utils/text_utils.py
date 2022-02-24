@@ -69,7 +69,7 @@ class TextUtils:
             pattern = [
                 {
                     'RIGHT_ID': 'auxiliary_verb',
-                    'RIGHT_ATTRS': {'POS': 'AUX'}
+                    'RIGHT_ATTRS': {'POS': 'AUX', 'LEMMA': 'werden'}
                 },
                 {
                     'LEFT_ID': 'auxiliary_verb',
