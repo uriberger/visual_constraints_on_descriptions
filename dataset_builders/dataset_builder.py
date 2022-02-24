@@ -60,16 +60,22 @@ class DatasetBuilder(LoggableObject):
     """ Balance given data list so that for each label, their would be the same number of samples. """
 
     @staticmethod
-    def balance_data(struct_data):
+    def find_samples_for_labels(struct_data):
         all_labels = list(set([x[1] for x in struct_data]))
         label_to_data_samples = {x: [] for x in all_labels}
         for image_id, label in struct_data:
             label_to_data_samples[label].append(image_id)
 
-        sample_num_for_each_label = min([len(x) for x in label_to_data_samples.values()])
+        return label_to_data_samples
+
+    @staticmethod
+    def balance_data(struct_data):
+        label_to_data_samples = DatasetBuilder.find_samples_for_labels(struct_data)
+
+        wanted_sample_num_for_each_label = min([len(x) for x in label_to_data_samples.values()])
         balanced_data = []
         for label, image_id_list in label_to_data_samples.items():
-            sampled_image_ids = random.sample(image_id_list, sample_num_for_each_label)
+            sampled_image_ids = random.sample(image_id_list, wanted_sample_num_for_each_label)
             balanced_data += [(x, label) for x in sampled_image_ids]
 
         return balanced_data
@@ -93,6 +99,10 @@ class DatasetBuilder(LoggableObject):
             for image_id, label in struct_data:
                 image_id_to_labels[image_id].append(label)
             struct_data = [(x[0], aggregation_func(x[1])) for x in image_id_to_labels.items()]
+
+        label_to_data_samples = DatasetBuilder.find_samples_for_labels(struct_data)
+        label_to_sample_num = {x[0]: len(x[1]) for x in label_to_data_samples.items()}
+        self.log_print(f'Sample num per label: {label_to_sample_num}')
 
         if balanced:
             self.log_print('Balancing data')
