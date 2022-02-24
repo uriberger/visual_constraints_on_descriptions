@@ -128,11 +128,19 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
     def generate_numbers_dataset(self):
         caption_data = self.get_caption_data()
         numbers_dataset = []
+        language = TextUtils.get_language()
+        if language == 'English':
+            culture_language = Culture.English
+        elif language == 'French':
+            culture_language = Culture.French
+        else:
+            self.log_print(f'Numbers property not implemented for language {language}')
+            assert False
 
         for sample in caption_data:
             image_id = sample['image_id']
             caption = sample['caption']
-            numbers_dataset.append((image_id, int(len(recognize_number(caption, Culture.English)) > 0)))
+            numbers_dataset.append((image_id, int(len(recognize_number(caption, culture_language)) > 0)))
 
         return numbers_dataset
 
