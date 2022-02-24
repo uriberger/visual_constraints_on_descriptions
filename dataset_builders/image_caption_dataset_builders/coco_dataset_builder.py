@@ -49,8 +49,8 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
             external_caption_file_path = self.train_captions_file_path
         elif self.data_split_str == 'val':
             external_caption_file_path = self.val_captions_file_path
-        caption_fp = open(external_caption_file_path, 'r')
-        caption_data = json.load(caption_fp)['annotations']
+        with open(external_caption_file_path, 'r') as caption_fp:
+            caption_data = json.load(caption_fp)['annotations']
         return caption_data
 
     def create_image_path_finder(self):

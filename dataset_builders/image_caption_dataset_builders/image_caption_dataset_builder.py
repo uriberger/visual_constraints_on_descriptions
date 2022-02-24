@@ -133,6 +133,8 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             culture_language = Culture.English
         elif language == 'French':
             culture_language = Culture.French
+        elif language == 'Japanese':
+            culture_language = Culture.Japanese
         else:
             self.log_print(f'Numbers property not implemented for language {language}')
             assert False
