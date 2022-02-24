@@ -114,3 +114,11 @@ def at_least_one_agg_func(input_list):
         assert False
 
     return int(len([x for x in input_list if x != 0]) > 0)
+
+
+def likelihood_agg_func(input_list):
+    """ Returns the percentage of 1's. """
+    if len(input_list) == 0:
+        assert False
+
+    return len([x for x in input_list if x == 1])/len(input_list)
