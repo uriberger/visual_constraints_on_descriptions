@@ -26,7 +26,7 @@ class Flickr8kCNDatasetBuilder(ImageCaptionDatasetBuilder):
                     continue
                 line_parts = striped_line.split()
                 assert len(line_parts) == 2
-                image_id = line_parts[0].split('_')[0]
+                image_id = int(line_parts[0].split('_')[0])
                 caption = line_parts[1]
                 image_id_captions_pairs.append({'image_id': image_id, 'caption': caption})
 
