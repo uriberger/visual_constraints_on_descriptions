@@ -135,6 +135,10 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             culture_language = Culture.French
         elif language == 'Japanese':
             culture_language = Culture.Japanese
+        elif language == 'German':
+            culture_language = Culture.German
+        elif language == 'Chinese':
+            culture_language = Culture.Chinese
         else:
             self.log_print(f'Numbers property not implemented for language {language}')
             assert False
@@ -142,6 +146,12 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         for sample in caption_data:
             image_id = sample['image_id']
             caption = sample['caption']
+
+            # The recognizers_number package has some bug in Japanese: it doesn't work if there are no spaces between
+            # words
+            if language == 'Japanese':
+                caption = ' '.join([char for char in caption])
+
             numbers_dataset.append((image_id, int(len(recognize_number(caption, culture_language)) > 0)))
 
         return numbers_dataset
