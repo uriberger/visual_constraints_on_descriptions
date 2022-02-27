@@ -147,9 +147,9 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             image_id = sample['image_id']
             caption = sample['caption']
 
-            # The recognizers_number package has some bug in Japanese: it doesn't work if there are no spaces between
-            # words
-            if language == 'Japanese':
+            # The recognizers_number package has some bug in logographic languages: it doesn't work if there are no
+            # spaces between words
+            if language in ['Japanese', 'Chinese']:
                 caption = ' '.join([char for char in caption])
 
             numbers_dataset.append((image_id, int(len(recognize_number(caption, culture_language)) > 0)))
