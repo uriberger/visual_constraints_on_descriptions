@@ -1,10 +1,10 @@
 import os
 import json
-from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.coco_dataset_builder import CocoDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_based_dataset_builder import \
+    CocoBasedDatasetBuilder
 
 
-class StairDatasetBuilder(ImageCaptionDatasetBuilder):
+class StairDatasetBuilder(CocoBasedDatasetBuilder):
     """ This is the dataset builder class for the STAIR-caption dataset, described in the paper 'STAIR Captions:
         Constructing a Large-Scale Japanese Image Caption Dataset' by Yoshikawa et al.
         This dataset is based on the COCO dataset.
@@ -21,10 +21,6 @@ class StairDatasetBuilder(ImageCaptionDatasetBuilder):
         self.train_captions_file_path = os.path.join(root_dir_path, train_captions_file_name)
         self.val_captions_file_path = os.path.join(root_dir_path, val_captions_file_name)
 
-        # This dataset doesn't contain the images themselves- the images are in the COCO dataset
-        coco_path = os.path.join(self.root_dir_path, '..', 'COCO')
-        self.coco_builder = CocoDatasetBuilder(coco_path, self.data_split_str, self.struct_property, self.indent + 1)
-
     def get_caption_data(self):
         if self.data_split_str == 'train':
             external_caption_file_path = self.train_captions_file_path
@@ -33,12 +29,3 @@ class StairDatasetBuilder(ImageCaptionDatasetBuilder):
         with open(external_caption_file_path, 'r', encoding='utf8') as caption_fp:
             caption_data = json.load(caption_fp)['annotations']
         return caption_data
-
-    def get_gt_classes_data_internal(self):
-        return self.coco_builder.get_gt_classes_data()
-
-    def get_class_mapping(self):
-        return self.coco_builder.get_class_mapping()
-
-    def create_image_path_finder(self):
-        return self.coco_builder.create_image_path_finder()

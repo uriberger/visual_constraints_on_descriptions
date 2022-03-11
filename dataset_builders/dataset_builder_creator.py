@@ -1,12 +1,20 @@
 import os
 from dataset_builders.dataset_builder import DatasetBuilder
 
-from dataset_builders.image_caption_dataset_builders.coco_dataset_builder import CocoDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.flickr30k_dataset_builder import Flickr30kDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.multi30k_dataset_builder import Multi30kDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.stair_dataset_builder import StairDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.flickr8k_cn_dataset_builder import Flickr8kCNDatasetBuilder
-from dataset_builders.imsitu_dataset_builder import ImSituDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
+    CocoDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.flickr30k_dataset_builder import \
+    Flickr30kDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.multi30k_dataset_builder import \
+    Multi30kDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.stair_dataset_builder import \
+    StairDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.flickr8k_cn_dataset_builder import \
+    Flickr8kCNDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_cn_dataset_builder import \
+    CocoCNDatasetBuilder
+from dataset_builders.imsitu_dataset_builder import \
+    ImSituDatasetBuilder
 
 
 """ This utility creates a dataset builder given the dataset name.
@@ -30,6 +38,8 @@ def create_dataset_builder(dataset_name, data_split_str, struct_property):
         dataset_builder = StairDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     elif dataset_name == 'flickr8kcn':
         dataset_builder = Flickr8kCNDatasetBuilder(root_dir, data_split_str, struct_property, 1)
+    elif dataset_name == 'coco-cn':
+        dataset_builder = CocoCNDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     else:
         assert False
 
