@@ -21,6 +21,10 @@ class StairDatasetBuilder(ImageCaptionDatasetBuilder):
         self.train_captions_file_path = os.path.join(root_dir_path, train_captions_file_name)
         self.val_captions_file_path = os.path.join(root_dir_path, val_captions_file_name)
 
+        # This dataset doesn't contain the images themselves- the images are in the COCO dataset
+        coco_path = os.path.join(self.root_dir_path, '..', 'COCO')
+        self.coco_builder = CocoDatasetBuilder(coco_path, self.data_split_str, self.struct_property, self.indent + 1)
+
     def get_caption_data(self):
         if self.data_split_str == 'train':
             external_caption_file_path = self.train_captions_file_path
@@ -30,8 +34,11 @@ class StairDatasetBuilder(ImageCaptionDatasetBuilder):
             caption_data = json.load(caption_fp)['annotations']
         return caption_data
 
+    def get_gt_classes_data_internal(self):
+        return self.coco_builder.get_gt_classes_data()
+
+    def get_class_mapping(self):
+        return self.coco_builder.get_class_mapping()
+
     def create_image_path_finder(self):
-        # This dataset doesn't contain the images themselves- the images are in the COCO dataset
-        coco_path = os.path.join(self.root_dir_path, '..', 'COCO')
-        coco_builder = CocoDatasetBuilder(coco_path, self.data_split_str, self.struct_property, self.indent + 1)
-        return coco_builder.create_image_path_finder()
+        return self.coco_builder.create_image_path_finder()
