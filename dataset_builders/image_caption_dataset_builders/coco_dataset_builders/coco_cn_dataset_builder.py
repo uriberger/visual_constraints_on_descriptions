@@ -13,10 +13,9 @@ class CocoCNDatasetBuilder(CocoBasedDatasetBuilder):
         super(CocoCNDatasetBuilder, self).__init__(root_dir_path, 'coco_cn', data_split_str, struct_property,
                                                    indent)
 
-        data_dir_name = 'data'
-        captions_file_name = 'coco-cn_ext.icap2020.txt'
+        captions_file_name = 'imageid.human-written-caption.txt'
 
-        self.captions_file_path = os.path.join(root_dir_path, data_dir_name, captions_file_name)
+        self.captions_file_path = os.path.join(root_dir_path, captions_file_name)
 
     def get_caption_data(self):
         caption_data = []
