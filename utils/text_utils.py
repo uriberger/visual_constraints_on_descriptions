@@ -32,6 +32,8 @@ class TextUtils:
                 nlps[language] = load('ja_core_news_sm')
             elif language == 'Chinese':
                 nlps[language] = load('zh_core_web_sm')
+            elif language == 'French':
+                nlps[language] = load('fr_core_news_sm')
 
         return nlps[language]
 
