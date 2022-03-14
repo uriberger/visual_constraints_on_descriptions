@@ -127,18 +127,43 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
     """ Negation dataset: maps image ids to list of boolean stating whether each caption uses negation. """
 
     def generate_negation_dataset(self):
-        negation_words = set(['not', 'isnt', 'arent', 'doesnt', 'dont', 'cant', 'cannot', 'shouldnt', 'wont', 'wouldnt',
-                              'no', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'without'])
+        english_negation_words = set([
+            'not', 'isnt', 'arent', 'doesnt', 'dont', 'cant', 'cannot', 'shouldnt', 'wont', 'wouldnt', 'no', 'none',
+            'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'without'
+        ])
+        german_negation_words = set([
+            'nicht', 'kein', 'nie', 'niemals', 'niemand', 'nirgendwo', 'nirgendwohin', 'nirgends', 'weder', 'ohne',
+            'nein', 'nichts', 'nee'
+        ])
+        chinese_negation_words = set([
+            '不', '没', '没有'
+        ])
 
         caption_data = self.get_caption_data()
+        self.generate_nlp_data()
         negation_dataset = []
+        language = TextUtils.get_language()
 
-        for sample in caption_data:
+        for i in range(len(caption_data)):
+            sample = caption_data[i]
             image_id = sample['image_id']
             caption = sample['caption']
-            tokenized_caption = TextUtils.tokenize_and_clean(caption)
-            negation_words_in_caption = negation_words.intersection(tokenized_caption)
-            negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
+            if language == 'English':
+                tokenized_caption = TextUtils.tokenize_and_clean(caption)
+                negation_words_in_caption = english_negation_words.intersection(tokenized_caption)
+                negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
+            elif language == 'German':
+                sample_nlp_data = self.nlp_data[i]
+                negation_words_in_caption = german_negation_words.intersection([
+                    x.lemma_.lower() for x in sample_nlp_data
+                ])
+                negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
+            elif language == 'Chinese':
+                if len([x for x in self.nlp_data[i] if x.dep_ == 'neg']) > 0 or \
+                        len([x for x in self.nlp_data[i] if x.text == '没有']) > 0:
+                    negation_dataset.append((image_id, 1))
+                else:
+                    negation_dataset.append((image_id, 0))
 
         return negation_dataset
 
