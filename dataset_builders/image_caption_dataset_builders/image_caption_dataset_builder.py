@@ -138,6 +138,9 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         chinese_negation_words = set([
             '不', '没', '没有'
         ])
+        french_negation_words = set([
+            'sans', 'rien', 'jamais'
+        ])
 
         caption_data = self.get_caption_data()
         self.generate_nlp_data()
