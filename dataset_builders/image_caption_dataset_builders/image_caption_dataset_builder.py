@@ -156,6 +156,9 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         french_negation_words = set([
             'sans', 'rien', 'jamais'
         ])
+        japanese_negation_words = set([
+            'ない', 'ません', 'なかった', 'でした', 'いいえ'
+        ])
 
         caption_data = self.get_caption_data()
         self.generate_nlp_data()
@@ -182,6 +185,10 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                     negation_dataset.append((image_id, 1))
                 else:
                     negation_dataset.append((image_id, 0))
+            elif language == 'Japanese':
+                tokenized_caption = TextUtils.tokenize_and_clean(caption)
+                negation_words_in_caption = japanese_negation_words.intersection(tokenized_caption)
+                negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
 
         return negation_dataset
 
