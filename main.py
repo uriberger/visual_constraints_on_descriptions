@@ -20,6 +20,8 @@ parser.add_argument('--dataset', type=str, dest='dataset',
                     help='the name of the used dataset')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
                     help='use translated captions')
+parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
+                    help='only dump the captions of the dataset and exit')
 args = parser.parse_args()
 write_to_log = args.write_to_log
 datasets_dir = args.datasets_dir
@@ -27,6 +29,7 @@ language = args.language
 struct_property = args.struct_property
 dataset_name = args.dataset
 translated = args.translated
+dump_captions = args.dump_captions
 
 DatasetBuilder.set_datasets_dir(datasets_dir)
 
@@ -60,6 +63,9 @@ def main(should_write_to_log):
 
     log_print(function_name, 0, 'Generating datasets...')
     training_set_builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+    if dump_captions:
+        training_set_builder.dump_captions()
+        return
     training_set = training_set_builder.build_dataset()
     # Delete start
     # gt_class_mapping = training_set_builder.get_gt_classes_data()

@@ -15,6 +15,11 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         super(ImageCaptionDatasetBuilder, self).__init__(name, data_split_str, struct_property, indent)
         self.root_dir_path = root_dir_path
 
+        self.dump_caption_file_path = os.path.join(
+            self.cached_dataset_files_dir,
+            f'{name}_{TextUtils.get_language()}_dump_captions_{self.data_split_str}.txt'
+        )
+
         self.nlp_data_file_path = os.path.join(
             self.cached_dataset_files_dir,
             f'{name}_{TextUtils.get_language()}_nlp_data_{self.data_split_str}'
@@ -46,6 +51,16 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
     def get_class_mapping(self):
         return {}
+
+    """ Dump all the captions in the dataset to a text file. """
+
+    def dump_captions(self):
+        self.log_print('Dumping captions...')
+        caption_data = self.get_caption_data()
+
+        with open(self.dump_caption_file_path, 'w') as dump_caption_fp:
+            for sample in caption_data:
+                dump_caption_fp.write(sample['caption'] + '\n')
 
     """ NLP data: the nlp data (spaCy analysis of each caption) is expensive to generate. So we'll do it once and cache
         it for future uses.

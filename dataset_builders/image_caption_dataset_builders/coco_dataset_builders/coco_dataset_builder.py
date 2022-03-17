@@ -2,7 +2,6 @@ import os
 import json
 from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
-from utils.general_utils import generate_dataset
 
 
 class CocoImagePathFinder(ImagePathFinder):
