@@ -32,7 +32,7 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
     """
 
     def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(CocoDatasetBuilder, self).__init__(root_dir_path, 'coco', data_split_str, struct_property, indent)
+        super(CocoDatasetBuilder, self).__init__(root_dir_path, 'COCO', data_split_str, struct_property, indent)
 
         train_val_annotations_dir = 'train_val_annotations2014'
 

@@ -25,7 +25,7 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
     """
 
     def __init__(self, root_dir_path, struct_property, indent):
-        super(Flickr30kDatasetBuilder, self).__init__(root_dir_path, 'flickr30k', 'all', struct_property,
+        super(Flickr30kDatasetBuilder, self).__init__(root_dir_path, 'flickr30', 'all', struct_property,
                                                       indent)
 
         tokens_dir_name = 'tokens'
