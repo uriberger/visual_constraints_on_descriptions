@@ -60,7 +60,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
         with open(self.dump_caption_file_path, 'w') as dump_caption_fp:
             for sample in caption_data:
-                dump_caption_fp.write(sample['caption'].strip() + '\n')
+                dump_caption_fp.write(sample['caption'].strip().replace('\n', '.') + '\n')
 
     """ NLP data: the nlp data (spaCy analysis of each caption) is expensive to generate. So we'll do it once and cache
         it for future uses.
@@ -94,22 +94,63 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
     """ Passive dataset: maps image ids to list of boolean stating whether each caption is passive. """
 
+    # def generate_passive_dataset_old(self):
+    #     caption_data = self.get_caption_data()
+    #     self.generate_nlp_data()
+    #     passive_dataset = []
+    #     matcher = TextUtils.get_passive_matcher()
+    #
+    #     for i in range(len(caption_data)):
+    #         image_id = caption_data[i]['image_id']
+    #         nlp_data = self.nlp_data[i]
+    #
+    #         # We're only in interested in captions with a single root which is a verb
+    #         roots = [x for x in nlp_data if x.dep_ == 'ROOT']
+    #         if len(roots) != 1 or roots[0].pos_ != 'VERB':
+    #             continue
+    #
+    #         passive_dataset.append((image_id, int(len(matcher(nlp_data)) > 0)))
+    #
+    #     return passive_dataset
+
     def generate_passive_dataset(self):
+        language = TextUtils.get_language()
         caption_data = self.get_caption_data()
-        self.generate_nlp_data()
         passive_dataset = []
-        matcher = TextUtils.get_passive_matcher()
 
-        for i in range(len(caption_data)):
-            image_id = caption_data[i]['image_id']
-            nlp_data = self.nlp_data[i]
+        if language in ['English', 'German', 'French']:
+            # For English, German and French we have an external tool that identifies passive for us
+            cached_dataset_files_dir_name = self.cached_dataset_files_dir
+            tmv_out_file_name = f'tmv_out_{language}_{self.name}.verbs2'
+            tmv_out_file_path = os.path.join(cached_dataset_files_dir_name, tmv_out_file_name)
+            if not os.path.isfile(tmv_out_file_path):
+                self.log_print(f'Couldn\'t find the tmv out file in path {tmv_out_file_path}. Stopping!')
+                self.log_print('Did you run the english_german_french_passive/prepare_passive_data.sh script?')
+                assert False
 
-            # We're only in interested in captions with a single root which is a verb
-            roots = [x for x in nlp_data if x.dep_ == 'ROOT']
-            if len(roots) != 1 or roots[0].pos_ != 'VERB':
-                continue
+            with open(tmv_out_file_path, 'r', encoding='utf-8') as tmv_out_fp:
+                prev_caption_ind = None
+                passive_indicator = 0
+                for line in tmv_out_fp:
+                    line_parts = line.strip().split('\t')
+                    caption_ind = int(line_parts[0]) - 1
+                    if caption_ind != prev_caption_ind:
+                        ''' A caption my have multiple lines, but successive. If we found a new caption ind, it means we
+                         finished the previous caption, and we should store the results. '''
+                        if prev_caption_ind is not None:
+                            image_id = caption_data[prev_caption_ind]['image_id']
+                            passive_dataset.append((image_id, passive_indicator))
+                        prev_caption_ind = caption_ind
+                        passive_indicator = 0
+                    if line_parts[-5] == 'passive':
+                        passive_indicator = 1
 
-            passive_dataset.append((image_id, int(len(matcher(nlp_data)) > 0)))
+                # Now we need to store results for the last caption
+                image_id = caption_data[caption_ind]['image_id']
+                passive_dataset.append((image_id, passive_indicator))
+        else:
+            # For other languages, we need to do it manually
+            assert False  # Not implemented yet
 
         return passive_dataset
 

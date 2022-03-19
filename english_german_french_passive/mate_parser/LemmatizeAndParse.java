@@ -45,8 +45,15 @@ public class LemmatizeAndParse {
 		
 		FileWriter myWriter = new FileWriter("parsed.txt");
 		File myObj = new File(captionFilePath.toString());
-        Scanner myReader = new Scanner(myObj);
-        while (myReader.hasNextLine()) {
+		Scanner myReader = new Scanner(myObj);
+		int counter = 0;
+		while (myReader.hasNextLine()) {
+			if (counter % 1000 == 0)
+			{
+				System.out.println("[LemmatizeAndParse] Starting caption " + counter);
+			}
+			counter = counter + 1;
+			
 			// Create a data container for a sentence
 			SentenceData09 i = new SentenceData09();
 			String data = myReader.nextLine();
