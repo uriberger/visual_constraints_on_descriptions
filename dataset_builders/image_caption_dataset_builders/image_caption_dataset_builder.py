@@ -60,7 +60,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
         with open(self.dump_caption_file_path, 'w') as dump_caption_fp:
             for sample in caption_data:
-                dump_caption_fp.write(sample['caption'] + '\n')
+                dump_caption_fp.write(sample['caption'].strip() + '\n')
 
     """ NLP data: the nlp data (spaCy analysis of each caption) is expensive to generate. So we'll do it once and cache
         it for future uses.

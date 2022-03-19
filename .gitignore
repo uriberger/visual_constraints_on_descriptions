@@ -8,4 +8,12 @@ torch_cache
 makefile
 my_script
 slurm-*
+*.class
+*META-INF*
+*is2*
 models/*
+*parsed.txt
+tmv_out_*
+*.mdl
+*.model
+*.1-2-2-ht4-hm4-kk0
