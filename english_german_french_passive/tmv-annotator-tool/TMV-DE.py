@@ -953,9 +953,9 @@ def extractVerbDeps(parsed_file):
 
         # Output status of the processing
         #sys.stdout.write("\nSent " + str(sent_nr) + "\n")
-        sys.stdout.write('\r')
-        sys.stdout.write("[%-20s] %d%%" % ('='*sent_nr, 5*sent_nr))
-        sys.stdout.flush()
+        # sys.stdout.write('\r')
+        # sys.stdout.write("[%-20s] %d%%" % ('='*sent_nr, 5*sent_nr))
+        # sys.stdout.flush()
 
         pos_dict = {}  # Dict: {sent_position1: line, sent_position2:line, ...}
         dep_dict = {}  # Dict: {dependency_position1: [sent_position1, sent_position2, ...], ...}
