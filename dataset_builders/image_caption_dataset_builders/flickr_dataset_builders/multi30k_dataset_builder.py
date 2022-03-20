@@ -19,9 +19,9 @@ class Multi30kDatasetBuilder(FlickrBasedDatasetBuilder):
         language = TextUtils.get_language()
         if language not in ['German', 'French']:
             assert False
-        if (not translated) and language != 'German':
-            self.log_print('Error: original captions exist only in German!')
-            assert False
+        if (not translated) and language == 'French':
+            self.log_print('Warning: Original captions doesn\'t exist in French, using translated instead')
+            translated = True
 
         data_dir_name = 'data'
         if translated:
