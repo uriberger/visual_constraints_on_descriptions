@@ -121,7 +121,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         if language in ['English', 'German', 'French']:
             # For English, German and French we have an external tool that identifies passive for us
             cached_dataset_files_dir_name = self.cached_dataset_files_dir
-            tmv_out_file_name = f'tmv_out_{language}_{self.name}.verbs2'
+            tmv_out_file_name = f'tmv_out_{language}_{self.name}.verbs'
             tmv_out_file_path = os.path.join(cached_dataset_files_dir_name, tmv_out_file_name)
             if not os.path.isfile(tmv_out_file_path):
                 self.log_print(f'Couldn\'t find the tmv out file in path {tmv_out_file_path}. Stopping!')
@@ -142,7 +142,13 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                             passive_dataset.append((image_id, passive_indicator))
                         prev_caption_ind = caption_ind
                         passive_indicator = 0
-                    if line_parts[-5] == 'passive':
+                    if language == 'English':
+                        voice_index = -5
+                    elif language == 'German':
+                        voice_index = -3
+                    elif language == 'French':
+                        voice_index = -4
+                    if line_parts[voice_index] == 'passive':
                         passive_indicator = 1
 
                 # Now we need to store results for the last caption

@@ -81,7 +81,7 @@ public class LemmatizeAndParse {
 			p.apply(i);
 		
 			// output the result
-			for (int k=1;k< i.length();k++) myWriter.write(k+"\t"+i.forms[k]+"\t"+i.plemmas[k]+"\t_\t_\t"+i.ppos[k]+"\t_\t"+i.pfeats[k]+"\t_\t"+i.pheads[k]+"\t_\t"+i.plabels[k]+"\t_\t_\n");
+			for (int k=1;k< i.length();k++) myWriter.write(k+"\t"+i.forms[k]+"\t_\t"+i.plemmas[k]+"\t_\t"+i.ppos[k]+"\t_\t"+i.pfeats[k]+"\t_\t"+i.pheads[k]+"\t_\t"+i.plabels[k]+"\t_\t_\n");
 			myWriter.write("\n");
         }
         myReader.close();
