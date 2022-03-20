@@ -1,9 +1,12 @@
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 
 import java.io.IOException;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.Writer;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -43,9 +46,9 @@ public class LemmatizeAndParse {
 		Lemmatizer lemmatizer = new Lemmatizer(lemmatizerPath.toString());
 		Parser p = new is2.transitionS2a.Parser(parserPath.toString());
 		
-		FileWriter myWriter = new FileWriter("parsed.txt");
+		Writer myWriter = new OutputStreamWriter(new FileOutputStream("parsed.txt"), StandardCharsets.UTF_8);
 		File myObj = new File(captionFilePath.toString());
-		Scanner myReader = new Scanner(myObj);
+		Scanner myReader = new Scanner(myObj, "utf-8");
 		int counter = 0;
 		while (myReader.hasNextLine()) {
 			if (counter % 1000 == 0)
@@ -70,7 +73,7 @@ public class LemmatizeAndParse {
 			p.apply(i);
 		
 			// output the result
-			for (int k=1;k< i.length();k++) myWriter.write(k+"\t"+i.forms[k]+"\t"+i.plemmas[k]+"\t_\t_\t"+i.ppos[k]+"\t_\t"+i.feats[k]+"\t_\t"+i.pheads[k]+"\t_\t"+i.plabels[k]+"\t_\t_\n");
+			for (int k=1;k< i.length();k++) myWriter.write(k+"\t"+i.forms[k]+"\t"+i.plemmas[k]+"\t_\t_\t"+i.ppos[k]+"\t_\t"+i.pfeats[k]+"\t_\t"+i.pheads[k]+"\t_\t"+i.plabels[k]+"\t_\t_\n");
 			myWriter.write("\n");
         }
         myReader.close();

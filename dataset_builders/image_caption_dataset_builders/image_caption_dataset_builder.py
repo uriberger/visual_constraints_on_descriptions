@@ -58,7 +58,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         self.log_print('Dumping captions...')
         caption_data = self.get_caption_data()
 
-        with open(self.dump_caption_file_path, 'w') as dump_caption_fp:
+        with open(self.dump_caption_file_path, 'w', encoding='utf8') as dump_caption_fp:
             for sample in caption_data:
                 dump_caption_fp.write(sample['caption'].strip().replace('\n', '.') + '\n')
 
