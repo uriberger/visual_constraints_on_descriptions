@@ -155,8 +155,16 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                 image_id = caption_data[caption_ind]['image_id']
                 passive_dataset.append((image_id, passive_indicator))
         else:
-            # For other languages, we need to do it manually
-            assert False  # Not implemented yet
+            if language == 'Japanese':
+                passive_indicators = set(['れる', 'られる'])
+            self.generate_nlp_data()
+            for i in range(len(caption_data)):
+                sample = caption_data[i]
+                sample_nlp_data = self.nlp_data[i]
+                lemmas = [x.lemma_ for x in sample_nlp_data]
+                image_id = sample['image_id']
+                sample_passive_indicators = passive_indicators.intersection(lemmas)
+                passive_dataset.append((image_id, int(len(sample_passive_indicators) > 0)))
 
         return passive_dataset
 
