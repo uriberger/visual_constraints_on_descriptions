@@ -48,8 +48,8 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         fp = open(self.tokens_file_path, encoding='utf-8')
         image_id_captions_pairs = []
         for line in fp:
-            split_line = line.strip().split('#')
-            img_file_name = split_line[0]
+            split_line = line.strip().split('g#')
+            img_file_name = split_line[0] + 'g'
             image_id = self.image_file_name_to_id(img_file_name)
             caption = split_line[1].split('\t')[1]  # The first token is caption number
 
