@@ -155,16 +155,28 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                 image_id = caption_data[caption_ind]['image_id']
                 passive_dataset.append((image_id, passive_indicator))
         else:
+            self.generate_nlp_data()
+
             if language == 'Japanese':
                 passive_indicators = set(['れる', 'られる'])
-            self.generate_nlp_data()
+
             for i in range(len(caption_data)):
                 sample = caption_data[i]
                 sample_nlp_data = self.nlp_data[i]
-                lemmas = [x.lemma_ for x in sample_nlp_data]
+                caption = sample['caption']
                 image_id = sample['image_id']
-                sample_passive_indicators = passive_indicators.intersection(lemmas)
-                passive_dataset.append((image_id, int(len(sample_passive_indicators) > 0)))
+
+                # We're only in interested in captions with at least a single verb
+                verbs = [x for x in sample_nlp_data if x.pos_ == 'VERB']
+                if len(verbs) == 0:
+                    continue
+
+                if language == 'Japanese':
+                    lemmas = [x.lemma_ for x in sample_nlp_data]
+                    sample_passive_indicators = passive_indicators.intersection(lemmas)
+                    passive_dataset.append((image_id, int(len(sample_passive_indicators) > 0)))
+                elif language == 'Chinese':
+                    passive_dataset.append((image_id, int('被' in caption)))
 
         return passive_dataset
 
