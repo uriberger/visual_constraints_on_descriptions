@@ -309,6 +309,8 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             self.log_print(f'Numbers property not implemented for language {language}')
             assert False
 
+        nlp = TextUtils.get_nlp()
+
         for sample in caption_data:
             image_id = sample['image_id']
             caption = sample['caption']
@@ -318,7 +320,18 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             if language in ['Japanese', 'Chinese']:
                 caption = ' '.join([char for char in caption])
 
-            numbers_dataset.append((image_id, int(len(recognize_number(caption, culture_language)) > 0)))
+            numbers_list = recognize_number(caption, culture_language)
+            ''' In French and German, the words for "one" and "a" are the same.
+            So we don't want to consider those words as numbers. '''
+            if language == 'French':
+                numbers_list = [x for x in numbers_list
+                                if [y.lemma_ for y in nlp(x.text)] not in [['un'], ['un', 'sur', 'un']]]
+            if language == 'German':
+                # Should the 'eins' word be removed as well? I don't think so
+                numbers_list = [x for x in numbers_list
+                                if [y.lemma_ for y in nlp(x.text)][0] not in ['ein', 'einer', 'einen']]
+
+            numbers_dataset.append((image_id, int(len(numbers_list) > 0)))
 
         return numbers_dataset
 
