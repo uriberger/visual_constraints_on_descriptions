@@ -16,7 +16,7 @@ class FlickrBasedDatasetBuilder(ImageCaptionDatasetBuilder):
                                                         indent)
 
         # This dataset doesn't contain the images themselves- the images are in the COCO dataset
-        flickr30k_path = os.path.join(self.root_dir_path, '../..', 'flickr30')
+        flickr30k_path = os.path.join(self.root_dir_path, '..', 'flickr30')
         self.flickr30k_builder = Flickr30kDatasetBuilder(flickr30k_path, self.struct_property, self.indent + 1)
 
     @abc.abstractmethod
