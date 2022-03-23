@@ -2,6 +2,7 @@ from recognizers_number import recognize_number, Culture
 
 import os
 import abc
+import jieba
 
 from dataset_builders.dataset_builder import DatasetBuilder
 from utils.general_utils import generate_dataset, for_loop_with_reports
@@ -211,26 +212,36 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
     def generate_negation_dataset(self):
         english_negation_words = set([
             'not', 'isnt', 'arent', 'doesnt', 'dont', 'cant', 'cannot', 'shouldnt', 'wont', 'wouldnt', 'no', 'none',
-            'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'without'
+            'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'without',
+            # New words
+            'nope'
         ])
         german_negation_words = set([
-            'nicht', 'kein', 'nie', 'niemals', 'niemand', 'nirgendwo', 'nirgendwohin', 'nirgends', 'weder', 'ohne',
-            'nein', 'nichts', 'nee'
+            'nicht', 'kein', 'keiner', 'nie', 'niemals', 'niemand', 'nirgendwo', 'nirgendwohin', 'nirgends', 'weder',
+            'ohne', 'nein', 'nichts', 'nee', 'noch'
         ])
-        chinese_negation_words = set([
-            '不', '没', '没有'
+        french_ne_negation_words = set([
+            'aucun', 'aucune', 'ni', 'pas', 'personne'
         ])
         french_negation_words = set([
-            'sans', 'rien', 'jamais'
+            'jamais', 'rien', 'non', 'sans', 'nan'
+        ])
+        french_negation_phrases = [
+            ['nulle', 'part']
+        ]
+        chinese_negation_words = set([
+            '不', '不是', '不能', '不可以', '没', '没有', '没什么', '从不', '并不', '从没有', '并没有', '无人', '无处', '无', '别',
+            '绝不'
         ])
         japanese_negation_words = set([
-            'ない', 'ません', 'なかった', 'でした', 'いいえ'
+            'ない', 'ませ', 'なし', 'なかっ', 'いいえ'
         ])
 
         caption_data = self.get_caption_data()
-        self.generate_nlp_data()
         negation_dataset = []
         language = TextUtils.get_language()
+        if language == 'German':
+            self.generate_nlp_data()
 
         for i in range(len(caption_data)):
             sample = caption_data[i]
@@ -246,14 +257,33 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                     x.lemma_.lower() for x in sample_nlp_data
                 ])
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
+            elif language == 'French':
+                ''' French negation has 3 types of elements:
+                1. Negation words: words that, without any other words, are considered a negation.
+                2. Negation phrases: a sequence of words that are considered a negation.
+                3. 'ne' words: words that, when co-occurs with the 'ne' word, are considered a negation.
+                I should check all three cases. '''
+                tokenized_caption = TextUtils.tokenize(caption)
+                negation = False
+                # Case 1
+                if len(french_negation_words.intersection(tokenized_caption)) > 0:
+                    negation = True
+                # Case 2
+                if len([phrase for phrase in french_negation_phrases
+                        if TextUtils.phrase_in_sent(tokenized_caption, phrase)]) > 0:
+                    negation = True
+                # Case 3
+                if ('ne' in tokenized_caption or 'n\'' in tokenized_caption) and \
+                        len(french_ne_negation_words.intersection(tokenized_caption)) > 0:
+                    negation = True
+                negation_dataset.append((image_id, int(negation)))
             elif language == 'Chinese':
-                if len([x for x in self.nlp_data[i] if x.dep_ == 'neg']) > 0 or \
-                        len([x for x in self.nlp_data[i] if x.text == '没有']) > 0:
-                    negation_dataset.append((image_id, 1))
-                else:
-                    negation_dataset.append((image_id, 0))
+                ''' Jieba is a better tokenizer for Chinese than spaCy. '''
+                tokenized_caption = list(jieba.cut(caption, cur_all=False))
+                negation_words_in_caption = chinese_negation_words.intersection(tokenized_caption)
+                negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
             elif language == 'Japanese':
-                tokenized_caption = TextUtils.tokenize_and_clean(caption)
+                tokenized_caption = TextUtils.tokenize(caption)
                 negation_words_in_caption = japanese_negation_words.intersection(tokenized_caption)
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
 

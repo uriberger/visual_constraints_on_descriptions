@@ -106,3 +106,16 @@ class TextUtils:
     def tokenize_and_clean(sentence):
         tokenized_sentence = TextUtils.tokenize(sentence)
         return [TextUtils.preprocess_token(x) for x in tokenized_sentence]
+
+    @staticmethod
+    def phrase_in_sent(tokenized_sentence, tokenized_phrase):
+        for sent_ext_ind in range(len(tokenized_sentence)):
+            phrase_ind = 0
+            sent_int_ind = sent_ext_ind
+            while phrase_ind < len(tokenized_phrase) and \
+                    tokenized_sentence[sent_int_ind] == tokenized_phrase[phrase_ind]:
+                phrase_ind += 1
+                sent_int_ind += 1
+            if phrase_ind == len(tokenized_phrase):
+                return True
+        return False
