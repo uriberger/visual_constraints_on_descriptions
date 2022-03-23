@@ -321,15 +321,17 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                 caption = ' '.join([char for char in caption])
 
             numbers_list = recognize_number(caption, culture_language)
-            ''' In French and German, the words for "one" and "a" are the same.
+            ''' In French, German and Chinese the words for "one" and "a" are the same.
             So we don't want to consider those words as numbers. '''
             if language == 'French':
                 numbers_list = [x for x in numbers_list
                                 if [y.lemma_ for y in nlp(x.text)] not in [['un'], ['un', 'sur', 'un']]]
             if language == 'German':
-                # Should the 'eins' word be removed as well? I don't think so
+                # TODO: Should the 'eins' word be removed as well? I don't think so
                 numbers_list = [x for x in numbers_list
                                 if [y.lemma_ for y in nlp(x.text)][0] not in ['ein', 'einer', 'einen']]
+            if language == 'Chinese':
+                numbers_list = [x for x in numbers_list if x.text != '一']
 
             numbers_dataset.append((image_id, int(len(numbers_list) > 0)))
 
