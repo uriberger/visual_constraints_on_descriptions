@@ -5,6 +5,7 @@ from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 import os
 import argparse
+from collections import defaultdict
 
 
 parser = argparse.ArgumentParser(description='Train and evaluate a multimodal word learning model.')
@@ -34,15 +35,18 @@ dump_captions = args.dump_captions
 DatasetBuilder.set_datasets_dir(datasets_dir)
 
 
-def get_image_id_to_num_prob(struct_data):
-    from collections import defaultdict
+def get_image_id_to_count(struct_data):
     image_id_to_count = defaultdict(int)
-    image_id_to_num_count = defaultdict(int)
+    image_id_to_pos_count = defaultdict(int)
     for image_id, has_num in struct_data:
         image_id_to_count[image_id] += 1
-        image_id_to_num_count[image_id] += has_num
-    image_id_to_num_prob = {x: image_id_to_num_count[x]/image_id_to_count[x] for x in image_id_to_count.keys()}
-    return image_id_to_num_prob
+        image_id_to_pos_count[image_id] += has_num
+    return image_id_to_count, image_id_to_pos_count
+
+
+def get_image_id_to_prob(image_id_to_count, image_id_to_pos_count):
+    image_id_to_prob = {x: image_id_to_pos_count[x] / image_id_to_count[x] for x in image_id_to_count.keys()}
+    return image_id_to_prob
 
 
 def get_class_to_image_list(gt_class_data):
