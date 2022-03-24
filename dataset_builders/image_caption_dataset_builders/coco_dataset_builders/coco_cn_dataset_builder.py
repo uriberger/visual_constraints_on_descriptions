@@ -12,7 +12,10 @@ class CocoCNDatasetBuilder(CocoBasedDatasetBuilder):
     """
 
     def __init__(self, root_dir_path, data_split_str, struct_property, translated, indent):
-        super(CocoCNDatasetBuilder, self).__init__(root_dir_path, 'coco_cn', data_split_str, struct_property,
+        translated_str = ''
+        if translated:
+            translated_str = '_translated'
+        super(CocoCNDatasetBuilder, self).__init__(root_dir_path, 'coco_cn' + translated_str, data_split_str, struct_property,
                                                    indent)
 
         caption_file_name_prefix = 'imageid.'

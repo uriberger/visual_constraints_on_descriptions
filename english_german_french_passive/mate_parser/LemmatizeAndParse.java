@@ -40,6 +40,11 @@ public class LemmatizeAndParse {
 			parserPath = Paths.get(modelsDirname, "pet-fra-S2apply-40-0.25-0.1-2-2-ht4-hm4-kk0");
 		}
 		String dataset_name = args[1];
+		String translated_str = "";
+		if (args.length > 2 && args[2].equals("--translated"))
+		{
+			translated_str = "_translated";
+		}
 		
 		// Flickr30 has no data splitting
 		String data_split = "train";
@@ -48,7 +53,7 @@ public class LemmatizeAndParse {
 			data_split = "all";
 		}
 		
-		Path captionFilePath = Paths.get("..", "..", "cached_dataset_files", dataset_name + "_" + language + "_dump_captions_" + data_split + ".txt");
+		Path captionFilePath = Paths.get("..", "..", "cached_dataset_files", dataset_name + translated_str + "_" + language + "_dump_captions_" + data_split + ".txt");
 		
 		// create a lemmatizer and parser
 		Lemmatizer lemmatizer = new Lemmatizer(lemmatizerPath.toString());

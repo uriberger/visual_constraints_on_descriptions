@@ -14,14 +14,10 @@ class Multi30kDatasetBuilder(FlickrBasedDatasetBuilder):
     """
 
     def __init__(self, root_dir_path, data_split_str, struct_property, translated, indent):
-        super(Multi30kDatasetBuilder, self).__init__(root_dir_path, 'multi30k', data_split_str, struct_property, indent)
-
-        language = TextUtils.get_language()
-        if language not in ['German', 'French']:
-            assert False
-        if (not translated) and language == 'French':
-            self.log_print('Warning: Original captions doesn\'t exist in French, using translated instead')
-            translated = True
+        translated_str = ''
+        if translated:
+            translated_str = '_translated'
+        super(Multi30kDatasetBuilder, self).__init__(root_dir_path, 'multi30k' + translated_str, data_split_str, struct_property, indent)
 
         data_dir_name = 'data'
         if translated:
@@ -34,6 +30,10 @@ class Multi30kDatasetBuilder(FlickrBasedDatasetBuilder):
         train_file_name_prefix = 'train'
         val_file_name_prefix = 'val'
         test_file_name_prefix = 'test_2016'
+
+        language = TextUtils.get_language()
+        if language not in ['German', 'French']:
+            assert False
 
         if language == 'German':
             caption_file_name_suffix = 'de.gz'
