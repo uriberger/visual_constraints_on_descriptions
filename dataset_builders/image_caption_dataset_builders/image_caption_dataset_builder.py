@@ -337,6 +337,47 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
         return numbers_dataset
 
+    """ Spatial relations dataset: maps image ids to list of boolean stating whether each caption contains a spatial
+        relation word.
+    """
+
+    def generate_spatial_relations_dataset(self):
+        english_spatial_words = set([
+            'between', 'on', 'outside', 'inside', 'near', 'upon', 'over', 'beside', 'below', 'under', 'across',
+            'behind', 'in', 'above',
+            'toward', 'beyond',
+            # Question?
+            'into', 'alongside',
+            # Remove
+            'by', 'out'
+        ])
+
+        english_spatial_phrases = [
+            ['next', 'to'], ['close', 'to'], ['in', 'front', 'of'], ['opposite', 'of'], ['the', 'left', 'of'],
+            ['the', 'right', 'of'], ['middle', 'of'], ['away', 'from'], ['far', 'from'], ['adjacent', 'to']
+        ]
+
+        caption_data = self.get_caption_data()
+        spatial_dataset = []
+        language = TextUtils.get_language()
+        for sample in caption_data:
+            caption = sample['caption']
+            image_id = sample['image_id']
+            if language == 'English':
+                tokenized_caption = TextUtils.tokenize_and_clean(caption)
+
+                # Spatial words
+                spatial_words_in_caption = english_spatial_words.intersection(tokenized_caption)
+
+                # Spatial phrases
+                spatial_phrases_in_caption = [phrase for phrase in english_spatial_phrases
+                                              if TextUtils.phrase_in_sent(tokenized_caption, phrase)]
+
+                spatial_dataset.append((image_id,
+                                        int(len(spatial_words_in_caption) > 0 or len(spatial_phrases_in_caption) > 0)))
+
+        return spatial_dataset
+
     def create_struct_data_internal(self):
         if self.struct_property == 'passive':
             struct_data = self.generate_passive_dataset()
@@ -346,6 +387,8 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             struct_data = self.generate_negation_dataset()
         elif self.struct_property == 'numbers':
             struct_data = self.generate_numbers_dataset()
+        elif self.struct_property == 'spatial_relations':
+            struct_data = self.generate_spatial_relations_dataset()
 
         return struct_data
 

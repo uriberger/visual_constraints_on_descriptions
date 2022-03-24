@@ -112,7 +112,7 @@ class TextUtils:
         for sent_ext_ind in range(len(tokenized_sentence)):
             phrase_ind = 0
             sent_int_ind = sent_ext_ind
-            while phrase_ind < len(tokenized_phrase) and \
+            while phrase_ind < len(tokenized_phrase) and sent_int_ind < len(tokenized_sentence) and\
                     tokenized_sentence[sent_int_ind] == tokenized_phrase[phrase_ind]:
                 phrase_ind += 1
                 sent_int_ind += 1
