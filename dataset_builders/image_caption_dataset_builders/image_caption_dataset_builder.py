@@ -184,7 +184,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                 # We're not interested in non-verb roots
                 continue
 
-            transitivity_dataset.append((image_id, TextUtils.is_transitive_sentence(nlp_data)))
+            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data))))
 
         return transitivity_dataset
 

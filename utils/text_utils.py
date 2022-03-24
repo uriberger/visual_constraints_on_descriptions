@@ -40,11 +40,19 @@ class TextUtils:
     def get_tokenizer():
         return TextUtils.get_nlp().tokenizer
 
-    """ Given a sentence analyze by spaCy, check if its main verb is transitive. """
+    """ Given a sentence analyze by spaCy, check if its main verb is transitive. This is done by searching if there's a
+        token which is a direct object of the root.
+    """
 
     @staticmethod
     def is_transitive_sentence(analyzed_sentence):
-        return len([token for token in analyzed_sentence if token.dep_ == 'dobj' and token.head.dep_ == 'ROOT']) > 0
+        language = TextUtils.get_language()
+        if language == 'English':
+            direct_object_dep_tag = 'dobj'
+        elif language == 'German':
+            direct_object_dep_tag = 'oa'
+        return len([token for token in analyzed_sentence
+                    if token.dep_ == direct_object_dep_tag and token.head.dep_ == 'ROOT']) > 0
 
     @staticmethod
     def tokenize(sentence):
