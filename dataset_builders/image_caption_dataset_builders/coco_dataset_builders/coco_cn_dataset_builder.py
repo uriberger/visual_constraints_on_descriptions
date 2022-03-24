@@ -7,13 +7,24 @@ class CocoCNDatasetBuilder(CocoBasedDatasetBuilder):
     """ This is the dataset builder class for the COCO-CN dataset, described in the paper 'COCO-CN for Cross-Lingual
         Image Tagging, Captioning, and Retrieval' by Li et al.
         This dataset is based on the COCO dataset.
+
+        translated: A flag indicating whether we should use translated captions or original ones.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
+    def __init__(self, root_dir_path, data_split_str, struct_property, translated, indent):
         super(CocoCNDatasetBuilder, self).__init__(root_dir_path, 'coco_cn', data_split_str, struct_property,
                                                    indent)
 
-        captions_file_name = 'imageid.human-written-caption.txt'
+        caption_file_name_prefix = 'imageid.'
+        caption_file_name_suffix = '-caption.txt'
+
+        if translated:
+            caption_file_name_content = 'manually-translated'
+        else:
+            caption_file_name_content = 'human-written'
+        captions_file_name = caption_file_name_prefix + \
+                             caption_file_name_content + \
+                             caption_file_name_suffix
 
         self.captions_file_path = os.path.join(root_dir_path, captions_file_name)
 

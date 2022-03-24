@@ -39,7 +39,7 @@ def create_dataset_builder(dataset_name, data_split_str, struct_property, transl
     elif dataset_name == 'flickr8kcn':
         dataset_builder = Flickr8kCNDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     elif dataset_name == 'coco-cn':
-        dataset_builder = CocoCNDatasetBuilder(root_dir, data_split_str, struct_property, 1)
+        dataset_builder = CocoCNDatasetBuilder(root_dir, data_split_str, struct_property, translated, 1)
     else:
         assert False
 
