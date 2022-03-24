@@ -95,25 +95,6 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
     """ Passive dataset: maps image ids to list of boolean stating whether each caption is passive. """
 
-    # def generate_passive_dataset_old(self):
-    #     caption_data = self.get_caption_data()
-    #     self.generate_nlp_data()
-    #     passive_dataset = []
-    #     matcher = TextUtils.get_passive_matcher()
-    #
-    #     for i in range(len(caption_data)):
-    #         image_id = caption_data[i]['image_id']
-    #         nlp_data = self.nlp_data[i]
-    #
-    #         # We're only in interested in captions with a single root which is a verb
-    #         roots = [x for x in nlp_data if x.dep_ == 'ROOT']
-    #         if len(roots) != 1 or roots[0].pos_ != 'VERB':
-    #             continue
-    #
-    #         passive_dataset.append((image_id, int(len(matcher(nlp_data)) > 0)))
-    #
-    #     return passive_dataset
-
     def generate_passive_dataset(self):
         language = TextUtils.get_language()
         caption_data = self.get_caption_data()
