@@ -9,7 +9,7 @@ from utils.text_utils import TextUtils
 from dataset_src.image_linguistic_structural_info_dataset import ImLingStructInfoDataset
 
 
-datasets_dir = os.path.join(project_root_dir, '../..', 'datasets')
+datasets_dir = os.path.join(project_root_dir, '..', 'datasets')
 
 
 class DatasetBuilder(LoggableObject):
