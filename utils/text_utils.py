@@ -51,6 +51,13 @@ class TextUtils:
             direct_object_dep_tag = 'dobj'
         elif language == 'German':
             direct_object_dep_tag = 'oa'
+        elif language == 'Chinese':
+            direct_object_dep_tag = 'dobj'
+        elif language == 'Japanese':
+            direct_object_dep_tag = 'obj'
+        elif language == 'French':
+            # Not implemented yet
+            direct_object_dep_tag = 'NONE'
         return len([token for token in analyzed_sentence
                     if token.dep_ == direct_object_dep_tag and token.head.dep_ == 'ROOT']) > 0
 
