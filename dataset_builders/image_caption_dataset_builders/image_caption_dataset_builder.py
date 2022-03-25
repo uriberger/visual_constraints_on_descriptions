@@ -318,6 +318,36 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
         return numbers_dataset
 
+    """ Root pos dataset: maps image ids to list of boolean stating whether each caption's root is a noun (0) or a verb
+        (1).
+    """
+
+    def generate_root_pos_dataset(self):
+        caption_data = self.get_caption_data()
+        self.generate_nlp_data()
+        root_pos_dataset = []
+
+        for i in range(len(caption_data)):
+            image_id = caption_data[i]['image_id']
+            nlp_data = self.nlp_data[i]
+            roots = [token for token in nlp_data if token.dep_ == 'ROOT']
+            if len(roots) != 1:
+                # We don't know how to deal with zero or multiple roots, for now
+                continue
+
+            root = roots[0]
+            if root.pos_ == 'NOUN':
+                val = 0
+            elif root.pos_ == 'VERB':
+                val = 1
+            else:
+                # We're only interested in verb or noun roots
+                continue
+
+            root_pos_dataset.append((image_id, val))
+
+        return root_pos_dataset
+
     """ Spatial relations dataset: maps image ids to list of boolean stating whether each caption contains a spatial
         relation word.
     """
@@ -368,6 +398,8 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             struct_data = self.generate_negation_dataset()
         elif self.struct_property == 'numbers':
             struct_data = self.generate_numbers_dataset()
+        elif self.struct_property == 'root_pos':
+            struct_data = self.generate_root_pos_dataset()
         elif self.struct_property == 'spatial_relations':
             struct_data = self.generate_spatial_relations_dataset()
 
