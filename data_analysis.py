@@ -178,3 +178,32 @@ def get_mean_values_across_datasets(struct_datas_list):
     image_id_to_mean_prob = {x[0]: x[1]/len(struct_datas_list) for x in image_id_to_prob_sum.items()}
 
     return image_id_to_mean_prob
+
+
+def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
+    """ Given two lists of (image_id, val)- the struct_data1/2 input- where image ids are not unique and val is a binary
+        value, do the following:
+        1. For each image id in each struct data, calculate the fraction of its instances in the struct_data list where
+        the val was 1.
+        2. Find image ids with extreme values of opposite ends in the two struct datas (1 in the first and 0 in the
+        second).
+    """
+    # First make sure both lists contain the same image ids
+    image_id_to_prob1 = get_image_id_to_prob(struct_data1)
+    image_id_to_prob2 = get_image_id_to_prob(struct_data2)
+    all_image_ids = [x for x in image_id_to_prob1.keys() if x in image_id_to_prob2]
+    all_image_ids_dict = {x: True for x in all_image_ids}
+    image_id_to_prob1 = {x[0]: x[1] for x in image_id_to_prob1.items() if x[0] in all_image_ids_dict}
+    image_id_to_prob2 = {x[0]: x[1] for x in image_id_to_prob2.items() if x[0] in all_image_ids_dict}
+
+    # Make sure all image ids in the first dictionary are in the second dict as well and vice versa
+    assert len(image_id_to_prob1) == len(image_id_to_prob2)
+    assert len([x for x in image_id_to_prob1.keys() if x in image_id_to_prob2]) == len(image_id_to_prob1)
+
+    high_val_in_1 = [x[0] for x in image_id_to_prob1.items() if x[1] == 1]
+    extreme_list_high_in_1 = [x for x in high_val_in_1 if image_id_to_prob2[x] == 0]
+
+    high_val_in_2 = [x[0] for x in image_id_to_prob2.items() if x[1] == 1]
+    extreme_list_high_in_2 = [x for x in high_val_in_2 if image_id_to_prob1[x] == 0]
+
+    return extreme_list_high_in_1, extreme_list_high_in_2
