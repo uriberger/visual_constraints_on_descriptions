@@ -62,6 +62,48 @@ def get_dataset(language, dataset_name, struct_property, translated):
     return dataset
 
 
+# Language, dataset, translated indicator
+language_dataset_list = [
+    ('English', ['COCO', 'flickr30'], False),
+    ('German', ['multi30k'], False),
+    ('Japanese', ['STAIR-captions'], False),
+    ('Chinese', ['coco-cn', 'flickr8kcn'], False),
+    ('German', ['multi30k'], True),
+    ('French', ['multi30k'], True),
+    ('Chinese', ['coco-cn'], True)
+]
+
+multilingual_dataset_name_to_original_dataset_name = {
+    'multi30k': 'flickr30',
+    'flickr8kcn': 'flickr30',
+    'STAIR-captions': 'COCO',
+    'coco-cn': 'COCO'
+}
+
+
+def get_orig_dataset_to_configs():
+    dataset_to_language_list = defaultdict(list)
+    for language, dataset_list, translated in language_dataset_list:
+        for dataset in dataset_list:
+            dataset_to_language_list[dataset].append((language, translated))
+
+    orig_to_multilingual_mapping = defaultdict(list)
+    for multilingual_dataset_name, orig_dataset_name in multilingual_dataset_name_to_original_dataset_name.items():
+        orig_to_multilingual_mapping[orig_dataset_name].append(multilingual_dataset_name)
+
+    orig_dataset_to_configs = {}
+    for orig_dataset_name, multilingual_dataset_list in orig_to_multilingual_mapping.items():
+        based_datasets = multilingual_dataset_list + [orig_dataset_name]
+        configs = []
+        for dataset_name in based_datasets:
+            languages_list = dataset_to_language_list[dataset_name]
+            configs += [(dataset_name, x[0], x[1]) for x in languages_list]
+
+        orig_dataset_to_configs[orig_dataset_name] = configs
+
+    return orig_dataset_to_configs
+
+
 # Data analysis functions
 
 
@@ -225,25 +267,6 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
     return extreme_list_high_in_1, extreme_list_high_in_2
 
 
-# Language, dataset, translated indicator
-language_dataset_list = [
-    ('English', ['COCO', 'flickr30'], False),
-    ('German', ['multi30k'], False),
-    ('Japanese', ['STAIR-captions'], False),
-    ('Chinese', ['coco-cn', 'flickr8kcn'], False),
-    ('German', ['multi30k'], True),
-    ('French', ['multi30k'], True),
-    ('Chinese', ['coco-cn'], True)
-]
-
-multilingual_dataset_name_to_original_dataset_name = {
-    'multi30k': 'flickr30',
-    'flickr8kcn': 'flickr30',
-    'STAIR-captions': 'COCO',
-    'coco-cn': 'COCO'
-}
-
-
 # Main function
 
 
@@ -328,31 +351,17 @@ def plot_bbox_dist_lists(struct_property):
 
 
 def print_language_agreement(struct_property):
-    dataset_to_language_list = defaultdict(list)
-    for language, dataset_list, translated in language_dataset_list:
-        for dataset in dataset_list:
-            dataset_to_language_list[dataset].append((language, translated))
+    orig_dataset_to_configs = get_orig_dataset_to_configs()
 
-    orig_to_multilingual_mapping = defaultdict(list)
-    for multilingual_dataset_name, orig_dataset_name in multilingual_dataset_name_to_original_dataset_name.items():
-        orig_to_multilingual_mapping[orig_dataset_name].append(multilingual_dataset_name)
-
-    for orig_dataset_name, multilingual_dataset_list in orig_to_multilingual_mapping.items():
+    for orig_dataset_name, configs in orig_dataset_to_configs.items():
         print(orig_dataset_name + ':')
-        # First, find all configurations (dataset + language)
-        based_datasets = multilingual_dataset_list + [orig_dataset_name]
-        configs = []
-        for dataset_name in based_datasets:
-            languages_list = dataset_to_language_list[dataset_name]
-            configs += [(dataset_name, x[0], x[1]) for x in languages_list]
-
-        # Next, generate the data for each config
+        # First, generate data for each config
         struct_datas = []
         for dataset_name, language, translated in configs:
             dataset = get_dataset(language, dataset_name, struct_property, translated)
             struct_datas.append(dataset.struct_data)
 
-        # Finally, calculate agreement between each two datasets
+        # Next, calculate agreement between each two datasets
         for i in range(len(configs)):
             for j in range(i+1, len(configs)):
                 lang1 = configs[i][1]
@@ -372,14 +381,37 @@ def print_language_mean_val(struct_property):
             dataset = get_dataset(language, dataset_name, struct_property, translated)
             struct_datas.append(dataset.struct_data)
         mean_val = get_mean_val(struct_datas)
-        print(language + ': ' + '{:.4f}'.format(mean_val))
+        language_str = language
+        if translated:
+            language_str += '_translated'
+        print(language_str + ': ' + '{:.4f}'.format(mean_val))
+
+
+def print_consistently_extreme_image_ids(struct_property):
+    orig_dataset_to_configs = get_orig_dataset_to_configs()
+
+    for orig_dataset_name, configs in orig_dataset_to_configs.items():
+        print(orig_dataset_name + ':')
+        # First, generate data for each config
+        struct_datas = []
+        for dataset_name, language, translated in configs:
+            dataset = get_dataset(language, dataset_name, struct_property, translated)
+            struct_datas.append(dataset.struct_data)
+
+        # Next, calculate mean across all datasets
+        image_id_to_mean_prob = get_mean_values_across_datasets(struct_datas)
+        image_id_mean_prob_list = sorted(list(image_id_to_mean_prob.items()), key=lambda x: x[1], reverse=True)
+        image_id_mean_prob_list = [(str(x[0]), x[1]) for x in image_id_mean_prob_list]
+
+        print(generate_list_edges_str(image_id_mean_prob_list, 5))
 
 
 def analyze(struct_property):
     # print_class_prob_lists(struct_property)
     # plot_bbox_dist_lists(struct_property)
     # print_language_agreement(struct_property)
-    print_language_mean_val(struct_property)
+    # print_language_mean_val(struct_property)
+    print_consistently_extreme_image_ids(struct_property)
 
 
-analyze('root_pos')
+analyze('negation')
