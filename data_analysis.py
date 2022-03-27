@@ -1,6 +1,9 @@
 from collections import defaultdict
 import numpy as np
 
+from dataset_builders.dataset_builder_creator import create_dataset_builder
+from utils.text_utils import TextUtils
+
 
 # Utility functions
 
@@ -70,7 +73,7 @@ def get_class_prob_list(struct_data, gt_class_data, class_mapping):
     # 2. For each gt class, calculate the mean fraction from 1, averaged across all image ids relevant for this class.
     class_to_prob_mean = {
         i: safe_divide(sum([image_id_to_prob[x] for x in class_to_image_list[i]]), len(class_to_image_list[i])) for i in
-        range(len(class_mapping))}
+        range(len(class_mapping)) if len(class_to_image_list[i]) > 0}
 
     class_prob_list = list(class_to_prob_mean.items())
     class_prob_list.sort(reverse=True, key=lambda x: x[1])
@@ -207,3 +210,80 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
     extreme_list_high_in_2 = [x for x in high_val_in_2 if image_id_to_prob1[x] == 0]
 
     return extreme_list_high_in_1, extreme_list_high_in_2
+
+
+language_to_dataset_list = {
+    'English': ['COCO', 'flickr30'],
+    'German': ['multi30k'],
+    'Japanese': ['STAIR-captions'],
+    'Chinese': ['coco-cn', 'flickr8kcn']
+}
+
+translated_language_to_dataset_list = {
+    'German': ['multi30k'],
+    'French': ['multi30k'],
+    'Chinese': ['coco_cn']
+}
+
+multilingual_dataset_name_to_original_dataset_name = {
+    'multi30k': 'flickr30',
+    'flickr8kcn': 'flickr30',
+    'STAIR-captions': 'COCO',
+    'coco-cn': 'COCO'
+}
+
+
+# Main function
+
+
+def get_class_prob_list_for_config(language, dataset_name, struct_property, translated):
+    TextUtils.set_language(language)
+    builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+    dataset = builder.build_dataset()
+
+    struct_data = dataset.struct_data
+    gt_class_data = builder.get_gt_classes_data()
+    class_mapping = builder.get_class_mapping()
+
+    class_prob_list = get_class_prob_list(struct_data, gt_class_data, class_mapping)
+    return class_prob_list
+
+
+def generate_list_edges_str(input_list, edge_size):
+    res = 'High:\n'
+    for i in range(edge_size):
+        if i > 0:
+            res += ', '
+        res += input_list[i][0] + ': ' + '{:.4f}'.format(input_list[i][1])
+    res += '\nLow:\n'
+    for i in range(edge_size):
+        if i > 0:
+            res += ', '
+        res += input_list[-(i+1)][0] + ': ' + '{:.4f}'.format(input_list[-(i+1)][1])
+
+    return res
+
+
+def analyze(struct_property):
+    ### Get the class prob list for each dataset in each language ###
+    # COCO
+    english_coco_class_prob_list = \
+        get_class_prob_list_for_config('English', 'COCO', struct_property, False)
+    japanese_coco_class_prob_list = \
+        get_class_prob_list_for_config('Japanese', 'STAIR-captions', struct_property, False)
+    chinese_coco_class_prob_list = \
+        get_class_prob_list_for_config('Chinese', 'coco-cn', struct_property, False)
+    translated_chinese_coco_class_prob_list = \
+        get_class_prob_list_for_config('Chinese', 'coco-cn', struct_property, True)
+
+    print('English coco class prob list:')
+    print(generate_list_edges_str(english_coco_class_prob_list, 5))
+    print('\nJapanese coco class prob list:')
+    print(generate_list_edges_str(japanese_coco_class_prob_list, 5))
+    print('\nChinese coco class prob list:')
+    print(generate_list_edges_str(chinese_coco_class_prob_list, 5))
+    print('\nTranslated Chinese coco class prob list:')
+    print(generate_list_edges_str(translated_chinese_coco_class_prob_list, 5))
+
+
+analyze('passive')
