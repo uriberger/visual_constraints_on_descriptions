@@ -1,5 +1,6 @@
 import os
 import json
+import torch
 from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
 
@@ -61,29 +62,55 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
         return caption_data
 
     def get_gt_classes_data_internal(self):
-        if self.data_split_str == 'train':
-            external_bboxes_filepath = self.train_bboxes_file_path
-        elif self.data_split_str == 'test':
-            external_bboxes_filepath = self.val_bboxes_file_path
-        bboxes_fp = open(external_bboxes_filepath, 'r')
-        bboxes_data = json.load(bboxes_fp)
+        gt_classes_data, _ = self.get_gt_classes_bboxes_data()
+        return gt_classes_data
 
-        category_id_to_class_id = {bboxes_data[u'categories'][x][u'id']: x for x in
-                                   range(len(bboxes_data[u'categories']))}
+    def get_gt_bboxes_data_internal(self):
+        _, gt_bboxes_data = self.get_gt_classes_bboxes_data()
+        return gt_bboxes_data
 
-        img_classes_dataset = {}
-        # Go over all the object annotations
-        for bbox_annotation in bboxes_data[u'annotations']:
-            image_id = bbox_annotation[u'image_id']
-            if image_id not in img_classes_dataset:
-                img_classes_dataset[image_id] = []
+    def get_gt_classes_bboxes_data(self):
+        if os.path.exists(self.gt_classes_data_file_path):
+            return torch.load(self.gt_classes_data_file_path), torch.load(self.gt_bboxes_data_file_path)
+        else:
+            if self.data_split_str == 'train':
+                external_bboxes_filepath = self.train_bboxes_file_path
+            elif self.data_split_str == 'test':
+                external_bboxes_filepath = self.val_bboxes_file_path
+            bboxes_fp = open(external_bboxes_filepath, 'r')
+            bboxes_data = json.load(bboxes_fp)
 
-            category_id = bbox_annotation[u'category_id']
-            class_id = category_id_to_class_id[category_id]
+            category_id_to_class_id = {bboxes_data[u'categories'][x][u'id']: x for x in
+                                       range(len(bboxes_data[u'categories']))}
 
-            img_classes_dataset[image_id].append(class_id)
+            img_classes_dataset = {}
+            img_bboxes_dataset = {}
+            # Go over all the object annotations
+            for bbox_annotation in bboxes_data[u'annotations']:
+                image_id = bbox_annotation[u'image_id']
+                if image_id not in img_classes_dataset:
+                    img_classes_dataset[image_id] = []
+                    img_bboxes_dataset[image_id] = []
 
-        return img_classes_dataset
+                # First, extract the bounding box
+                bbox = bbox_annotation[u'bbox']
+                xmin = int(bbox[0])
+                xmax = int(bbox[0] + bbox[2])
+                ymin = int(bbox[1])
+                ymax = int(bbox[1] + bbox[3])
+                trnsltd_bbox = [xmin, ymin, xmax, ymax]
+
+                # Next, extract the ground-truth class of this object
+                category_id = bbox_annotation[u'category_id']
+                class_id = category_id_to_class_id[category_id]
+
+                img_classes_dataset[image_id].append(class_id)
+                img_bboxes_dataset[image_id].append(trnsltd_bbox)
+
+            torch.save(img_classes_dataset, self.gt_classes_data_file_path)
+            torch.save(img_bboxes_dataset, self.gt_bboxes_data_file_path)
+
+            return img_classes_dataset, img_bboxes_dataset
 
     def get_class_mapping(self):
         bbox_fp = open(self.train_bboxes_file_path, 'r')

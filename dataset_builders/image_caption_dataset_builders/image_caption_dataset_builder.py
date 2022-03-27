@@ -31,6 +31,11 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             f'{self.name}_gt_classes_data_{self.data_split_str}'
         )
 
+        self.gt_bboxes_data_file_path = os.path.join(
+            self.cached_dataset_files_dir,
+            f'{self.name}_gt_bboxes_data_{self.data_split_str}'
+        )
+
         self.nlp_data = None
 
     """ Return a list of dictionaries with 'image_id' and 'caption' entries. """
@@ -39,10 +44,15 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
     def get_caption_data(self):
         return
 
-    """ Return a mapping from image_id and a list of gt classes instantiated in the image. """
+    """ Return a mapping from image_id to a list of gt classes instantiated in the image. """
 
     def get_gt_classes_data(self):
         return generate_dataset(self.gt_classes_data_file_path, self.get_gt_classes_data_internal)
+
+    """ Return a mapping from image_id to a list of gt bounding boxes in the image. """
+
+    def get_gt_bboxes_data(self):
+        return generate_dataset(self.gt_bboxes_data_file_path, self.get_gt_bboxes_data_internal)
 
     @abc.abstractmethod
     def get_gt_classes_data_internal(self):

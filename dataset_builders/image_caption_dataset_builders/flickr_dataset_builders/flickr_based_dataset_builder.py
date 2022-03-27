@@ -26,6 +26,9 @@ class FlickrBasedDatasetBuilder(ImageCaptionDatasetBuilder):
     def get_gt_classes_data_internal(self):
         return self.flickr30k_builder.get_gt_classes_data()
 
+    def get_gt_bboxes_data_internal(self):
+        return self.flickr30k_builder.get_gt_bboxes_data()
+
     def get_class_mapping(self):
         return self.flickr30k_builder.get_class_mapping()
 

@@ -1,4 +1,5 @@
 import os
+import torch
 from xml.dom import minidom
 from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
@@ -41,8 +42,11 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         sentences_dir_name = os.path.join('annotations', 'Sentences')
         self.sentences_dir_path = os.path.join(self.root_dir_path, sentences_dir_name)
 
-        self.chains_filename = os.path.join(self.cached_dataset_files_dir, 'flickr30_chains')
+        self.boxes_and_chains_filename = os.path.join(self.cached_dataset_files_dir, 'flickr30_boxes_and_chains')
         self.chains_and_classes_file_name = os.path.join(self.cached_dataset_files_dir, 'flickr30_chains_and_classes')
+
+        self.coord_strs = ['xmin', 'ymin', 'xmax', 'ymax']
+        self.coord_str_to_ind = {self.coord_strs[x]: x for x in range(len(self.coord_strs))}
 
     def get_caption_data(self):
         fp = open(self.tokens_file_path, encoding='utf-8')
@@ -60,13 +64,13 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
     def create_image_path_finder(self):
         return Flickr30kImagePathFinder(self.images_dir_path)
 
-    def extract_chains(self):
-        return generate_dataset(self.chains_filename, self.extract_chains_internal)
+    def extract_boxes_and_chains(self):
+        return generate_dataset(self.boxes_and_chains_filename, self.extract_boxes_and_chains_internal)
 
-    def extract_chains_internal(self):
+    def extract_boxes_and_chains_internal(self):
         extracted_chains = {}
         boxes_chains = {}
-        self.log_print('Extracting coreference chains...')
+        self.log_print('Extracting bounding boxes and coreference chains...')
         for _, _, files in os.walk(self.bbox_dir_path):
             for filename in files:
                 # Extract image file name from current file name
@@ -86,15 +90,34 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
                             if inner_child_node.nodeName == u'name':
                                 box_chain = int(inner_child_node.childNodes[0].data)
                             if inner_child_node.nodeName == u'bndbox':
-                                # This is a bounding box node
-                                bounding_boxes.append(box_chain)
+                                bounding_box = [None, None, None, None]
+                                for val_node in inner_child_node.childNodes:
+                                    node_name = val_node.nodeName
+                                    if node_name in self.coord_strs:
+                                        coord_ind = self.coord_str_to_ind[node_name]
+                                        bounding_box[coord_ind] = int(val_node.childNodes[0].data)
+
+                                # Check that all coordinates were found
+                                none_inds = [x for x in range(len(bounding_box)) if x is None]
+                                bounding_box_ind = len(bounding_boxes)
+                                if len(none_inds) > 0:
+                                    for none_ind in none_inds:
+                                        self.log_print('Didn\'t find coordinate ' + self.coord_strs[none_ind] +
+                                                       ' for bounding box ' + str(bounding_box_ind) +
+                                                       ' in image ' + filename)
+                                    assert False
+                                if box_chain is None:
+                                    self.log_print('Didn\'t find chain for bounding box ' +
+                                                   str(bounding_box_ind) + ' in image ' + filename)
+                                    assert False
+                                bounding_boxes.append((bounding_box, box_chain))
 
                                 # Document chain
                                 if box_chain not in extracted_chains:
                                     extracted_chains[box_chain] = True
                 boxes_chains[image_id] = bounding_boxes
 
-        self.log_print('Extracted coreference chains')
+        self.log_print('Extracted bounding boxes and coreference chains')
         chain_list = list(extracted_chains.keys())
 
         return boxes_chains, chain_list
@@ -143,15 +166,30 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         return chain_to_class_ind, class_ind_to_str
 
     def get_gt_classes_data_internal(self):
-        boxes_chains, chain_list = self.extract_chains()
-        chain_to_class_ind, class_ind_to_str = self.get_chain_to_class_mapping(chain_list)
-        img_classes_dataset = {y: [chain_to_class_ind[x] for x in boxes_chains[y]]
-                               for y in boxes_chains.keys()}
+        gt_classes_data, _ = self.get_gt_classes_bboxes_data()
+        return gt_classes_data
 
-        return img_classes_dataset
+    def get_gt_bboxes_data_internal(self):
+        _, gt_bboxes_data = self.get_gt_classes_bboxes_data()
+        return gt_bboxes_data
+
+    def get_gt_classes_bboxes_data(self):
+        if os.path.exists(self.gt_classes_data_file_path):
+            return torch.load(self.gt_classes_data_file_path), torch.load(self.gt_bboxes_data_file_path)
+        else:
+            boxes_chains, chain_list = self.extract_boxes_and_chains()
+            chain_to_class_ind, class_ind_to_str = self.get_chain_to_class_mapping(chain_list)
+            img_classes_dataset = {y: [chain_to_class_ind[x[1]] for x in boxes_chains[y]]
+                                   for y in boxes_chains.keys()}
+            img_bboxes_dataset = {y: [x[0] for x in boxes_chains[y]] for y in boxes_chains.keys()}
+
+            torch.save(img_classes_dataset, self.gt_classes_data_file_path)
+            torch.save(img_bboxes_dataset, self.gt_bboxes_data_file_path)
+
+            return img_classes_dataset, img_bboxes_dataset
 
     def get_class_mapping(self):
-        _, chain_list = self.extract_chains()
+        _, chain_list = self.extract_boxes_and_chains()
         _, class_ind_to_str = self.get_chain_to_class_mapping(chain_list)
         return class_ind_to_str
 
