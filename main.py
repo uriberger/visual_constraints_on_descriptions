@@ -5,7 +5,6 @@ from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 import os
 import argparse
-from data_analysis import *
 
 
 parser = argparse.ArgumentParser(description='Train and evaluate a multimodal word learning model.')
