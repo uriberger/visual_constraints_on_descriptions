@@ -1,5 +1,6 @@
 from collections import defaultdict
 import numpy as np
+import matplotlib.pyplot as plt
 
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from utils.text_utils import TextUtils
@@ -249,6 +250,18 @@ def get_class_prob_list_for_config(language, dataset_name, struct_property, tran
     return class_prob_list
 
 
+def get_bbox_dist_list_for_config(language, dataset_name, struct_property, translated):
+    TextUtils.set_language(language)
+    builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+    dataset = builder.build_dataset()
+
+    struct_data = dataset.struct_data
+    gt_bbox_data = builder.get_gt_bboxes_data()
+
+    bbox_count_dist_list = get_bbox_count_dist(struct_data, gt_bbox_data)
+    return bbox_count_dist_list
+
+
 def generate_list_edges_str(input_list, edge_size):
     res = 'High:\n'
     for i in range(edge_size):
@@ -264,9 +277,7 @@ def generate_list_edges_str(input_list, edge_size):
     return res
 
 
-def analyze(struct_property):
-    ### Get the class prob list for each dataset in each language ###
-    # COCO
+def print_class_prob_lists(struct_property):
     english_coco_class_prob_list = \
         get_class_prob_list_for_config('English', 'COCO', struct_property, False)
     japanese_coco_class_prob_list = \
@@ -286,4 +297,31 @@ def analyze(struct_property):
     print(generate_list_edges_str(translated_chinese_coco_class_prob_list, 5))
 
 
-analyze('passive')
+def plot_bbox_dist_lists(struct_property):
+    english_coco_bbox_dist_list = \
+        get_bbox_dist_list_for_config('English', 'COCO', struct_property, False)
+    japanese_coco_bbox_dist_list = \
+        get_bbox_dist_list_for_config('Japanese', 'STAIR-captions', struct_property, False)
+    chinese_coco_bbox_dist_list = \
+        get_bbox_dist_list_for_config('Chinese', 'coco-cn', struct_property, False)
+    translated_chinese_coco_bbox_dist_list = \
+        get_bbox_dist_list_for_config('Chinese', 'coco-cn', struct_property, True)
+
+    plt.plot(english_coco_bbox_dist_list, label='English')
+    plt.plot(japanese_coco_bbox_dist_list, label='Japanese')
+    plt.plot(chinese_coco_bbox_dist_list, label='Chinese')
+    plt.plot(translated_chinese_coco_bbox_dist_list, label='Translated Chinese')
+
+    plt.legend()
+    plt.xlabel('Number of bounding boxes')
+    plt.ylabel('Mean ' + struct_property + ' probability')
+    plt.title('Mean ' + struct_property + ' probability as a function of bbox #')
+    plt.show()
+
+
+def analyze(struct_property):
+    print_class_prob_lists(struct_property)
+    plot_bbox_dist_lists(struct_property)
+
+
+analyze('root_pos')
