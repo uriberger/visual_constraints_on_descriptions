@@ -270,7 +270,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
                 negation_dataset.append((image_id, int(negation)))
             elif language == 'Chinese':
                 ''' Jieba is a better tokenizer for Chinese than spaCy. '''
-                tokenized_caption = list(jieba.cut(caption, cur_all=False))
+                tokenized_caption = list(jieba.cut(caption, cut_all=False))
                 negation_words_in_caption = chinese_negation_words.intersection(tokenized_caption)
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
             elif language == 'Japanese':
