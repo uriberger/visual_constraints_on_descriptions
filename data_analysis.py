@@ -214,7 +214,7 @@ def get_mean_val(struct_datas_list):
     return total_sum/total_count
 
 
-def get_mean_values_across_datasets(struct_datas_list):
+def get_mean_values_across_datasets(struct_datas_list, aggregate_per_dataset=True):
     """ Given a list of lists of (image_id, val)- the struct_datas_list input- where image ids are not unique and val is
         a binary value, and we assume the struct_data in the list share image ids, do the following:
         1. In each list, for each image id, calculate the fraction of its instances in the struct_data list where the
@@ -224,16 +224,27 @@ def get_mean_values_across_datasets(struct_datas_list):
     # Preprocessing: make sure struct_data and gt_class data contain the same imade ids
     unique_image_ids_list = [set([x[0] for x in struct_data]) for struct_data in struct_datas_list]
     all_image_ids = list(set.intersection(*unique_image_ids_list))
+    all_image_ids_dict = {x: True for x in all_image_ids}
 
     # Now find the sum of fractions (aka probabilities) across all struct datas
     image_id_to_prob_sum = defaultdict(int)
+    image_id_to_prob_count = defaultdict(int)
     for struct_data in struct_datas_list:
-        image_id_to_prob = get_image_id_to_prob(struct_data)
-        for image_id in all_image_ids:
-            image_id_to_prob_sum[image_id] += image_id_to_prob[image_id]
+        if aggregate_per_dataset:
+            image_id_to_prob = get_image_id_to_prob(struct_data)
+            for image_id in all_image_ids:
+                image_id_to_prob_sum[image_id] += image_id_to_prob[image_id]
+        else:
+            for image_id, val in struct_data:
+                if image_id in all_image_ids_dict:
+                    image_id_to_prob_sum[image_id] += val
+                    image_id_to_prob_count[image_id] += 1
 
     # Finally, because we want the mean and not the sum, divide by the number of struct datas
-    image_id_to_mean_prob = {x[0]: x[1]/len(struct_datas_list) for x in image_id_to_prob_sum.items()}
+    if aggregate_per_dataset:
+        image_id_to_mean_prob = {x[0]: x[1]/len(struct_datas_list) for x in image_id_to_prob_sum.items()}
+    else:
+        image_id_to_mean_prob = {x[0]: x[1] / image_id_to_prob_count[x[0]] for x in image_id_to_prob_sum.items()}
 
     return image_id_to_mean_prob
 
@@ -399,7 +410,7 @@ def print_consistently_extreme_image_ids(struct_property):
             struct_datas.append(dataset.struct_data)
 
         # Next, calculate mean across all datasets
-        image_id_to_mean_prob = get_mean_values_across_datasets(struct_datas)
+        image_id_to_mean_prob = get_mean_values_across_datasets(struct_datas, False)
         image_id_mean_prob_list = sorted(list(image_id_to_mean_prob.items()), key=lambda x: x[1], reverse=True)
         image_id_mean_prob_list = [(str(x[0]), x[1]) for x in image_id_mean_prob_list]
 
@@ -414,4 +425,4 @@ def analyze(struct_property):
     print_consistently_extreme_image_ids(struct_property)
 
 
-analyze('negation')
+analyze('root_pos')
