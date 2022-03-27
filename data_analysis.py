@@ -50,6 +50,18 @@ def get_class_to_image_list(gt_class_data):
     return class_to_image_list
 
 
+def get_dataset_builder(language, dataset_name, struct_property, translated):
+    TextUtils.set_language(language)
+    builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+    return builder
+
+
+def get_dataset(language, dataset_name, struct_property, translated):
+    builder = get_dataset_builder(language, dataset_name, struct_property, translated)
+    dataset = builder.build_dataset()
+    return dataset
+
+
 # Data analysis functions
 
 
@@ -213,18 +225,16 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
     return extreme_list_high_in_1, extreme_list_high_in_2
 
 
-language_to_dataset_list = {
-    'English': ['COCO', 'flickr30'],
-    'German': ['multi30k'],
-    'Japanese': ['STAIR-captions'],
-    'Chinese': ['coco-cn', 'flickr8kcn']
-}
-
-translated_language_to_dataset_list = {
-    'German': ['multi30k'],
-    'French': ['multi30k'],
-    'Chinese': ['coco-cn']
-}
+# Language, dataset, translated indicator
+language_dataset_list = [
+    ('English', ['COCO', 'flickr30'], False),
+    ('German', ['multi30k'], False),
+    ('Japanese', ['STAIR-captions'], False),
+    ('Chinese', ['coco-cn', 'flickr8kcn'], False),
+    ('German', ['multi30k'], True),
+    ('French', ['multi30k'], True),
+    ('Chinese', ['coco-cn'], True)
+]
 
 multilingual_dataset_name_to_original_dataset_name = {
     'multi30k': 'flickr30',
@@ -238,8 +248,7 @@ multilingual_dataset_name_to_original_dataset_name = {
 
 
 def get_class_prob_list_for_config(language, dataset_name, struct_property, translated):
-    TextUtils.set_language(language)
-    builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+    builder = get_dataset_builder(language, dataset_name, struct_property, translated)
     dataset = builder.build_dataset()
 
     struct_data = dataset.struct_data
@@ -251,8 +260,7 @@ def get_class_prob_list_for_config(language, dataset_name, struct_property, tran
 
 
 def get_bbox_dist_list_for_config(language, dataset_name, struct_property, translated):
-    TextUtils.set_language(language)
-    builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+    builder = get_dataset_builder(language, dataset_name, struct_property, translated)
     dataset = builder.build_dataset()
 
     struct_data = dataset.struct_data
@@ -321,13 +329,9 @@ def plot_bbox_dist_lists(struct_property):
 
 def print_language_agreement(struct_property):
     dataset_to_language_list = defaultdict(list)
-    for language, dataset_list in language_to_dataset_list.items():
+    for language, dataset_list, translated in language_dataset_list:
         for dataset in dataset_list:
-            dataset_to_language_list[dataset].append(language)
-    dataset_to_translated_language_list = defaultdict(list)
-    for language, dataset_list in translated_language_to_dataset_list.items():
-        for dataset in dataset_list:
-            dataset_to_translated_language_list[dataset].append(language)
+            dataset_to_language_list[dataset].append((language, translated))
 
     orig_to_multilingual_mapping = defaultdict(list)
     for multilingual_dataset_name, orig_dataset_name in multilingual_dataset_name_to_original_dataset_name.items():
@@ -340,16 +344,12 @@ def print_language_agreement(struct_property):
         configs = []
         for dataset_name in based_datasets:
             languages_list = dataset_to_language_list[dataset_name]
-            configs += [(dataset_name, x, False) for x in languages_list]
-            translated_languages_list = dataset_to_translated_language_list[dataset_name]
-            configs += [(dataset_name, x, True) for x in translated_languages_list]
+            configs += [(dataset_name, x[0], x[1]) for x in languages_list]
 
         # Next, generate the data for each config
         struct_datas = []
         for dataset_name, language, translated in configs:
-            TextUtils.set_language(language)
-            builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
-            dataset = builder.build_dataset()
+            dataset = get_dataset(language, dataset_name, struct_property, translated)
             struct_datas.append(dataset.struct_data)
 
         # Finally, calculate agreement between each two datasets
@@ -365,10 +365,21 @@ def print_language_agreement(struct_property):
                 print('\t' + lang1 + ' and ' + lang2 + ' agreement: ' + '{:.4f}'.format(pearson_coef))
 
 
+def print_language_mean_val(struct_property):
+    for language, dataset_name_list, translated in language_dataset_list:
+        for dataset_name in dataset_name_list:
+            struct_datas = []
+            dataset = get_dataset(language, dataset_name, struct_property, translated)
+            struct_datas.append(dataset.struct_data)
+        mean_val = get_mean_val(struct_datas)
+        print(language + ': ' + '{:.4f}'.format(mean_val))
+
+
 def analyze(struct_property):
     # print_class_prob_lists(struct_property)
     # plot_bbox_dist_lists(struct_property)
-    print_language_agreement(struct_property)
+    # print_language_agreement(struct_property)
+    print_language_mean_val(struct_property)
 
 
-analyze('passive')
+analyze('root_pos')
