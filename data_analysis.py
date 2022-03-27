@@ -134,8 +134,8 @@ def get_vals_agreement(struct_data1, struct_data2):
     assert len([x for x in image_id_to_prob1.keys() if x in image_id_to_prob2]) == len(image_id_to_prob1)
 
     # Now that the image ids are the same, if we sort according to image id we can compare
-    vals1 = [x[1] for x in image_id_to_prob1.items().sorted(key=lambda x: x[0])]
-    vals2 = [x[1] for x in image_id_to_prob2.items().sorted(key=lambda x: x[0])]
+    vals1 = [x[1] for x in sorted(list(image_id_to_prob1.items()), key=lambda x: x[0])]
+    vals2 = [x[1] for x in sorted(list(image_id_to_prob2.items()), key=lambda x: x[0])]
 
     np_arr = np.array([vals1, vals2])
     pearson_corr = np.corrcoef(np_arr)[0, 1]
@@ -223,7 +223,7 @@ language_to_dataset_list = {
 translated_language_to_dataset_list = {
     'German': ['multi30k'],
     'French': ['multi30k'],
-    'Chinese': ['coco_cn']
+    'Chinese': ['coco-cn']
 }
 
 multilingual_dataset_name_to_original_dataset_name = {
@@ -319,9 +319,56 @@ def plot_bbox_dist_lists(struct_property):
     plt.show()
 
 
+def print_language_agreement(struct_property):
+    dataset_to_language_list = defaultdict(list)
+    for language, dataset_list in language_to_dataset_list.items():
+        for dataset in dataset_list:
+            dataset_to_language_list[dataset].append(language)
+    dataset_to_translated_language_list = defaultdict(list)
+    for language, dataset_list in translated_language_to_dataset_list.items():
+        for dataset in dataset_list:
+            dataset_to_translated_language_list[dataset].append(language)
+
+    orig_to_multilingual_mapping = defaultdict(list)
+    for multilingual_dataset_name, orig_dataset_name in multilingual_dataset_name_to_original_dataset_name.items():
+        orig_to_multilingual_mapping[orig_dataset_name].append(multilingual_dataset_name)
+
+    for orig_dataset_name, multilingual_dataset_list in orig_to_multilingual_mapping.items():
+        print(orig_dataset_name + ':')
+        # First, find all configurations (dataset + language)
+        based_datasets = multilingual_dataset_list + [orig_dataset_name]
+        configs = []
+        for dataset_name in based_datasets:
+            languages_list = dataset_to_language_list[dataset_name]
+            configs += [(dataset_name, x, False) for x in languages_list]
+            translated_languages_list = dataset_to_translated_language_list[dataset_name]
+            configs += [(dataset_name, x, True) for x in translated_languages_list]
+
+        # Next, generate the data for each config
+        struct_datas = []
+        for dataset_name, language, translated in configs:
+            TextUtils.set_language(language)
+            builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+            dataset = builder.build_dataset()
+            struct_datas.append(dataset.struct_data)
+
+        # Finally, calculate agreement between each two datasets
+        for i in range(len(configs)):
+            for j in range(i+1, len(configs)):
+                lang1 = configs[i][1]
+                if configs[i][2]:
+                    lang1 += '_translated'
+                lang2 = configs[j][1]
+                if configs[j][2]:
+                    lang2 += '_translated'
+                pearson_coef = get_vals_agreement(struct_datas[i], struct_datas[j])
+                print('\t' + lang1 + ' and ' + lang2 + ' agreement: ' + '{:.4f}'.format(pearson_coef))
+
+
 def analyze(struct_property):
-    print_class_prob_lists(struct_property)
-    plot_bbox_dist_lists(struct_property)
+    # print_class_prob_lists(struct_property)
+    # plot_bbox_dist_lists(struct_property)
+    print_language_agreement(struct_property)
 
 
-analyze('root_pos')
+analyze('passive')
