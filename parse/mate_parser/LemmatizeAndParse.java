@@ -20,8 +20,21 @@ public class LemmatizeAndParse {
 	
 	public static void main(String[] args) throws IOException {
 
-		String modelsDirname = "models";
 		String language = args[0];
+		String dataset_name = args[1];
+		String translated_str = "";
+		if (args.length > 2 && args[2].equals("--translated"))
+		{
+			translated_str = "_translated";
+		}
+		String output_file_name = dataset_name + translated_str + "_" + language + "_parsed.txt";
+		File file = new File(output_file_name);
+		if (file.exists())
+		{
+			return;
+		}
+
+		String modelsDirname = "models";
 		Path lemmatizerPath = null;
 		Path parserPath = null;
 		if (language.equals("English"))
@@ -39,12 +52,6 @@ public class LemmatizeAndParse {
 			lemmatizerPath = Paths.get(modelsDirname, "lemma-fra.mdl");
 			parserPath = Paths.get(modelsDirname, "pet-fra-S2apply-40-0.25-0.1-2-2-ht4-hm4-kk0");
 		}
-		String dataset_name = args[1];
-		String translated_str = "";
-		if (args.length > 2 && args[2].equals("--translated"))
-		{
-			translated_str = "_translated";
-		}
 		
 		// Flickr30 has no data splitting
 		String data_split = "train";
@@ -59,7 +66,7 @@ public class LemmatizeAndParse {
 		Lemmatizer lemmatizer = new Lemmatizer(lemmatizerPath.toString());
 		Parser p = new is2.transitionS2a.Parser(parserPath.toString());
 		
-		Writer myWriter = new OutputStreamWriter(new FileOutputStream("parsed.txt"), StandardCharsets.UTF_8);
+		Writer myWriter = new OutputStreamWriter(new FileOutputStream(output_file_name), StandardCharsets.UTF_8);
 		File myObj = new File(captionFilePath.toString());
 		Scanner myReader = new Scanner(myObj, "utf-8");
 		int counter = 0;
