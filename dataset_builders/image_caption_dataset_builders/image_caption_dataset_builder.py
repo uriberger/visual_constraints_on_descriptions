@@ -36,6 +36,11 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             f'{self.name}_gt_bboxes_data_{self.data_split_str}'
         )
 
+        self.parsed_file_path = os.path.join(
+            self.cached_dataset_files_dir,
+            f'{name}_{TextUtils.get_language()}_parsed.txt'
+        )
+
         self.nlp_data = None
 
     """ Return a list of dictionaries with 'image_id' and 'caption' entries. """
@@ -117,7 +122,7 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             tmv_out_file_path = os.path.join(cached_dataset_files_dir_name, tmv_out_file_name)
             if not os.path.isfile(tmv_out_file_path):
                 self.log_print(f'Couldn\'t find the tmv out file in path {tmv_out_file_path}. Stopping!')
-                self.log_print('Did you run the english_german_french_passive/prepare_passive_data.sh script?')
+                self.log_print('Did you run the parse/prepare_passive_data.sh script?')
                 assert False
 
             with open(tmv_out_file_path, 'r', encoding='utf-8') as tmv_out_fp:
@@ -178,23 +183,64 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
     def generate_transitivity_dataset(self):
         caption_data = self.get_caption_data()
-        self.generate_nlp_data()
         transitivity_dataset = []
+        language = TextUtils.get_language()
+        if language == 'French':
+            if not os.path.isfile(self.parsed_file_path):
+                self.log_print(f'Couldn\'t find the parsed file in path {self.parsed_file_path}. Stopping!')
+                self.log_print('Did you run the parse/parse.sh script?')
+                assert False
+            with open(self.parsed_file_path, 'r', encoding='utf-8') as fp:
+                sample_ind = -1
+                new_sentence = True
+                for line in fp:
+                    if new_sentence:
+                        sample_ind += 1
+                        image_id = caption_data[sample_ind]['image_id']
+                        obj_token_heads = []
+                        root_ind = -1
+                        new_sentence = False
+                    if line == '\n':
+                        # Finished current caption
+                        if root_ind >= 0:
+                            # If we're here there's exactly one root
+                            is_transitive = root_ind in obj_token_heads
+                            transitivity_dataset.append((image_id, int(is_transitive)))
+                        new_sentence = True
+                    else:
+                        split_line = line.split('\t')
+                        cur_token_ind = int(split_line[0])
+                        pos_tag = split_line[5]
+                        head_ind = int(split_line[9])
+                        dep_tag = split_line[11]
+                        # Check if current token is the root and is a verb
+                        if dep_tag == 'root' and pos_tag.startswith('V'):
+                            if root_ind == -1:
+                                # This is the first root we found
+                                root_ind = cur_token_ind
+                            elif root_ind >= 0:
+                                # This is the second root we found: we don't know how to handle these sentences
+                                root_ind == -2
+                        elif dep_tag == 'obj':
+                            obj_token_heads.append(head_ind)
+                assert sample_ind == len(caption_data) - 1
+        else:
+            self.generate_nlp_data()
 
-        for i in range(len(caption_data)):
-            image_id = caption_data[i]['image_id']
-            nlp_data = self.nlp_data[i]
-            roots = [token for token in nlp_data if token.dep_ == 'ROOT']
-            if len(roots) != 1:
-                # We don't know how to deal with zero or multiple roots, for now
-                continue
+            for i in range(len(caption_data)):
+                image_id = caption_data[i]['image_id']
+                nlp_data = self.nlp_data[i]
+                roots = [token for token in nlp_data if token.dep_ == 'ROOT']
+                if len(roots) != 1:
+                    # We don't know how to deal with zero or multiple roots, for now
+                    continue
 
-            root = roots[0]
-            if root.pos_ != 'VERB':
-                # We're not interested in non-verb roots
-                continue
+                root = roots[0]
+                if root.pos_ != 'VERB':
+                    # We're not interested in non-verb roots
+                    continue
 
-            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data))))
+                transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data))))
 
         return transitivity_dataset
 
