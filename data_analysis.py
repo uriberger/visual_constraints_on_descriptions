@@ -64,8 +64,8 @@ def get_dataset(language, dataset_name, struct_property, translated):
 
 # Language, dataset, translated indicator
 language_dataset_list = [
-    ('English', ['COCO', 'flickr30'], False),
-    ('German', ['multi30k'], False),
+    ('English', ['COCO', 'flickr30', 'iaprtc12'], False),
+    ('German', ['multi30k', 'iaprtc12'], False),
     ('Japanese', ['STAIR-captions'], False),
     ('Chinese', ['coco-cn', 'flickr8kcn'], False),
     ('German', ['multi30k'], True),
@@ -76,8 +76,11 @@ language_dataset_list = [
 multilingual_dataset_name_to_original_dataset_name = {
     'multi30k': 'flickr30',
     'flickr8kcn': 'flickr30',
+    'flickr30': 'flickr30',
     'STAIR-captions': 'COCO',
-    'coco-cn': 'COCO'
+    'coco-cn': 'COCO',
+    'COCO': 'COCO',
+    'iaprtc12': 'iaprtc12'
 }
 
 
@@ -93,7 +96,7 @@ def get_orig_dataset_to_configs():
 
     orig_dataset_to_configs = {}
     for orig_dataset_name, multilingual_dataset_list in orig_to_multilingual_mapping.items():
-        based_datasets = multilingual_dataset_list + [orig_dataset_name]
+        based_datasets = multilingual_dataset_list
         configs = []
         for dataset_name in based_datasets:
             languages_list = dataset_to_language_list[dataset_name]

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
@@ -18,5 +19,9 @@ pil_image_trans = transforms.Compose([
 
 def get_image_shape(image_path):
     """ Get the original image size given it's id. """
-    image_obj = Image.open(image_path)
-    return np.array(image_obj).shape
+    if os.path.isfile(image_path):
+        image_obj = Image.open(image_path)
+        image_shape = np.array(image_obj).shape
+    else:
+        image_shape = None
+    return image_shape

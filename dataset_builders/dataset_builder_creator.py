@@ -13,6 +13,7 @@ from dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.fli
     Flickr8kCNDatasetBuilder
 from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_cn_dataset_builder import \
     CocoCNDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.iapr_tc12_builder import IAPRTC12DatasetBuilder
 from dataset_builders.imsitu_dataset_builder import \
     ImSituDatasetBuilder
 
@@ -40,6 +41,8 @@ def create_dataset_builder(dataset_name, data_split_str, struct_property, transl
         dataset_builder = Flickr8kCNDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     elif dataset_name == 'coco-cn':
         dataset_builder = CocoCNDatasetBuilder(root_dir, data_split_str, struct_property, translated, 1)
+    elif dataset_name == 'iaprtc12':
+        dataset_builder = IAPRTC12DatasetBuilder(root_dir, struct_property, 1)
     else:
         assert False
 

@@ -140,6 +140,7 @@ class DatasetBuilder(LoggableObject):
 
     """ We want to filter images that are:
             - Grayscale
+            - Missing
         This function returns a list of image ids of images we want to filter.
     """
 
@@ -152,6 +153,7 @@ class DatasetBuilder(LoggableObject):
 
         self.unwanted_images_info = {
             'grayscale_count': 0,
+            'missing_count': 0,
             'unwanted_image_ids': []
         }
 
@@ -162,6 +164,7 @@ class DatasetBuilder(LoggableObject):
 
         self.log_print('Out of ' + str(len(image_ids_by_struct_data)) + ' images:')
         self.log_print('Found ' + str(self.unwanted_images_info['grayscale_count']) + ' grayscale images')
+        self.log_print(str(self.unwanted_images_info['missing_count']) + ' images were missing')
 
         return self.unwanted_images_info['unwanted_image_ids']
 
@@ -170,14 +173,16 @@ class DatasetBuilder(LoggableObject):
     def is_unwanted_image(self, index, item, print_info):
         image_id = item
 
-        # Grayscale
         image_path = self.image_path_finder.get_image_path(image_id)
         image_shape = get_image_shape(image_path)
-        if len(image_shape) == 2:
+        if image_shape is None:
+            # Missing image
+            self.unwanted_images_info['unwanted_image_ids'].append(image_id)
+            self.unwanted_images_info['missing_count'] += 1
+        elif len(image_shape) == 2:
             # Grayscale images only has 2 dims
             self.unwanted_images_info['unwanted_image_ids'].append(image_id)
             self.unwanted_images_info['grayscale_count'] += 1
-            return
 
     def unwanted_images_progress_report(self, index, dataset_size, time_from_prev):
         self.log_print('Starting image ' + str(index) +
