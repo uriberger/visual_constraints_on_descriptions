@@ -254,8 +254,8 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
             'nope'
         ])
         german_negation_words = set([
-            'nicht', 'kein', 'keiner', 'nie', 'niemals', 'niemand', 'nirgendwo', 'nirgendwohin', 'nirgends', 'weder',
-            'ohne', 'nein', 'nichts', 'nee', 'noch'
+            'nicht', 'kein', 'nie', 'niemals', 'niemand', 'nirgendwo', 'nirgendwohin', 'nirgends', 'weder', 'ohne',
+            'nein', 'nichts', 'nee'
         ])
         french_ne_negation_words = set([
             'aucun', 'aucune', 'ni', 'pas', 'personne'
