@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 import torch
 import time
 from utils.text_utils import TextUtils
@@ -122,3 +123,32 @@ def likelihood_agg_func(input_list):
         assert False
 
     return len([x for x in input_list if x == 1])/len(input_list)
+
+
+def safe_divide(numerator, denominator):
+    if denominator == 0:
+        return 0
+    else:
+        return numerator/denominator
+
+
+def get_image_id_to_count(struct_data):
+    """ Given a list of (image_id, val)- the struct_data input- where image ids are not unique and val is a binary
+        value, get 2 mappings: one from image id to the number of its instances in the list, and one from image id to
+        the number of its instances in the list where the val was 1.
+    """
+    image_id_to_count = defaultdict(int)
+    image_id_to_pos_count = defaultdict(int)
+    for image_id, expressing_prop in struct_data:
+        image_id_to_count[image_id] += 1
+        image_id_to_pos_count[image_id] += expressing_prop
+    return image_id_to_count, image_id_to_pos_count
+
+
+def get_image_id_to_prob(struct_data):
+    """ Given a list of (image_id, val)- the struct_data input- where image ids are not unique and val is a binary
+        value, get a mapping from image id to the fraction of its instances in the list where the val was 1.
+    """
+    image_id_to_count, image_id_to_pos_count = get_image_id_to_count(struct_data)
+    image_id_to_prob = {x: image_id_to_pos_count[x] / image_id_to_count[x] for x in image_id_to_count.keys()}
+    return image_id_to_prob

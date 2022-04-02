@@ -3,39 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from dataset_builders.dataset_builder_creator import create_dataset_builder
+from utils.general_utils import safe_divide, get_image_id_to_prob
 from utils.text_utils import TextUtils
 
 
 # Utility functions
-
-
-def safe_divide(numerator, denominator):
-    if denominator == 0:
-        return 0
-    else:
-        return numerator/denominator
-
-
-def get_image_id_to_count(struct_data):
-    """ Given a list of (image_id, val)- the struct_data input- where image ids are not unique and val is a binary
-        value, get 2 mappings: one from image id to the number of its instances in the list, and one from image id to
-        the number of its instances in the list where the val was 1.
-    """
-    image_id_to_count = defaultdict(int)
-    image_id_to_pos_count = defaultdict(int)
-    for image_id, has_num in struct_data:
-        image_id_to_count[image_id] += 1
-        image_id_to_pos_count[image_id] += has_num
-    return image_id_to_count, image_id_to_pos_count
-
-
-def get_image_id_to_prob(struct_data):
-    """ Given a list of (image_id, val)- the struct_data input- where image ids are not unique and val is a binary
-        value, get a mapping from image id to the fraction of its instances in the list where the val was 1.
-    """
-    image_id_to_count, image_id_to_pos_count = get_image_id_to_count(struct_data)
-    image_id_to_prob = {x: image_id_to_pos_count[x] / image_id_to_count[x] for x in image_id_to_count.keys()}
-    return image_id_to_prob
 
 
 def get_class_to_image_list(gt_class_data):
