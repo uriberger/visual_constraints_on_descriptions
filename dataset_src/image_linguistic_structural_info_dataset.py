@@ -11,14 +11,10 @@ class ImLingStructInfoDataset(data.Dataset):
         was built).
     """
 
-    def __init__(self, struct_data, image_path_finder, threshold):
+    def __init__(self, struct_data, image_path_finder):
         super(ImLingStructInfoDataset, self).__init__()
         self.struct_data = struct_data
-        if threshold is None:
-            self.threshold = self.find_threshold()
-        else:
-            self.threshold = threshold
-        self.sample_list = self.generate_sample_list()
+        self.threshold = None
         self.image_path_finder = image_path_finder
 
     """ This class's input is a list of (image_id, val) where image ids are not unique and val is binary value
@@ -61,9 +57,20 @@ class ImLingStructInfoDataset(data.Dataset):
 
         return threshold
 
-    def generate_sample_list(self):
+    def get_threshold(self):
+        return self.threshold
+
+    def set_threshold(self, threshold):
+        self.threshold = threshold
+
+    def generate_sample_list(self, threshold=None):
+        if threshold is None:
+            if self.threshold is None:
+                self.threshold = self.find_threshold()
+        else:
+            self.threshold = threshold
         image_id_to_prob = get_image_id_to_prob(self.struct_data)
-        return [
+        self.sample_list = [
             (x[0], int(x[1] > self.threshold)) for x in image_id_to_prob.items()
         ]
 
@@ -74,7 +81,7 @@ class ImLingStructInfoDataset(data.Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        item_struct_data = self.struct_data[idx]
+        item_struct_data = self.sample_list[idx]
 
         # Load image
         image_id = item_struct_data[0]

@@ -47,8 +47,11 @@ def main(should_write_to_log):
         training_set_builder.dump_captions()
         return
     training_set = training_set_builder.build_dataset()
+    training_set.generate_sample_list()
+    threshold = training_set.get_threshold()
     test_set_builder = create_dataset_builder(dataset_name, 'val', struct_property, translated)
     test_set = test_set_builder.build_dataset()
+    test_set.generate_sample_list(threshold)
     log_print(function_name, 0, 'datasets generated')
 
     log_print(function_name, 0, 'Training model...')
