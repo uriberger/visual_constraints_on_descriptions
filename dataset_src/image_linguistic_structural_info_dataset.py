@@ -1,4 +1,5 @@
 import torch
+import random
 import torch.utils.data as data
 from utils.general_utils import get_image_id_to_prob
 from utils.visual_utils import pil_image_trans
@@ -97,3 +98,24 @@ class ImLingStructInfoDataset(data.Dataset):
         }
 
         return sample
+
+    """ Balance given data list so that for each label, there would be the same number of samples. """
+
+    def find_samples_for_labels(self):
+        all_labels = list(set([x[1] for x in self.sample_list]))
+        label_to_data_samples = {x: [] for x in all_labels}
+        for image_id, label in self.sample_list:
+            label_to_data_samples[label].append(image_id)
+
+        return label_to_data_samples
+
+    def balance_data(self):
+        label_to_data_samples = self.find_samples_for_labels()
+
+        wanted_sample_num_for_each_label = min([len(x) for x in label_to_data_samples.values()])
+        balanced_data = []
+        for label, image_id_list in label_to_data_samples.items():
+            sampled_image_ids = random.sample(image_id_list, wanted_sample_num_for_each_label)
+            balanced_data += [(x, label) for x in sampled_image_ids]
+
+        self.sample_list = balanced_data
