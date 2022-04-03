@@ -30,7 +30,7 @@ def create_dataset_builder(dataset_name, data_split_str, struct_property, transl
     if dataset_name == 'COCO':
         dataset_builder = CocoDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     elif dataset_name == 'flickr30':
-        dataset_builder = Flickr30kDatasetBuilder(root_dir, struct_property, 1)
+        dataset_builder = Flickr30kDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     elif dataset_name == 'multi30k':
         dataset_builder = Multi30kDatasetBuilder(root_dir, data_split_str, struct_property, translated, 1)
     elif dataset_name == 'imSitu':

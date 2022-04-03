@@ -1,5 +1,6 @@
 import os
 import torch
+import random
 from xml.dom import minidom
 from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
@@ -25,8 +26,8 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         visual denotations: New similarity metrics for semantic inference over event descriptions' by Young et al.
     """
 
-    def __init__(self, root_dir_path, struct_property, indent):
-        super(Flickr30kDatasetBuilder, self).__init__(root_dir_path, 'flickr30', 'all', struct_property,
+    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
+        super(Flickr30kDatasetBuilder, self).__init__(root_dir_path, 'flickr30', data_split_str, struct_property,
                                                       indent)
 
         tokens_dir_name = 'tokens'
@@ -48,16 +49,42 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         self.coord_strs = ['xmin', 'ymin', 'xmax', 'ymax']
         self.coord_str_to_ind = {self.coord_strs[x]: x for x in range(len(self.coord_strs))}
 
-    def get_caption_data(self):
-        fp = open(self.tokens_file_path, encoding='utf-8')
-        image_id_captions_pairs = []
-        for line in fp:
-            split_line = line.strip().split('g#')
-            img_file_name = split_line[0] + 'g'
-            image_id = self.image_file_name_to_id(img_file_name)
-            caption = split_line[1].split('\t')[1]  # The first token is caption number
+        self.train_test_split_file_path = os.path.join(self.cached_dataset_files_dir, 'flickr30_train_test_split')
 
-            image_id_captions_pairs.append({'image_id': image_id, 'caption': caption})
+    def create_train_test_split(self):
+        all_image_ids = []
+        with open(self.tokens_file_path, encoding='utf-8') as fp:
+            for line in fp:
+                split_line = line.strip().split('g#')
+                img_file_name = split_line[0] + 'g'
+                image_id = self.image_file_name_to_id(img_file_name)
+                all_image_ids.append(image_id)
+
+        all_image_ids = list(set(all_image_ids))
+
+        train_split_size = int(len(all_image_ids)*0.8)
+        train_split = random.sample(all_image_ids, train_split_size)
+        train_split_dict = {x: True for x in train_split}
+        test_split = [x for x in all_image_ids if x not in train_split_dict]
+
+        return {'train': train_split, 'test': test_split}
+
+    def get_image_ids_for_split(self):
+        split_to_image_ids = generate_dataset(self.train_test_split_file_path, self.create_train_test_split)
+        return split_to_image_ids[self.data_split_str]
+
+    def get_caption_data(self):
+        data_split_image_ids = self.get_image_ids_for_split()
+        data_split_image_ids_dict = {x: True for x in data_split_image_ids}
+        image_id_captions_pairs = []
+        with open(self.tokens_file_path, encoding='utf-8') as fp:
+            for line in fp:
+                split_line = line.strip().split('g#')
+                img_file_name = split_line[0] + 'g'
+                image_id = self.image_file_name_to_id(img_file_name)
+                if image_id in data_split_image_ids_dict:
+                    caption = split_line[1].split('\t')[1]  # The first token is caption number
+                    image_id_captions_pairs.append({'image_id': image_id, 'caption': caption})
 
         return image_id_captions_pairs
 
