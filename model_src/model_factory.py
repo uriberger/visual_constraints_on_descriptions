@@ -29,5 +29,6 @@ class ModelFactory(LoggableObject):
         config = torch.load(config_file_path)
         model_file_path = os.path.join(model_dir, model_name + model_file_suffix)
         model = torch.load(model_file_path)
+        model.set_dump_path(model_dir, model_name)
 
         return model, config

@@ -44,7 +44,7 @@ class ImLingStructInfoClassifier(nn.Module):
 
         self.classification_head.to(self.device)
 
-        self.dump_path = os.path.join(model_dir, model_name)
+        self.set_dump_path(model_dir, model_name)
 
     @staticmethod
     def get_classification_head(input_size, class_num):
@@ -62,6 +62,9 @@ class ImLingStructInfoClassifier(nn.Module):
         return self.classification_head(x)
 
     # Dumping and loading utilities
+
+    def set_dump_path(self, model_dir, model_name):
+        self.dump_path = os.path.join(model_dir, model_name)
 
     """ Dump model and configuration to an external file.
         If a suffix is provided, add it to the end of the name of the dumped file.
