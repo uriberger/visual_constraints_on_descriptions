@@ -49,9 +49,9 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         self.coord_strs = ['xmin', 'ymin', 'xmax', 'ymax']
         self.coord_str_to_ind = {self.coord_strs[x]: x for x in range(len(self.coord_strs))}
 
-        self.train_test_split_file_path = os.path.join(self.cached_dataset_files_dir, 'flickr30_train_test_split')
+        self.train_val_split_file_path = os.path.join(self.cached_dataset_files_dir, 'flickr30_train_val_split')
 
-    def create_train_test_split(self):
+    def create_train_val_split(self):
         all_image_ids = []
         with open(self.tokens_file_path, encoding='utf-8') as fp:
             for line in fp:
@@ -65,12 +65,12 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         train_split_size = int(len(all_image_ids)*0.8)
         train_split = random.sample(all_image_ids, train_split_size)
         train_split_dict = {x: True for x in train_split}
-        test_split = [x for x in all_image_ids if x not in train_split_dict]
+        val_split = [x for x in all_image_ids if x not in train_split_dict]
 
-        return {'train': train_split, 'test': test_split}
+        return {'train': train_split, 'val': val_split}
 
     def get_image_ids_for_split(self):
-        split_to_image_ids = generate_dataset(self.train_test_split_file_path, self.create_train_test_split)
+        split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
         return split_to_image_ids[self.data_split_str]
 
     def get_caption_data(self):
