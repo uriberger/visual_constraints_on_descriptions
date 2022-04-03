@@ -56,6 +56,7 @@ def main(should_write_to_log):
         freeze_backbone=freeze_backbone
     )
     log_print(function_name, 0, str(model_config))
+    log_print(function_name, 0, 'Dataset: ' + dataset_name)
 
     log_print(function_name, 0, 'Generating datasets...')
     # Training set
@@ -89,7 +90,7 @@ def main(should_write_to_log):
 
     log_print(function_name, 0, 'Training model...')
     model_root_dir = os.path.join(project_root_dir, timestamp)
-    trainer = Trainer(model_root_dir, training_set, test_set, 5, 50, model_config, 1)
+    trainer = Trainer(model_root_dir, training_set, test_set, 20, 50, model_config, 1)
     trainer.train()
     log_print(function_name, 0, 'Finished training model')
 
