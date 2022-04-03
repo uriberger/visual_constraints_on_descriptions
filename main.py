@@ -20,6 +20,8 @@ parser.add_argument('--dataset', type=str, dest='dataset',
                     help='the name of the used dataset')
 parser.add_argument('--backbone_model', type=str, default='resnet50', dest='backbone_model',
                     help='the name of the backbone model')
+parser.add_argument('--freeze_backbone', action='store_true', default=False, dest='freeze_backbone',
+                    help='freeze the parameters of the backbone model during training')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
                     help='use translated captions')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
@@ -35,6 +37,7 @@ language = args.language
 struct_property = args.struct_property
 dataset_name = args.dataset
 backbone_model_name = args.backbone_model
+freeze_backbone = args.freeze_backbone
 translated = args.translated
 dump_captions = args.dump_captions
 balanced_training_set = args.balanced_training_set
@@ -47,7 +50,11 @@ def main(should_write_to_log):
     function_name = 'main'
     timestamp = init_entry_point(should_write_to_log, language)
 
-    model_config = ModelConfig(struct_property=struct_property, backbone_model=backbone_model_name)
+    model_config = ModelConfig(
+        struct_property=struct_property,
+        backbone_model=backbone_model_name,
+        freeze_backbone=freeze_backbone
+    )
     log_print(function_name, 0, str(model_config))
 
     log_print(function_name, 0, 'Generating datasets...')
