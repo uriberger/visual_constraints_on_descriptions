@@ -56,6 +56,7 @@ def main(should_write_to_log):
         freeze_backbone=freeze_backbone
     )
     log_print(function_name, 0, str(model_config))
+    log_print(function_name, 0, 'Dataset: ' + dataset_name)
 
     log_print(function_name, 0, 'Generating datasets...')
     # Training set
