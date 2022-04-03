@@ -25,15 +25,15 @@ class Trainer(Executor):
         model_factory = ModelFactory(self.indent + 1)
         if loaded_model_dir is None:
             # We train a brand new model
-            model_dir = model_root_dir
-            model_name = default_model_name
-            self.model = model_factory.create_model(model_config, model_dir, model_name)
+            self.model_dir = model_root_dir
+            self.model_name = default_model_name
+            self.model = model_factory.create_model(model_config, self.model_dir, self.model_name)
             self.model_config = model_config
         else:
             # We continue training an existing model
-            model_dir = loaded_model_dir
-            model_name = loaded_model_name
-            self.model, self.model_config = model_factory.load_model(model_dir, model_name)
+            self.model_dir = loaded_model_dir
+            self.model_name = loaded_model_name
+            self.model, self.model_config = model_factory.load_model(self.model_dir, self.model_name)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=model_config.learning_rate)
         self.criterion = self.get_criterion(model_config.struct_property)
@@ -71,8 +71,7 @@ class Trainer(Executor):
         self.dump_best_model_if_needed()
 
     def evaluate_current_model(self):
-        model_dir = os.path.join(*(os.path.split(self.model.get_model_path())[:-1]))
-        evaluator = Evaluator(self.test_set, model_dir, default_model_name, self.indent + 1)
+        evaluator = Evaluator(self.test_set, self.model_dir, self.model_name, self.indent + 1)
         accuracy = evaluator.evaluate()
         return accuracy
 
