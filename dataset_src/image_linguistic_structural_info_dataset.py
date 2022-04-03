@@ -76,7 +76,7 @@ class ImLingStructInfoDataset(data.Dataset):
         ]
 
     def __len__(self):
-        return len(self.struct_data)
+        return len(self.sample_list)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
