@@ -15,8 +15,10 @@ from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_
     CocoCNDatasetBuilder
 from dataset_builders.image_caption_dataset_builders.iapr_tc12_builder import \
     IAPRTC12DatasetBuilder
-from dataset_builders.image_caption_dataset_builders.pascal_sentences_builder import \
+from dataset_builders.image_caption_dataset_builders.pascal_dataset_builders.pascal_sentences_builder import \
     PascalSentencesDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.pascal_dataset_builders.japanese_pascal_dataset_builder import \
+    JapanesePascalDatasetBuilder
 from dataset_builders.imsitu_dataset_builder import \
     ImSituDatasetBuilder
 
@@ -48,6 +50,8 @@ def create_dataset_builder(dataset_name, data_split_str, struct_property, transl
         dataset_builder = IAPRTC12DatasetBuilder(root_dir, data_split_str, struct_property, 1)
     elif dataset_name == 'pascal_sentences':
         dataset_builder = PascalSentencesDatasetBuilder(root_dir, data_split_str, struct_property, 1)
+    elif dataset_name == 'pascal_jp':
+        dataset_builder = JapanesePascalDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     else:
         assert False
 

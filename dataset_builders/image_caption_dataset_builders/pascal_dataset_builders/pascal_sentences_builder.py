@@ -40,9 +40,17 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
         self.images_dir_path = os.path.join(self.root_dir_path, 'dataset')
 
     @staticmethod
-    def file_name_to_image_id(file_name, class_ind):
+    def caption_file_name_to_image_id(file_name, class_ind):
+        return PascalSentencesDatasetBuilder.file_name_to_image_id(file_name, class_ind, '.txt')
+
+    @staticmethod
+    def image_file_name_to_image_id(file_name, class_ind):
+        return PascalSentencesDatasetBuilder.file_name_to_image_id(file_name, class_ind, '.jpg')
+
+    @staticmethod
+    def file_name_to_image_id(file_name, class_ind, suffix):
         id_prefix = class_ind * MULT_FACT
-        image_serial_num = int(file_name.split('2008_')[1].split('.txt')[0])
+        image_serial_num = int(file_name.split('2008_')[1].split(suffix)[0])
         image_id = id_prefix + image_serial_num
         return image_id
 
@@ -54,7 +62,7 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
             subdir_path = os.path.join(self.sentences_dir_path, subdir_name)
             class_ind = class_to_ind[subdir_name]
             file_names = os.listdir(subdir_path)
-            image_ids = [self.file_name_to_image_id(file_name, class_ind) for file_name in file_names]
+            image_ids = [self.caption_file_name_to_image_id(file_name, class_ind) for file_name in file_names]
             all_image_ids += image_ids
         assert len(all_image_ids) == len(set(all_image_ids))
         return all_image_ids
@@ -67,7 +75,7 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
             subdir_path = os.path.join(self.sentences_dir_path, subdir_name)
             class_ind = class_to_ind[subdir_name]
             for file_name in os.listdir(subdir_path):
-                image_id = self.file_name_to_image_id(file_name, class_ind)
+                image_id = self.caption_file_name_to_image_id(file_name, class_ind)
                 file_path = os.path.join(subdir_path, file_name)
                 with open(file_path, 'r') as fp:
                     for line in fp:
