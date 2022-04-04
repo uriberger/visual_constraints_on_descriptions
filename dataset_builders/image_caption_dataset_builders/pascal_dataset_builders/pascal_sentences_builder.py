@@ -96,6 +96,7 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
 
     def get_class_mapping(self):
         class_names = os.listdir(self.sentences_dir_path)
+        class_names = [x for x in class_names if x != '.keep']
         class_names.sort()
         return class_names
 
