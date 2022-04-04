@@ -3,6 +3,7 @@ from recognizers_number import recognize_number, Culture
 import os
 import abc
 import jieba
+import random
 
 from dataset_builders.dataset_builder import DatasetBuilder
 from utils.general_utils import generate_dataset, for_loop_with_reports
@@ -39,6 +40,11 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
         self.parsed_file_path = os.path.join(
             self.cached_dataset_files_dir,
             f'{name}_{TextUtils.get_language()}_parsed.txt'
+        )
+
+        self.train_val_split_file_path = os.path.join(
+            self.cached_dataset_files_dir,
+            f'{name}_{TextUtils.get_language()}_train_val_split'
         )
 
         self.nlp_data = None
@@ -464,3 +470,22 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
     @abc.abstractmethod
     def create_image_path_finder(self):
         return
+
+    # Some of the datasets are not naturally divided to splits. Create functionality to do that
+
+    @abc.abstractmethod
+    def get_all_image_ids(self):
+        return
+
+    def create_train_val_split(self):
+        all_image_ids = self.get_all_image_ids()
+        train_split_size = int(len(all_image_ids) * 0.8)
+        train_split = random.sample(all_image_ids, train_split_size)
+        train_split_dict = {x: True for x in train_split}
+        val_split = [x for x in all_image_ids if x not in train_split_dict]
+
+        return {'train': train_split, 'val': val_split}
+
+    def get_image_ids_for_split(self):
+        split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
+        return split_to_image_ids[self.data_split_str]
