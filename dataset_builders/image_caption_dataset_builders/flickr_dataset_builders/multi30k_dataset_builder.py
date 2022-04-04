@@ -1,11 +1,13 @@
 import os
 import gzip
-from dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr_based_dataset_builder import \
-    FlickrBasedDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+    EnglishBasedDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr30k_dataset_builder import \
+    Flickr30kDatasetBuilder
 from utils.text_utils import TextUtils
 
 
-class Multi30kDatasetBuilder(FlickrBasedDatasetBuilder):
+class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
     """ This is the dataset builder class for the multi30k dataset, described in the paper 'Multi30K: Multilingual
         English-German Image Descriptions' by Elliott et al.
         This dataset is based on the Flickr30k dataset.
@@ -17,7 +19,8 @@ class Multi30kDatasetBuilder(FlickrBasedDatasetBuilder):
         translated_str = ''
         if translated:
             translated_str = '_translated'
-        super(Multi30kDatasetBuilder, self).__init__(root_dir_path, 'multi30k' + translated_str, data_split_str, struct_property, indent)
+        super(Multi30kDatasetBuilder, self).__init__(root_dir_path, 'multi30k' + translated_str, data_split_str,
+                                                     struct_property, Flickr30kDatasetBuilder, 'flickr30', indent)
 
         data_dir_name = 'data'
         if translated:

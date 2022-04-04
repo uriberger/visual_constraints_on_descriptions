@@ -1,9 +1,11 @@
 import os
-from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_based_dataset_builder import \
-    CocoBasedDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+    EnglishBasedDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
+    CocoDatasetBuilder
 
 
-class CocoCNDatasetBuilder(CocoBasedDatasetBuilder):
+class CocoCNDatasetBuilder(EnglishBasedDatasetBuilder):
     """ This is the dataset builder class for the COCO-CN dataset, described in the paper 'COCO-CN for Cross-Lingual
         Image Tagging, Captioning, and Retrieval' by Li et al.
         This dataset is based on the COCO dataset.
@@ -15,8 +17,8 @@ class CocoCNDatasetBuilder(CocoBasedDatasetBuilder):
         translated_str = ''
         if translated:
             translated_str = '_translated'
-        super(CocoCNDatasetBuilder, self).__init__(root_dir_path, 'coco_cn' + translated_str, data_split_str, struct_property,
-                                                   indent)
+        super(CocoCNDatasetBuilder, self).__init__(root_dir_path, 'coco_cn' + translated_str, data_split_str,
+                                                   struct_property, CocoDatasetBuilder, 'COCO', indent)
 
         caption_file_name_prefix = 'imageid.'
         caption_file_name_suffix = '-caption.txt'

@@ -1,9 +1,11 @@
 import os
-from dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr_based_dataset_builder import \
-    FlickrBasedDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+    EnglishBasedDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr30k_dataset_builder import \
+    Flickr30kDatasetBuilder
 
 
-class Flickr8kCNDatasetBuilder(FlickrBasedDatasetBuilder):
+class Flickr8kCNDatasetBuilder(EnglishBasedDatasetBuilder):
     """ This is the dataset builder class for the flickr8k-cn dataset, described in the paper 'Adding Chinese Captions
         to Images' by Li et al.
         This dataset is based on the Flickr8k dataset.
@@ -11,7 +13,7 @@ class Flickr8kCNDatasetBuilder(FlickrBasedDatasetBuilder):
 
     def __init__(self, root_dir_path, data_split_str, struct_property, indent):
         super(Flickr8kCNDatasetBuilder, self).__init__(root_dir_path, 'flickr8kcn', data_split_str, struct_property,
-                                                       indent)
+                                                       Flickr30kDatasetBuilder, 'flickr30', indent)
 
         data_dir_name = 'data'
         caption_file_name = 'flickr8kzhc.caption.txt'

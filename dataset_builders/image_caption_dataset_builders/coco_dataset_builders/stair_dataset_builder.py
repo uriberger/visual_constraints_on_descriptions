@@ -1,10 +1,12 @@
 import os
 import json
-from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_based_dataset_builder import \
-    CocoBasedDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+    EnglishBasedDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
+    CocoDatasetBuilder
 
 
-class StairDatasetBuilder(CocoBasedDatasetBuilder):
+class StairDatasetBuilder(EnglishBasedDatasetBuilder):
     """ This is the dataset builder class for the STAIR-caption dataset, described in the paper 'STAIR Captions:
         Constructing a Large-Scale Japanese Image Caption Dataset' by Yoshikawa et al.
         This dataset is based on the COCO dataset.
@@ -12,7 +14,7 @@ class StairDatasetBuilder(CocoBasedDatasetBuilder):
 
     def __init__(self, root_dir_path, data_split_str, struct_property, indent):
         super(StairDatasetBuilder, self).__init__(root_dir_path, 'stair', data_split_str, struct_property,
-                                                  indent)
+                                                  CocoDatasetBuilder, 'COCO', indent)
 
         captions_file_prefix = 'stair_captions_v1.2'
         train_captions_file_name = f'{captions_file_prefix}_train.json'
