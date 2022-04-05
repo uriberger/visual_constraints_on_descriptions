@@ -5,12 +5,12 @@ import abc
 import jieba
 import random
 
-from dataset_builders.dataset_builder import DatasetBuilder
+from dataset_builders.single_dataset_builder import SingleDatasetBuilder
 from utils.general_utils import generate_dataset, for_loop_with_reports
 from utils.text_utils import TextUtils
 
 
-class ImageCaptionDatasetBuilder(DatasetBuilder):
+class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
     """ This is the dataset builder class for all datasets of image, caption pairs. """
 
     def __init__(self, root_dir_path, name, data_split_str, struct_property, indent):
@@ -473,9 +473,9 @@ class ImageCaptionDatasetBuilder(DatasetBuilder):
 
     # Some of the datasets are not naturally divided to splits. Create functionality to do that
 
-    @abc.abstractmethod
     def get_all_image_ids(self):
-        return
+        caption_data = self.get_caption_data()
+        return list(set([x['image_id'] for x in caption_data]))
 
     def create_train_val_split(self):
         all_image_ids = self.get_all_image_ids()
