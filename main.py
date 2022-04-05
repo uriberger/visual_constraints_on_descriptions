@@ -3,7 +3,8 @@ from model_src.model_config import ModelConfig
 from executors.trainer import Trainer
 from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
-from dataset_list import translated_only_datasets
+from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
+from dataset_list import language_dataset_list, translated_only_datasets
 import os
 import argparse
 
@@ -17,7 +18,7 @@ parser.add_argument('--language', type=str, default='English', dest='language',
                     help='the language of the used dataset')
 parser.add_argument('--struct_property', type=str, dest='struct_property',
                     help='the linguistic structural property to be examined')
-parser.add_argument('--dataset', type=str, dest='dataset',
+parser.add_argument('--dataset', type=str, default=None, dest='dataset',
                     help='the name of the used dataset')
 parser.add_argument('--backbone_model', type=str, default='resnet50', dest='backbone_model',
                     help='the name of the backbone model')
@@ -47,6 +48,18 @@ balanced_test_set = args.balanced_test_set
 DatasetBuilder.set_datasets_dir(datasets_dir)
 
 
+def get_dataset_builder(data_split_str):
+    if dataset_name is None:
+        dataset_names = [x for x in language_dataset_list if x[0] == language and x[2] == translated][0][1]
+        builder_list = [create_dataset_builder(x, data_split_str, struct_property, translated)
+                        for x in dataset_names]
+        builder = ConcatenatedDatasetBuilder(builder_list, data_split_str, struct_property, 1)
+    else:
+        builder = create_dataset_builder(dataset_name, data_split_str, struct_property, translated)
+
+    return builder
+
+
 def main(should_write_to_log):
     function_name = 'main'
     timestamp = init_entry_point(should_write_to_log, language)
@@ -66,7 +79,7 @@ def main(should_write_to_log):
 
     log_print(function_name, 0, 'Generating datasets...')
     # Training set
-    training_set_builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+    training_set_builder = get_dataset_builder('train')
     if dump_captions:
         training_set_builder.dump_captions()
         return
@@ -82,7 +95,7 @@ def main(should_write_to_log):
         log_print(function_name, 0, f'After balancing, training data contains {len(training_set.sample_list)} samples')
 
     # Test set
-    test_set_builder = create_dataset_builder(dataset_name, 'val', struct_property, translated)
+    test_set_builder = get_dataset_builder('val')
     test_set = test_set_builder.build_dataset()
     test_set.generate_sample_list(threshold)
     test_label_to_data_samples = test_set.find_samples_for_labels()
