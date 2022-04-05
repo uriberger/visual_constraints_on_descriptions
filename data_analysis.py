@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from utils.general_utils import safe_divide, get_image_id_to_prob
 from utils.text_utils import TextUtils
+from dataset_list import language_dataset_list
 
 
 # Utility functions
@@ -33,17 +34,6 @@ def get_dataset(language, dataset_name, struct_property, translated):
     dataset = builder.build_dataset()
     return dataset
 
-
-# Language, dataset, translated indicator
-language_dataset_list = [
-    ('English', ['COCO', 'flickr30', 'iaprtc12'], False),
-    ('German', ['multi30k', 'iaprtc12'], False),
-    ('Japanese', ['STAIR-captions'], False),
-    ('Chinese', ['coco-cn', 'flickr8kcn'], False),
-    ('German', ['multi30k'], True),
-    ('French', ['multi30k'], True),
-    ('Chinese', ['coco-cn'], True)
-]
 
 multilingual_dataset_name_to_original_dataset_name = {
     'multi30k': 'flickr30',

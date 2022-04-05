@@ -3,6 +3,7 @@ from model_src.model_config import ModelConfig
 from executors.trainer import Trainer
 from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
+from dataset_list import translated_only_datasets
 import os
 import argparse
 
@@ -44,7 +45,6 @@ balanced_training_set = args.balanced_training_set
 balanced_test_set = args.balanced_test_set
 
 DatasetBuilder.set_datasets_dir(datasets_dir)
-translated_only_datasets = ['de_coco']
 
 
 def main(should_write_to_log):
