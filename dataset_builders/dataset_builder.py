@@ -60,7 +60,7 @@ class DatasetBuilder(LoggableObject):
         aggregate the labels of all the caption of an image to a single label.
     """
 
-    def build_dataset(self, balanced=False, aggregation_func=None):
+    def build_dataset(self, aggregation_func=None):
         self.log_print('Generating ' + self.name +
                        ' ' + self.data_split_str +
                        ' ' + self.struct_property + ' dataset...')
