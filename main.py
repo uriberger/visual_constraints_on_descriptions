@@ -44,6 +44,7 @@ balanced_training_set = args.balanced_training_set
 balanced_test_set = args.balanced_test_set
 
 DatasetBuilder.set_datasets_dir(datasets_dir)
+translated_only_datasets = ['de_coco']
 
 
 def main(should_write_to_log):
@@ -57,6 +58,11 @@ def main(should_write_to_log):
     )
     log_print(function_name, 0, str(model_config))
     log_print(function_name, 0, f'Dataset: {dataset_name}, language: {language}')
+
+    if dataset_name in translated_only_datasets and (not translated):
+        log_print(function_name, 0, f'Dataset {dataset_name} is only translated.'
+                                    f' Please use the --translated flag. Stopping!')
+        assert False
 
     log_print(function_name, 0, 'Generating datasets...')
     # Training set
