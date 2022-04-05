@@ -59,11 +59,12 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
         class_mapping = self.get_class_mapping()
         class_to_ind = {class_mapping[i]: i for i in range(len(class_mapping))}
         for subdir_name in os.listdir(self.sentences_dir_path):
-            subdir_path = os.path.join(self.sentences_dir_path, subdir_name)
-            class_ind = class_to_ind[subdir_name]
-            file_names = os.listdir(subdir_path)
-            image_ids = [self.caption_file_name_to_image_id(file_name, class_ind) for file_name in file_names]
-            all_image_ids += image_ids
+            if subdir_name in class_to_ind:
+                subdir_path = os.path.join(self.sentences_dir_path, subdir_name)
+                class_ind = class_to_ind[subdir_name]
+                file_names = os.listdir(subdir_path)
+                image_ids = [self.caption_file_name_to_image_id(file_name, class_ind) for file_name in file_names]
+                all_image_ids += image_ids
         assert len(all_image_ids) == len(set(all_image_ids))
         return all_image_ids
 
@@ -72,15 +73,16 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
         class_mapping = self.get_class_mapping()
         class_to_ind = {class_mapping[i]: i for i in range(len(class_mapping))}
         for subdir_name in os.listdir(self.sentences_dir_path):
-            subdir_path = os.path.join(self.sentences_dir_path, subdir_name)
-            class_ind = class_to_ind[subdir_name]
-            for file_name in os.listdir(subdir_path):
-                image_id = self.caption_file_name_to_image_id(file_name, class_ind)
-                file_path = os.path.join(subdir_path, file_name)
-                with open(file_path, 'r') as fp:
-                    for line in fp:
-                        caption = line.strip()
-                        caption_data.append({'image_id': image_id, 'caption': caption})
+            if subdir_name in class_to_ind:
+                subdir_path = os.path.join(self.sentences_dir_path, subdir_name)
+                class_ind = class_to_ind[subdir_name]
+                for file_name in os.listdir(subdir_path):
+                    image_id = self.caption_file_name_to_image_id(file_name, class_ind)
+                    file_path = os.path.join(subdir_path, file_name)
+                    with open(file_path, 'r') as fp:
+                        for line in fp:
+                            caption = line.strip()
+                            caption_data.append({'image_id': image_id, 'caption': caption})
 
         data_split_image_ids = self.get_image_ids_for_split()
         data_split_image_ids_dict = {x: True for x in data_split_image_ids}
