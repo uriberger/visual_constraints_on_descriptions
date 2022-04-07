@@ -144,6 +144,7 @@ def get_vals_agreement(struct_data1, struct_data2):
     image_id_to_prob1 = get_image_id_to_prob(struct_data1)
     image_id_to_prob2 = get_image_id_to_prob(struct_data2)
     all_image_ids = [x for x in image_id_to_prob1.keys() if x in image_id_to_prob2]
+    print('\t\tImage num in comparison: ' + str(len(all_image_ids)))
     all_image_ids_dict = {x: True for x in all_image_ids}
     image_id_to_prob1 = {x[0]: x[1] for x in image_id_to_prob1.items() if x[0] in all_image_ids_dict}
     image_id_to_prob2 = {x[0]: x[1] for x in image_id_to_prob2.items() if x[0] in all_image_ids_dict}
@@ -433,10 +434,10 @@ def plot_image_histogram(struct_property):
 def analyze(struct_property):
     # print_class_prob_lists(struct_property)
     # plot_bbox_dist_lists(struct_property)
-    # print_language_agreement(struct_property)
+    print_language_agreement(struct_property)
     # print_language_mean_val(struct_property)
     # print_consistently_extreme_image_ids(struct_property)
-    plot_image_histogram(struct_property)
+    # plot_image_histogram(struct_property)
 
 
 analyze('numbers')

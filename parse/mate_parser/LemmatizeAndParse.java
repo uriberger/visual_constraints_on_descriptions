@@ -9,6 +9,8 @@ import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 import is2.data.SentenceData09;
@@ -26,12 +28,6 @@ public class LemmatizeAndParse {
 		if (args.length > 2 && args[2].equals("--translated"))
 		{
 			translated_str = "_translated";
-		}
-		String output_file_name = dataset_name + translated_str + "_" + language + "_parsed.txt";
-		File file = new File(output_file_name);
-		if (file.exists())
-		{
-			return;
 		}
 
 		String modelsDirname = "models";
@@ -53,51 +49,54 @@ public class LemmatizeAndParse {
 			parserPath = Paths.get(modelsDirname, "pet-fra-S2apply-40-0.25-0.1-2-2-ht4-hm4-kk0");
 		}
 		
-		// Flickr30 has no data splitting
-		String data_split = "train";
-		if (dataset_name.equals("flickr30"))
-		{
-			data_split = "all";
-		}
-		
-		Path captionFilePath = Paths.get("..", "..", "cached_dataset_files", dataset_name + translated_str + "_" + language + "_dump_captions_" + data_split + ".txt");
-		
 		// create a lemmatizer and parser
 		Lemmatizer lemmatizer = new Lemmatizer(lemmatizerPath.toString());
 		Parser p = new is2.transitionS2a.Parser(parserPath.toString());
 		
-		Writer myWriter = new OutputStreamWriter(new FileOutputStream(output_file_name), StandardCharsets.UTF_8);
-		File myObj = new File(captionFilePath.toString());
-		Scanner myReader = new Scanner(myObj, "utf-8");
-		int counter = 0;
-		while (myReader.hasNextLine()) {
-			if (counter % 1000 == 0)
+		List<String> data_split_list = Arrays.asList("train", "val");
+		for (String data_split : data_split_list)
+		{
+			Path captionFilePath = Paths.get("..", "..", "cached_dataset_files", dataset_name + translated_str + "_" + language + "_dump_captions_" + data_split + ".txt");
+			String output_file_name = dataset_name + translated_str + "_" + language + "_" + data_split + "_parsed.txt";
+			File file = new File(output_file_name);
+			if (file.exists())
 			{
-				System.out.println("[LemmatizeAndParse] Starting caption " + counter);
+				continue;
 			}
-			counter = counter + 1;
 			
-			// Create a data container for a sentence
-			SentenceData09 i = new SentenceData09();
-			String data = myReader.nextLine();
-			StringTokenizer st = new StringTokenizer(data);
-			ArrayList<String> forms = new ArrayList<String>();
-			forms.add("<root>");
-			while(st.hasMoreTokens()) forms.add(st.nextToken());
-			i.init(forms.toArray(new String[0]));
+			Writer myWriter = new OutputStreamWriter(new FileOutputStream(output_file_name), StandardCharsets.UTF_8);
+			File myObj = new File(captionFilePath.toString());
+			Scanner myReader = new Scanner(myObj, "utf-8");
+			int counter = 0;
+			while (myReader.hasNextLine()) {
+				if (counter % 1000 == 0)
+				{
+					System.out.println("[LemmatizeAndParse] Starting caption " + counter + " in " + data_split);
+				}
+				counter = counter + 1;
+				
+				// Create a data container for a sentence
+				SentenceData09 i = new SentenceData09();
+				String data = myReader.nextLine();
+				StringTokenizer st = new StringTokenizer(data);
+				ArrayList<String> forms = new ArrayList<String>();
+				forms.add("<root>");
+				while(st.hasMoreTokens()) forms.add(st.nextToken());
+				i.init(forms.toArray(new String[0]));
 
-			// lemmatize a sentence; the result is stored in the stenenceData09 i 
-			i= lemmatizer.apply(i);
-		
-			// apply the parser
-			p.apply(i);
-		
-			// output the result
-			for (int k=1;k< i.length();k++) myWriter.write(k+"\t"+i.forms[k]+"\t_\t"+i.plemmas[k]+"\t_\t"+i.ppos[k]+"\t_\t"+i.pfeats[k]+"\t_\t"+i.pheads[k]+"\t_\t"+i.plabels[k]+"\t_\t_\n");
-			myWriter.write("\n");
-        }
-        myReader.close();
-		myWriter.close();
+				// lemmatize a sentence; the result is stored in the stenenceData09 i 
+				i= lemmatizer.apply(i);
+			
+				// apply the parser
+				p.apply(i);
+			
+				// output the result
+				for (int k=1;k< i.length();k++) myWriter.write(k+"\t"+i.forms[k]+"\t_\t"+i.plemmas[k]+"\t_\t"+i.ppos[k]+"\t_\t"+i.pfeats[k]+"\t_\t"+i.pheads[k]+"\t_\t"+i.plabels[k]+"\t_\t_\n");
+				myWriter.write("\n");
+			}
+			myReader.close();
+			myWriter.close();
+		}
 	}
 
 	

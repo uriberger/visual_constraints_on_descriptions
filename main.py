@@ -78,11 +78,14 @@ def main(should_write_to_log):
         assert False
 
     log_print(function_name, 0, 'Generating datasets...')
-    # Training set
     training_set_builder = get_dataset_builder('train')
+    test_set_builder = get_dataset_builder('val')
     if dump_captions:
         training_set_builder.dump_captions()
+        test_set_builder.dump_captions()
         return
+
+    # Training set
     training_set = training_set_builder.build_dataset()
     training_set.generate_sample_list()
     threshold = training_set.get_threshold()
@@ -95,7 +98,6 @@ def main(should_write_to_log):
         log_print(function_name, 0, f'After balancing, training data contains {len(training_set.sample_list)} samples')
 
     # Test set
-    test_set_builder = get_dataset_builder('val')
     test_set = test_set_builder.build_dataset()
     test_set.generate_sample_list(threshold)
     test_label_to_data_samples = test_set.find_samples_for_labels()
