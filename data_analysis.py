@@ -37,10 +37,9 @@ def get_dataset(language, dataset_name, struct_property, translated):
 
 def get_intersection_image_ids(struct_datas):
     """ Get a list of image ids that exist in all struct datas. """
-    all_image_ids = set([x[0] for x in struct_datas[0]])
-    for i in range(1, len(struct_datas)):
-        all_image_ids = all_image_ids.intersection([x[0] for x in struct_datas[i]])
-    return list(all_image_ids)
+    unique_image_ids_list = [set([x[0] for x in struct_data]) for struct_data in struct_datas]
+    all_image_ids = list(set.intersection(*unique_image_ids_list))
+    return all_image_ids
 
 
 def get_orig_dataset_to_configs():
@@ -177,37 +176,49 @@ def get_mean_val(struct_datas_list):
     return total_sum/total_count
 
 
-def get_mean_values_across_datasets(struct_datas_list, aggregate_per_dataset=True):
+def get_mean_values_across_datasets(struct_datas_list, languages, aggregate_per_language):
     """ Given a list of lists of (image_id, val)- the struct_datas_list input- where image ids are not unique and val is
-        a binary value, and we assume the struct_data in the list share image ids, do the following:
+        a binary value, and we assume the struct_data in the list share image ids, and the corresponding list of
+        languages, do the following:
         1. In each list, for each image id, calculate the fraction of its instances in the struct_data list where the
         val was 1.
         2. For each image id, compute the mean of fractions from 1 across different struct datas.
     """
+    if not aggregate_per_language:
+        languages = ['all_languages']*len(struct_datas_list)
+
     # Preprocessing: make sure struct_data and gt_class data contain the same imade ids
-    unique_image_ids_list = [set([x[0] for x in struct_data]) for struct_data in struct_datas_list]
-    all_image_ids = list(set.intersection(*unique_image_ids_list))
+    all_image_ids = get_intersection_image_ids(struct_datas_list)
     all_image_ids_dict = {x: True for x in all_image_ids}
 
-    # Now find the sum of fractions (aka probabilities) across all struct datas
-    image_id_to_prob_sum = defaultdict(int)
-    image_id_to_prob_count = defaultdict(int)
-    for struct_data in struct_datas_list:
-        if aggregate_per_dataset:
-            image_id_to_prob = get_image_id_to_prob(struct_data)
-            for image_id in all_image_ids:
-                image_id_to_prob_sum[image_id] += image_id_to_prob[image_id]
-        else:
-            for image_id, val in struct_data:
-                if image_id in all_image_ids_dict:
-                    image_id_to_prob_sum[image_id] += val
-                    image_id_to_prob_count[image_id] += 1
+    # Now find the sum of fractions (aka probabilities) across all struct datas, for each language
+    unique_languages = list(set(languages))
+    language_image_id_to_prob_sum = {x: defaultdict(int) for x in unique_languages}
+    language_image_id_to_prob_count = {x: defaultdict(int) for x in unique_languages}
+    for i in range(len(struct_datas_list)):
+        struct_data = struct_datas_list[i]
+        language = languages[i]
+        for image_id, val in struct_data:
+            if image_id in all_image_ids_dict:
+                language_image_id_to_prob_sum[language][image_id] += val
+                language_image_id_to_prob_count[language][image_id] += 1
 
-    # Finally, because we want the mean and not the sum, divide by the number of struct datas
-    if aggregate_per_dataset:
-        image_id_to_mean_prob = {x[0]: x[1]/len(struct_datas_list) for x in image_id_to_prob_sum.items()}
-    else:
-        image_id_to_mean_prob = {x[0]: x[1] / image_id_to_prob_count[x[0]] for x in image_id_to_prob_sum.items()}
+    # Next, because we want the mean and not the sum, divide the sum by the count
+    language_image_id_to_prob_mean = {
+        x[0]: {
+            y[0]: y[1]/language_image_id_to_prob_count[x[0]][y[0]]
+            for y in x[1].items()
+        }
+        for x in language_image_id_to_prob_sum.items()
+    }
+
+    # Finally, aggregate across all languages and divide by the number of languages
+    image_id_to_prob_sum = {x: 0 for x in all_image_ids}
+    for cur_image_id_to_prob_mean in language_image_id_to_prob_mean.values():
+        for image_id, prob_mean in cur_image_id_to_prob_mean.items():
+            image_id_to_prob_sum[image_id] += prob_mean
+
+    image_id_to_mean_prob = {x[0]: x[1]/len(unique_languages) for x in image_id_to_prob_sum.items()}
 
     return image_id_to_mean_prob
 
@@ -373,19 +384,24 @@ def print_language_mean_val(struct_property):
         print(language_str + ': ' + '{:.4f}'.format(mean_val))
 
 
-def print_consistently_extreme_image_ids(struct_property):
+def print_consistently_extreme_image_ids(struct_property, aggregate_per_language):
     orig_dataset_to_configs = get_orig_dataset_to_configs()
 
     for orig_dataset_name, configs in orig_dataset_to_configs.items():
         print(orig_dataset_name + ':')
         # First, generate data for each config
         struct_datas = []
+        languages = []
         for dataset_name, language, translated in configs:
             dataset = get_dataset(language, dataset_name, struct_property, translated)
             struct_datas.append(dataset.struct_data)
+            language_name = language
+            if translated:
+                language_name += '_translated'
+            languages.append(language_name)
 
         # Next, calculate mean across all datasets
-        image_id_to_mean_prob = get_mean_values_across_datasets(struct_datas, False)
+        image_id_to_mean_prob = get_mean_values_across_datasets(struct_datas, languages, aggregate_per_language)
         image_id_mean_prob_list = sorted(list(image_id_to_mean_prob.items()), key=lambda x: x[1], reverse=True)
         image_id_mean_prob_list = [(str(x[0]), x[1]) for x in image_id_mean_prob_list]
 
@@ -443,10 +459,11 @@ def plot_image_histogram(struct_property):
 def analyze(struct_property):
     # print_class_prob_lists(struct_property)
     # plot_bbox_dist_lists(struct_property)
-    print_language_agreement(struct_property, True)
-    print_language_agreement(struct_property, False)
+    # print_language_agreement(struct_property, True)
+    # print_language_agreement(struct_property, False)
     # print_language_mean_val(struct_property)
-    # print_consistently_extreme_image_ids(struct_property)
+    print_consistently_extreme_image_ids(struct_property, True)
+    print_consistently_extreme_image_ids(struct_property, False)
     # plot_image_histogram(struct_property)
 
 
