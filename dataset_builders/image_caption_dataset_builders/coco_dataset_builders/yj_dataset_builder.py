@@ -16,9 +16,8 @@ class YJCaptionsDatasetBuilder(EnglishBasedDatasetBuilder):
         super(YJCaptionsDatasetBuilder, self).__init__(root_dir_path, 'YJCaptions', data_split_str, struct_property,
                                                        CocoDatasetBuilder, 'COCO', indent)
 
-        internal_dir_name = 'yjcaptions26k'
         caption_file_name = 'yjcaptions26k_clean.json'
-        self.caption_file_path = os.path.join(root_dir_path, internal_dir_name, caption_file_name)
+        self.caption_file_path = os.path.join(root_dir_path, caption_file_name)
 
         # We need to override a parent class behavior: no matter what data split is used in this dataset, we want the
         # base dataset builder (COCO builder) to use the train split, since all the images in this dataset are from the
