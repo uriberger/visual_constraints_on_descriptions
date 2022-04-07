@@ -39,7 +39,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
 
         self.parsed_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{name}_{TextUtils.get_language()}_parsed.txt'
+            f'{name}_{TextUtils.get_language()}_{data_split_str}_parsed.txt'
         )
 
         self.train_val_split_file_path = os.path.join(
@@ -431,6 +431,61 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
     """
 
     def generate_root_pos_dataset(self):
+        language = TextUtils.get_language()
+
+        if language == 'French':
+            root_pos_dataset = self.generate_french_root_pos_dataset()
+        else:
+            root_pos_dataset = self.generate_non_french_root_pos_dataset()
+
+        return root_pos_dataset
+
+    def generate_french_root_pos_dataset(self):
+        caption_data = self.get_caption_data()
+        root_pos_dataset = []
+
+        if not os.path.isfile(self.parsed_file_path):
+            self.log_print(f'Couldn\'t find the parsed file in path {self.parsed_file_path}. Stopping!')
+            self.log_print('Did you run the parse/parse.sh script?')
+            assert False
+        with open(self.parsed_file_path, 'r', encoding='utf-8') as fp:
+            sample_ind = -1
+            new_sentence = True
+            for line in fp:
+                if new_sentence:
+                    sample_ind += 1
+                    image_id = caption_data[sample_ind]['image_id']
+                    roots_pos = []
+                    new_sentence = False
+                if line == '\n':
+                    # Finished current caption
+                    if len(roots_pos) != 1:
+                        # We don't know how to deal with zero or multiple roots, for now
+                        continue
+
+                    # If we're here there's exactly one root
+                    root_pos = roots_pos[0]
+                    if root_pos.startswith('N') or root_pos == 'CLS':
+                        val = 0  # Noun
+                    elif root_pos.startswith('V'):
+                        val = 1  # Verb
+                    else:
+                        # We're only interested in verb or noun roots
+                        continue
+
+                    root_pos_dataset.append((image_id, val))
+                    new_sentence = True
+                else:
+                    split_line = line.split('\t')
+                    dep_tag = split_line[11]
+                    if dep_tag == 'root':
+                        pos_tag = split_line[5]
+                        roots_pos.append(pos_tag)
+            assert sample_ind == len(caption_data) - 1
+
+        return root_pos_dataset
+
+    def generate_non_french_root_pos_dataset(self):
         caption_data = self.get_caption_data()
         self.generate_nlp_data()
         root_pos_dataset = []
@@ -444,7 +499,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
                 continue
 
             root = roots[0]
-            if root.pos_ == 'NOUN':
+            if root.pos_ in ['NOUN', 'PRON', 'PROPN']:
                 val = 0
             elif root.pos_ == 'VERB':
                 val = 1
