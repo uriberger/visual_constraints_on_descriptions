@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ "$4" == "translated" ]; then
+if [ "$5" == "translated" ]; then
 	translated_arg="--translated"
 	translated_str="_translated"
 else
@@ -7,7 +7,7 @@ else
 	translated_str=""
 fi
 
-bash parse.sh $1 $2 $3 $4
+bash parse.sh $1 $2 $3 $4 $5
 
 cd tmv-annotator-tool
 

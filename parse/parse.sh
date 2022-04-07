@@ -1,7 +1,8 @@
 #!/bin/bash
+cur_dir=$PWD
 cd ..
 
-if [ "$4" == "translated" ]; then
+if [ "$5" == "translated" ]; then
 	translated_arg="--translated"
 	translated_str="_translated"
 else
@@ -9,8 +10,8 @@ else
 	translated_str=""
 fi
 
-$1 main.py --language $2 --dataset $3 --dump_captions $translated_arg
-cd parse/mate_parser
+$cur_dir/$1 main.py --language $2 --dataset $3 --datasets_dir $4 --dump_captions $translated_arg
+cd $cur_dir/mate_parser
 javac LemmatizeAndParse.java
 java LemmatizeAndParse $2 $3 $translated_arg
 
