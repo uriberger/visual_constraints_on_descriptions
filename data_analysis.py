@@ -399,11 +399,6 @@ def plot_image_histogram(struct_property):
         language_name = language
         if translated:
             language_name += '_translated'
-        # plt.bar(x_vals, y_vals, width=0.1)
-        # plt.title(struct_property + ' histogram in ' + language_name)
-        # plt.xlabel('Proportion of captions with the property')
-        # plt.ylabel('Number of images')
-        # plt.show()
 
         fig, ax = plt.subplots()
         ax.bar(x_vals, y_vals, width=0.1)
