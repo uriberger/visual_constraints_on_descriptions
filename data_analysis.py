@@ -382,12 +382,66 @@ def print_consistently_extreme_image_ids(struct_property):
         print(generate_list_edges_str(image_id_mean_prob_list, 5))
 
 
+def plot_image_histogram(struct_property):
+    all_language_vals = []
+    for language, dataset_list, translated in language_dataset_list:
+        language_vals = []
+        for dataset_name in dataset_list:
+            dataset = get_dataset(language, dataset_name, struct_property, translated)
+            image_id_to_prob = get_image_id_to_prob(dataset.struct_data)
+            language_vals += list(image_id_to_prob.values())
+        all_language_vals += language_vals
+        x_vals = sorted(list(set(language_vals)))
+        count_dict = defaultdict(int)
+        for val in language_vals:
+            count_dict[val] += 1
+        y_vals = [count_dict[x_val] for x_val in x_vals]
+        language_name = language
+        if translated:
+            language_name += '_translated'
+        # plt.bar(x_vals, y_vals, width=0.1)
+        # plt.title(struct_property + ' histogram in ' + language_name)
+        # plt.xlabel('Proportion of captions with the property')
+        # plt.ylabel('Number of images')
+        # plt.show()
+
+        fig, ax = plt.subplots()
+        ax.bar(x_vals, y_vals, width=0.1)
+        default_ticks = list(ax.get_yticks())
+        if min([x for x in default_ticks if x > 0]) >= 1000:
+            y_labels = [str(int(x / 1000)) + 'k' for x in default_ticks]
+            ax.set_yticks(ticks=default_ticks, labels=y_labels)
+        ax.set_title(struct_property + ' histogram in ' + language_name)
+        ax.set_xlabel('Proportion of captions with the property')
+        ax.set_ylabel('Number of images')
+        plt.show()
+
+    # All languages combined
+    fig, ax = plt.subplots()
+
+    x_vals = sorted(list(set(all_language_vals)))
+    count_dict = defaultdict(int)
+    for val in all_language_vals:
+        count_dict[val] += 1
+    y_vals = [count_dict[x_val] for x_val in x_vals]
+
+    ax.bar(x_vals, y_vals, width=0.1)
+    default_ticks = list(ax.get_yticks())
+    y_labels = [str(int(x / 1000)) + 'k' for x in default_ticks]
+    ax.set_yticks(ticks=default_ticks, labels=y_labels)
+    ax.set_title(struct_property + ' histogram in all languages combined')
+    ax.set_xlabel('Proportion of captions with the property')
+    ax.set_ylabel('Number of images')
+    plt.show()
+
+
 def analyze(struct_property):
     # print_class_prob_lists(struct_property)
     # plot_bbox_dist_lists(struct_property)
     # print_language_agreement(struct_property)
     # print_language_mean_val(struct_property)
-    print_consistently_extreme_image_ids(struct_property)
+    # print_consistently_extreme_image_ids(struct_property)
+    plot_image_histogram(struct_property)
 
 
-analyze('root_pos')
+analyze('numbers')
