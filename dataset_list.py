@@ -13,3 +13,14 @@ all_datasets = list(set([x for outer in [y[1] for y in language_dataset_list] fo
 
 translated_only_datasets = [x for x in all_datasets
                             if len([y for y in language_dataset_list if x in y[1] and (not y[2])]) == 0]
+
+
+multilingual_dataset_name_to_original_dataset_name = {
+    'multi30k': 'flickr30',
+    'flickr8kcn': 'flickr30',
+    'flickr30': 'flickr30',
+    'STAIR-captions': 'COCO',
+    'coco-cn': 'COCO',
+    'COCO': 'COCO',
+    'iaprtc12': 'iaprtc12'
+}

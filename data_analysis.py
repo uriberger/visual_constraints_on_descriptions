@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from utils.general_utils import safe_divide, get_image_id_to_prob
 from utils.text_utils import TextUtils
-from dataset_list import language_dataset_list
+from dataset_list import language_dataset_list, multilingual_dataset_name_to_original_dataset_name
 
 
 # Utility functions
@@ -35,15 +35,12 @@ def get_dataset(language, dataset_name, struct_property, translated):
     return dataset
 
 
-multilingual_dataset_name_to_original_dataset_name = {
-    'multi30k': 'flickr30',
-    'flickr8kcn': 'flickr30',
-    'flickr30': 'flickr30',
-    'STAIR-captions': 'COCO',
-    'coco-cn': 'COCO',
-    'COCO': 'COCO',
-    'iaprtc12': 'iaprtc12'
-}
+def get_intersection_image_ids(struct_datas):
+    """ Get a list of image ids that exist in all struct datas. """
+    all_image_ids = set([x[0] for x in struct_datas[0]])
+    for i in range(1, len(struct_datas)):
+        all_image_ids = all_image_ids.intersection([x[0] for x in struct_datas[i]])
+    return list(all_image_ids)
 
 
 def get_orig_dataset_to_configs():
@@ -327,25 +324,37 @@ def plot_bbox_dist_lists(struct_property):
     plt.show()
 
 
-def print_language_agreement(struct_property):
+def print_language_agreement(struct_property, with_translated):
     orig_dataset_to_configs = get_orig_dataset_to_configs()
 
     for orig_dataset_name, configs in orig_dataset_to_configs.items():
         print(orig_dataset_name + ':')
-        # First, generate data for each config
+        # First, filter configs if needed
+        filtered_configs = []
+        for config in configs:
+            if (not with_translated) and config[2]:
+                continue
+            filtered_configs.append(config)
+
+        # Next, generate data for each config
         struct_datas = []
-        for dataset_name, language, translated in configs:
+        for dataset_name, language, translated in filtered_configs:
             dataset = get_dataset(language, dataset_name, struct_property, translated)
             struct_datas.append(dataset.struct_data)
 
+        # Filter image ids so that each struct data will have the same image ids
+        intersection_image_ids = get_intersection_image_ids(struct_datas)
+        intersection_image_ids_dict = {x: True for x in intersection_image_ids}
+        struct_datas = [[y for y in x if y[0] in intersection_image_ids_dict] for x in struct_datas]
+
         # Next, calculate agreement between each two datasets
-        for i in range(len(configs)):
-            for j in range(i+1, len(configs)):
-                lang1 = configs[i][1]
-                if configs[i][2]:
+        for i in range(len(filtered_configs)):
+            for j in range(i+1, len(filtered_configs)):
+                lang1 = filtered_configs[i][1]
+                if filtered_configs[i][2]:
                     lang1 += '_translated'
-                lang2 = configs[j][1]
-                if configs[j][2]:
+                lang2 = filtered_configs[j][1]
+                if filtered_configs[j][2]:
                     lang2 += '_translated'
                 pearson_coef = get_vals_agreement(struct_datas[i], struct_datas[j])
                 print('\t' + lang1 + ' and ' + lang2 + ' agreement: ' + '{:.4f}'.format(pearson_coef))
@@ -434,7 +443,8 @@ def plot_image_histogram(struct_property):
 def analyze(struct_property):
     # print_class_prob_lists(struct_property)
     # plot_bbox_dist_lists(struct_property)
-    print_language_agreement(struct_property)
+    print_language_agreement(struct_property, True)
+    print_language_agreement(struct_property, False)
     # print_language_mean_val(struct_property)
     # print_consistently_extreme_image_ids(struct_property)
     # plot_image_histogram(struct_property)
