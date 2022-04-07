@@ -253,6 +253,77 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
     """ Negation dataset: maps image ids to list of boolean stating whether each caption uses negation. """
 
     def generate_negation_dataset(self):
+        language = TextUtils.get_language()
+
+        if language == 'French':
+            negation_dataset = self.generate_french_negation_dataset()
+        else:
+            negation_dataset = self.generate_non_french_negation_dataset()
+
+        return negation_dataset
+
+    def generate_french_negation_dataset(self):
+        french_pos_neg_words = set([
+            'pas', 'personne', 'aucun', 'aucune'
+        ])
+        french_negation_words = set([
+            'ni', 'jamais', 'rien', 'non', 'sans'
+        ])
+        french_negation_phrases = [
+            ['nulle', 'part']
+        ]
+
+        caption_data = self.get_caption_data()
+        negation_dataset = []
+
+        if not os.path.isfile(self.parsed_file_path):
+            self.log_print(f'Couldn\'t find the parsed file in path {self.parsed_file_path}. Stopping!')
+            self.log_print('Did you run the parse/parse.sh script?')
+            assert False
+        with open(self.parsed_file_path, 'r', encoding='utf-8') as fp:
+            sample_ind = -1
+            new_sentence = True
+            for line in fp:
+                if new_sentence:
+                    sample_ind += 1
+                    image_id = caption_data[sample_ind]['image_id']
+                    caption = caption_data[sample_ind]['caption']
+                    contains_neg_pos_word_in_negative_form = False
+                    new_sentence = False
+                if line == '\n':
+                    # Finished current caption
+                    ''' French negation has 3 types of elements:
+                    1. Negation words: words that are always considered a negation.
+                    2. Negation phrases: a sequence of words that are considered a negation.
+                    3. Negative-positive words: words that can occur both in a negative and a
+                    positive form.
+                    I should check all three cases. '''
+                    tokenized_caption = TextUtils.tokenize(caption)
+                    negation = False
+                    # Case 1
+                    if len(french_negation_words.intersection(tokenized_caption)) > 0:
+                        negation = True
+                    # Case 2
+                    if len([phrase for phrase in french_negation_phrases
+                            if TextUtils.phrase_in_sent(tokenized_caption, phrase)]) > 0:
+                        negation = True
+                    # Case 3
+                    if contains_neg_pos_word_in_negative_form:
+                        negation = True
+                    negation_dataset.append((image_id, int(negation)))
+
+                    new_sentence = True
+                else:
+                    split_line = line.split('\t')
+                    cur_token_str = split_line[1]
+                    cur_token_feat = split_line[7]
+                    if cur_token_str in french_pos_neg_words and 's=neg' in cur_token_feat:
+                        contains_neg_pos_word_in_negative_form = True
+            assert sample_ind == len(caption_data) - 1
+
+        return negation_dataset
+
+    def generate_non_french_negation_dataset(self):
         english_negation_words = set([
             'not', 'isnt', 'arent', 'doesnt', 'dont', 'cant', 'cannot', 'shouldnt', 'wont', 'wouldnt', 'no', 'none',
             'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'without',
@@ -263,21 +334,16 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
             'nicht', 'kein', 'nie', 'niemals', 'niemand', 'nirgendwo', 'nirgendwohin', 'nirgends', 'weder', 'ohne',
             'nein', 'nichts', 'nee'
         ])
-        french_ne_negation_words = set([
-            'aucun', 'aucune', 'ni', 'pas', 'personne'
-        ])
-        french_negation_words = set([
-            'jamais', 'rien', 'non', 'sans', 'nan'
-        ])
-        french_negation_phrases = [
-            ['nulle', 'part']
-        ]
         chinese_negation_words = set([
             '不', '不是', '不能', '不可以', '没', '没有', '没什么', '从不', '并不', '从没有', '并没有', '无人', '无处', '无', '别',
             '绝不'
         ])
         japanese_negation_words = set([
-            'ない', 'ませ', 'なし', 'なかっ', 'いいえ'
+            'ない',  # When it's at the end of the sentence it's negation, otherwise not sure
+            'ませ',  # Mase, but I need masen ません
+            'なし',  # Basically ok, but sometimes wrong for example 砂漠に似た乾燥地帯に馬が群れをなしている
+            'なかっ',  # Ok
+            'いいえ'
         ])
 
         caption_data = self.get_caption_data()
@@ -300,26 +366,6 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
                     x.lemma_.lower() for x in sample_nlp_data
                 ])
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
-            elif language == 'French':
-                ''' French negation has 3 types of elements:
-                1. Negation words: words that, without any other words, are considered a negation.
-                2. Negation phrases: a sequence of words that are considered a negation.
-                3. 'ne' words: words that, when co-occurs with the 'ne' word, are considered a negation.
-                I should check all three cases. '''
-                tokenized_caption = TextUtils.tokenize(caption)
-                negation = False
-                # Case 1
-                if len(french_negation_words.intersection(tokenized_caption)) > 0:
-                    negation = True
-                # Case 2
-                if len([phrase for phrase in french_negation_phrases
-                        if TextUtils.phrase_in_sent(tokenized_caption, phrase)]) > 0:
-                    negation = True
-                # Case 3
-                if ('ne' in tokenized_caption or 'n\'' in tokenized_caption) and \
-                        len(french_ne_negation_words.intersection(tokenized_caption)) > 0:
-                    negation = True
-                negation_dataset.append((image_id, int(negation)))
             elif language == 'Chinese':
                 ''' Jieba is a better tokenizer for Chinese than spaCy. '''
                 tokenized_caption = list(jieba.cut(caption, cut_all=False))
