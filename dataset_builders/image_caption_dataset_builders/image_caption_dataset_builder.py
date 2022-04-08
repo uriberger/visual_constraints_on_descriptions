@@ -124,7 +124,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         if language in ['English', 'German', 'French']:
             # For English, German and French we have an external tool that identifies passive for us
             cached_dataset_files_dir_name = self.cached_dataset_files_dir
-            tmv_out_file_name = f'tmv_out_{language}_{self.name}.verbs'
+            tmv_out_file_name = f'tmv_out_{language}_{self.name}_{self.data_split_str}.verbs'
             tmv_out_file_path = os.path.join(cached_dataset_files_dir_name, tmv_out_file_name)
             if not os.path.isfile(tmv_out_file_path):
                 self.log_print(f'Couldn\'t find the tmv out file in path {tmv_out_file_path}. Stopping!')
