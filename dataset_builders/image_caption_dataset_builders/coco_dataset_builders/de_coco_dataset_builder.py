@@ -13,7 +13,7 @@ class DeCocoDatasetBuilder(EnglishBasedDatasetBuilder):
     """
 
     def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(DeCocoDatasetBuilder, self).__init__(root_dir_path, 'de_coco', data_split_str, struct_property,
+        super(DeCocoDatasetBuilder, self).__init__(root_dir_path, 'de_coco_translated', data_split_str, struct_property,
                                                    CocoDatasetBuilder, 'COCO', indent)
 
         self.caption_file_name_prefixes = ['dev', 'devtest', 'test']
