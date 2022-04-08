@@ -124,7 +124,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         if language in ['English', 'German', 'French']:
             # For English, German and French we have an external tool that identifies passive for us
             cached_dataset_files_dir_name = self.cached_dataset_files_dir
-            tmv_out_file_name = f'tmv_out_{language}_{self.name}.verbs'
+            tmv_out_file_name = f'tmv_out_{language}_{self.name}_{self.data_split_str}.verbs'
             tmv_out_file_path = os.path.join(cached_dataset_files_dir_name, tmv_out_file_name)
             if not os.path.isfile(tmv_out_file_path):
                 self.log_print(f'Couldn\'t find the tmv out file in path {tmv_out_file_path}. Stopping!')
@@ -603,5 +603,8 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         return {'train': train_split, 'val': val_split}
 
     def get_image_ids_for_split(self):
-        split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
-        return split_to_image_ids[self.data_split_str]
+        if self.data_split_str == 'all':
+            return self.get_all_image_ids()
+        else:
+            split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
+            return split_to_image_ids[self.data_split_str]

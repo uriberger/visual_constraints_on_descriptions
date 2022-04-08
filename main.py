@@ -53,7 +53,7 @@ def get_dataset_builder(data_split_str):
         dataset_names = [x for x in language_dataset_list if x[0] == language and x[2] == translated][0][1]
         builder_list = [create_dataset_builder(x, data_split_str, struct_property, translated)
                         for x in dataset_names]
-        builder = ConcatenatedDatasetBuilder(builder_list, data_split_str, struct_property, 1)
+        builder = ConcatenatedDatasetBuilder(builder_list, struct_property, 1)
     else:
         builder = create_dataset_builder(dataset_name, data_split_str, struct_property, translated)
 
