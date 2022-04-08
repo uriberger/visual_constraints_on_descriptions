@@ -20,11 +20,11 @@ class ConcatImagePathFinder(ImagePathFinder):
 class ConcatenatedDatasetBuilder(DatasetBuilder):
     """ This class builds a large dataset containing multiple smaller datasets. """
 
-    def __init__(self, builder_list, data_split_str, struct_property, indent):
+    def __init__(self, builder_list, struct_property, indent):
         name = 'concat'
         for builder in builder_list:
             name += '_' + builder.name
-        super(ConcatenatedDatasetBuilder, self).__init__(name, data_split_str, struct_property, indent)
+        super(ConcatenatedDatasetBuilder, self).__init__(name, 'concat', struct_property, indent)
 
         self.builder_list = builder_list
         self.mult_fact = self.find_mult_fact()

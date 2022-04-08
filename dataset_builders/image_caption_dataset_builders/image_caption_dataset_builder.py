@@ -603,5 +603,8 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         return {'train': train_split, 'val': val_split}
 
     def get_image_ids_for_split(self):
-        split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
-        return split_to_image_ids[self.data_split_str]
+        if self.data_split_str == 'all':
+            return self.get_all_image_ids()
+        else:
+            split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
+            return split_to_image_ids[self.data_split_str]

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from dataset_builders.dataset_builder_creator import create_dataset_builder
+from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
 from utils.general_utils import safe_divide, get_image_id_to_prob
 from utils.text_utils import TextUtils
 from dataset_list import language_dataset_list, multilingual_dataset_name_to_original_dataset_name
@@ -23,15 +24,17 @@ def get_class_to_image_list(gt_class_data):
     return class_to_image_list
 
 
-def get_dataset_builder(language, dataset_name, struct_property, translated):
+def get_dataset_builder(language, dataset_name, data_split, struct_property, translated):
     TextUtils.set_language(language)
-    builder = create_dataset_builder(dataset_name, 'train', struct_property, translated)
+    builder = create_dataset_builder(dataset_name, data_split, struct_property, translated)
     return builder
 
 
 def get_dataset(language, dataset_name, struct_property, translated):
-    builder = get_dataset_builder(language, dataset_name, struct_property, translated)
-    dataset = builder.build_dataset()
+    train_builder = get_dataset_builder(language, dataset_name, 'train', struct_property, translated)
+    val_builder = get_dataset_builder(language, dataset_name, 'val', struct_property, translated)
+    concat_builder = ConcatenatedDatasetBuilder([train_builder, val_builder], struct_property, 1)
+    dataset = concat_builder.build_dataset()
     return dataset
 
 
