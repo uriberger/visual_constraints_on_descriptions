@@ -41,6 +41,8 @@ class ImLingStructInfoClassifier(nn.Module):
             self.classification_head = self.get_classification_head(backbone_output_size, 2)
         elif config.struct_property == 'numbers':
             self.classification_head = self.get_classification_head(backbone_output_size, 2)
+        elif config.struct_property == 'root_pos':
+            self.classification_head = self.get_classification_head(backbone_output_size, 2)
 
         self.classification_head.to(self.device)
 
