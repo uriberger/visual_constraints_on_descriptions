@@ -11,9 +11,13 @@ class ConcatImagePathFinder(ImagePathFinder):
         self.image_path_finders_list = image_path_finders_list
         self.mult_fact = mult_fact
 
-    def get_image_path(self, image_id):
+    def new_to_orig_image_id(self, image_id):
         orig_image_id = image_id % self.mult_fact
         dataset_ind = image_id // self.mult_fact
+        return orig_image_id, dataset_ind
+
+    def get_image_path(self, image_id):
+        orig_image_id, dataset_ind = self.new_to_orig_image_id(image_id)
         return self.image_path_finders_list[dataset_ind].get_image_path(orig_image_id)
 
 
