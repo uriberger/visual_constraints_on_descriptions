@@ -23,6 +23,8 @@ from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.yj_da
     YJCaptionsDatasetBuilder
 from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.de_coco_dataset_builder import \
     DeCocoDatasetBuilder
+from dataset_builders.image_caption_dataset_builders.aic_dataset_builder import \
+    AIChallengerDatasetBuilder
 from dataset_builders.imsitu_dataset_builder import \
     ImSituDatasetBuilder
 
@@ -60,6 +62,8 @@ def create_dataset_builder(dataset_name, data_split_str, struct_property, transl
         dataset_builder = YJCaptionsDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     elif dataset_name == 'de_coco':
         dataset_builder = DeCocoDatasetBuilder(root_dir, data_split_str, struct_property, 1)
+    elif dataset_name == 'ai_challenger':
+        dataset_builder = AIChallengerDatasetBuilder(root_dir, data_split_str, struct_property, 1)
     else:
         assert False
 

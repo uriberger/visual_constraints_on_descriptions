@@ -3,7 +3,7 @@ language_dataset_list = [
     ('English', ['COCO', 'flickr30', 'iaprtc12', 'pascal_sentences'], False),
     ('German', ['multi30k', 'iaprtc12'], False),
     ('Japanese', ['STAIR-captions', 'pascal_jp', 'YJCaptions'], False),
-    ('Chinese', ['coco-cn', 'flickr8kcn'], False),
+    ('Chinese', ['coco-cn', 'flickr8kcn', 'ai_challenger'], False),
     ('German', ['multi30k', 'de_coco'], True),
     ('French', ['multi30k'], True),
     ('Chinese', ['coco-cn'], True)
@@ -26,5 +26,6 @@ multilingual_dataset_name_to_original_dataset_name = {
     'COCO': 'COCO',
     'iaprtc12': 'iaprtc12',
     'pascal_jp': 'pascal_sentences',
-    'pascal_sentences': 'pascal_sentences'
+    'pascal_sentences': 'pascal_sentences',
+    'ai_challenger': 'ai_challenger'
 }
