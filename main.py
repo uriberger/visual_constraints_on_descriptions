@@ -1,6 +1,7 @@
 from utils.general_utils import init_entry_point, log_print, project_root_dir
 from model_src.model_config import ModelConfig
-from executors.trainer import Trainer
+from executors.trainers.bp_trainer import BackpropagationTrainer
+from executors.trainers.svm_trainer import SVMTrainer
 from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
@@ -22,6 +23,8 @@ parser.add_argument('--dataset', type=str, default=None, dest='dataset',
                     help='the name of the used dataset')
 parser.add_argument('--backbone_model', type=str, default='resnet50', dest='backbone_model',
                     help='the name of the backbone model')
+parser.add_argument('--classifier', type=str, default='neural', dest='classifier',
+                    help='the type of classifier')
 parser.add_argument('--freeze_backbone', action='store_true', default=False, dest='freeze_backbone',
                     help='freeze the parameters of the backbone model during training')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
@@ -39,6 +42,7 @@ language = args.language
 struct_property = args.struct_property
 dataset_name = args.dataset
 backbone_model_name = args.backbone_model
+classifier_name = args.classifier
 freeze_backbone = args.freeze_backbone
 translated = args.translated
 dump_captions = args.dump_captions
@@ -67,6 +71,7 @@ def main(should_write_to_log):
     model_config = ModelConfig(
         struct_property=struct_property,
         backbone_model=backbone_model_name,
+        classifier=classifier_name,
         freeze_backbone=freeze_backbone
     )
     log_print(function_name, 0, str(model_config))
@@ -111,8 +116,14 @@ def main(should_write_to_log):
 
     log_print(function_name, 0, 'Training model...')
     model_root_dir = os.path.join(project_root_dir, timestamp)
-    trainer = Trainer(model_root_dir, training_set, test_set, 20, 50, model_config, 1)
-    trainer.train()
+    if classifier_name == 'neural':
+        trainer = BackpropagationTrainer(model_root_dir, training_set, test_set, 20, 50, model_config, 1)
+    elif classifier_name == 'svm':
+        trainer = SVMTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
+    else:
+        log_print(function_name, 0, f'Classifier {classifier_name} not implemented. Stopping!')
+        assert False
+    trainer.run()
     log_print(function_name, 0, 'Finished training model')
 
 

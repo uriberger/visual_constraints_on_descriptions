@@ -3,7 +3,7 @@ from collections import defaultdict
 from loggable_object import LoggableObject
 import os
 from utils.general_utils import project_root_dir
-from dataset_src.image_linguistic_structural_info_dataset import ImLingStructInfoDataset
+from dataset_src.image_linguistic_info_dataset import ImLingStructInfoDataset
 
 
 datasets_dir = os.path.join(project_root_dir, '..', 'datasets')

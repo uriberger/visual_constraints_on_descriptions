@@ -3,10 +3,8 @@ import torch
 from loggable_object import LoggableObject
 from utils.general_utils import model_file_suffix, config_file_suffix
 
-from model_src.image_linguistic_structural_info_classifiers.resnet_linguistic_structural_info_classifier \
-    import ResNetLingStructInfoClassifier
-from model_src.image_linguistic_structural_info_classifiers.clip_linguistic_structural_info_classifier \
-    import CLIPLingStructInfoClassifier
+from model_src.image_linguistic_info_classifiers.neural_classifier import ImLingInfoNeuralClassifier
+from model_src.image_linguistic_info_classifiers.svm_classifier import ImLingInfoSVMClassifier
 
 
 class ModelFactory(LoggableObject):
@@ -15,10 +13,10 @@ class ModelFactory(LoggableObject):
 
     @staticmethod
     def create_model(model_config, model_dir, model_name):
-        if model_config.backbone_model == 'resnet50':
-            return ResNetLingStructInfoClassifier(model_config, model_dir, model_name)
-        elif model_config.backbone_model == 'clip':
-            return CLIPLingStructInfoClassifier(model_config, model_dir, model_name)
+        if model_config.classifier == 'neural':
+            return ImLingInfoNeuralClassifier(model_config, model_dir, model_name)
+        elif model_config.classifier == 'svm':
+            return ImLingInfoSVMClassifier(model_config, model_dir, model_name)
 
     def load_model(self, model_dir, model_name):
         config_file_path = os.path.join(model_dir, model_name + config_file_suffix)

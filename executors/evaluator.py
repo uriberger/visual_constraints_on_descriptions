@@ -24,12 +24,12 @@ class Evaluator(Executor):
     """ The core function: evaluate the model given a batch of samples. """
 
     def evaluate_on_batch(self, index, sampled_batch, print_info):
-        # Load data
-        image_tensor = sampled_batch['image'].to(self.device)
-        labels = sampled_batch['struct_info'].to(self.device)
+        with torch.no_grad():
+            # Load data
+            image_tensor = sampled_batch['image'].to(self.device)
+            labels = sampled_batch['struct_info'].to(self.device)
 
-        output = self.model(image_tensor)
-        predictions = output.argmax(dim=1)
+        predictions = self.model.predict(image_tensor)
 
         label_num = labels.shape[0]
         incorrect_num = torch.sum((predictions + labels) % 2)

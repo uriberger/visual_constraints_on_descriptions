@@ -13,6 +13,7 @@ class ModelConfig:
 
     def __init__(self,
                  backbone_model='resnet50',
+                 classifier='neural',
                  freeze_backbone=True,
                  struct_property='passive',
                  learning_rate=1e-4,
@@ -20,6 +21,7 @@ class ModelConfig:
         super(ModelConfig, self).__init__()
 
         self.backbone_model = backbone_model
+        self.classifier = classifier
         self.freeze_backbone = freeze_backbone
         self.struct_property = struct_property
         self.learning_rate = learning_rate
