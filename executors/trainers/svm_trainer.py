@@ -51,8 +51,8 @@ class SVMTrainer(Trainer):
             extracted_features = self.model.backbone_model_inference(image_tensor)
 
         batch_size = len(labels)
-        self.training_mat[self.batch_start_ind:self.batch_start_ind + batch_size, :] = extracted_features
-        self.label_mat[self.batch_start_ind:self.batch_start_ind + batch_size] = labels
+        self.training_mat[self.batch_start_ind:self.batch_start_ind + batch_size, :] = extracted_features.cpu()
+        self.label_mat[self.batch_start_ind:self.batch_start_ind + batch_size] = labels.cpu()
         self.batch_start_ind += batch_size
 
     def train(self):
