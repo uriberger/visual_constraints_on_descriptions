@@ -473,6 +473,8 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
                     roots_pos = []
                     new_sentence = False
                 if line == '\n':
+                    new_sentence = True
+
                     # Finished current caption
                     if len(roots_pos) != 1:
                         # We don't know how to deal with zero or multiple roots, for now
@@ -489,7 +491,6 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
                         continue
 
                     root_pos_dataset.append((image_id, val))
-                    new_sentence = True
                 else:
                     split_line = line.split('\t')
                     dep_tag = split_line[11]
