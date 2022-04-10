@@ -28,6 +28,8 @@ class DatasetBuilder(LoggableObject):
         # The datasets are assumed to be located in a sibling directory named 'datasets'
         self.datasets_dir = datasets_dir
 
+        self.image_path_finder = self.create_image_path_finder()
+
     # General static setting of the datasets dir, for all datasets
 
     @staticmethod
@@ -62,7 +64,6 @@ class DatasetBuilder(LoggableObject):
 
         self.log_print('Filtering unwanted images from ' + self.name + ' ' + self.data_split_str + ' set...')
         self.increment_indent()
-        self.image_path_finder = self.create_image_path_finder()
         unwanted_image_ids = self.get_unwanted_image_ids()
         unwanted_image_ids = {image_id: True for image_id in unwanted_image_ids}  # For more efficient retrieval
         self.decrement_indent()
