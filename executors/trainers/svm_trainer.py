@@ -16,8 +16,6 @@ class SVMTrainer(Trainer):
         self.training_mat = None
         self.label_mat = None
 
-        self.batch_size = batch_size
-
     """ Actions that should be performed at the beginning of training. """
 
     def pre_training(self):
