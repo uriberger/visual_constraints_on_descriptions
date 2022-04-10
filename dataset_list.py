@@ -20,7 +20,11 @@ multilingual_dataset_name_to_original_dataset_name = {
     'flickr8kcn': 'flickr30',
     'flickr30': 'flickr30',
     'STAIR-captions': 'COCO',
+    'YJCaptions': 'COCO',
+    'de_coco': 'COCO',
     'coco-cn': 'COCO',
     'COCO': 'COCO',
-    'iaprtc12': 'iaprtc12'
+    'iaprtc12': 'iaprtc12',
+    'pascal_jp': 'pascal_sentences',
+    'pascal_sentences': 'pascal_sentences'
 }
