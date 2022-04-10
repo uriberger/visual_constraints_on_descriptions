@@ -6,7 +6,7 @@ cached_dataset_files*
 venv
 torch_cache
 makefile
-my_script
+my_script*
 slurm-*
 *.class
 *META-INF*
