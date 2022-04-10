@@ -75,7 +75,7 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
         else:
             if self.data_split_str == 'train':
                 external_bboxes_filepath = self.train_bboxes_file_path
-            elif self.data_split_str == 'test':
+            elif self.data_split_str == 'val':
                 external_bboxes_filepath = self.val_bboxes_file_path
             bboxes_fp = open(external_bboxes_filepath, 'r')
             bboxes_data = json.load(bboxes_fp)
