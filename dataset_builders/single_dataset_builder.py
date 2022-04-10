@@ -22,8 +22,10 @@ class SingleDatasetBuilder(DatasetBuilder):
             f'{self.name}_{TextUtils.get_language()}_{self.data_split_str}_set_{self.struct_property}'
         )
 
-        self.unwanted_image_ids_file_path = os.path.join(self.cached_dataset_files_dir,
-                                                         self.name + '_unwanted_image_ids_' + self.data_split_str)
+        self.unwanted_image_ids_file_path = os.path.join(
+            self.cached_dataset_files_dir,
+            f'{self.name}_{TextUtils.get_language()}_unwanted_image_ids_{self.data_split_str}'
+        )
 
     """ Create the image id to linguistic structural info mapping. """
 
