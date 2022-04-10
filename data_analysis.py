@@ -319,6 +319,8 @@ def print_class_prob_lists(struct_property):
         get_class_prob_list_for_config('Chinese', 'coco-cn', struct_property, False)
     translated_chinese_coco_class_prob_list = \
         get_class_prob_list_for_config('Chinese', 'coco-cn', struct_property, True)
+    translated_german_coco_class_prob_list = \
+        get_class_prob_list_for_config('German', 'de_coco', struct_property, True)
 
     print('English coco class prob list:')
     print(generate_list_edges_str(english_coco_class_prob_list, 5))
@@ -328,6 +330,8 @@ def print_class_prob_lists(struct_property):
     print(generate_list_edges_str(chinese_coco_class_prob_list, 5))
     print('\nTranslated Chinese coco class prob list:')
     print(generate_list_edges_str(translated_chinese_coco_class_prob_list, 5))
+    print('\nTranslated German coco class prob list:')
+    print(generate_list_edges_str(translated_german_coco_class_prob_list, 5))
 
 
 def plot_bbox_dist_lists(struct_property):
@@ -422,7 +426,7 @@ def print_consistently_extreme_image_ids(struct_property, aggregate_per_language
         image_id_mean_prob_list = sorted(list(image_id_to_mean_prob.items()), key=lambda x: x[1], reverse=True)
         image_id_mean_prob_list = [(str(x[0]), x[1]) for x in image_id_mean_prob_list]
 
-        print(generate_list_edges_str(image_id_mean_prob_list, 5))
+        print(generate_list_edges_str(image_id_mean_prob_list, min(5, len(image_id_mean_prob_list))))
 
 
 def print_extreme_non_agreement_image_ids(struct_property):
@@ -528,11 +532,11 @@ def analyze(struct_property):
     # plot_bbox_dist_lists(struct_property)
     # print_language_agreement(struct_property, True)
     # print_language_agreement(struct_property, False)
-    # print_language_mean_val(struct_property)
+    print_language_mean_val(struct_property)
     # print_consistently_extreme_image_ids(struct_property, True)
     # print_consistently_extreme_image_ids(struct_property, False)
-    print_extreme_non_agreement_image_ids(struct_property)
+    # print_extreme_non_agreement_image_ids(struct_property)
     # plot_image_histogram(struct_property)
 
 
-analyze('passive')
+analyze('negation')
