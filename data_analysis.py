@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
-from utils.general_utils import safe_divide, get_image_id_to_prob
+from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count
 from utils.text_utils import TextUtils
 from dataset_list import language_dataset_list, multilingual_dataset_name_to_original_dataset_name
 
@@ -24,16 +24,21 @@ def get_class_to_image_list(gt_class_data):
     return class_to_image_list
 
 
-def get_dataset_builder(language, dataset_name, data_split, struct_property, translated):
+def get_dataset_builder_for_split(language, dataset_name, data_split, struct_property, translated):
     TextUtils.set_language(language)
     builder = create_dataset_builder(dataset_name, data_split, struct_property, translated)
     return builder
 
 
-def get_dataset(language, dataset_name, struct_property, translated):
-    train_builder = get_dataset_builder(language, dataset_name, 'train', struct_property, translated)
-    val_builder = get_dataset_builder(language, dataset_name, 'val', struct_property, translated)
+def get_dataset_builder(language, dataset_name, struct_property, translated):
+    train_builder = get_dataset_builder_for_split(language, dataset_name, 'train', struct_property, translated)
+    val_builder = get_dataset_builder_for_split(language, dataset_name, 'val', struct_property, translated)
     concat_builder = ConcatenatedDatasetBuilder([train_builder, val_builder], struct_property, 1)
+    return concat_builder
+
+
+def get_dataset(language, dataset_name, struct_property, translated):
+    concat_builder = get_dataset_builder(language, dataset_name, struct_property, translated)
     dataset = concat_builder.build_dataset()
     return dataset
 
@@ -235,9 +240,18 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
         second).
     """
     # First make sure both lists contain the same image ids
+    image_id_to_count1 = get_image_id_to_count(struct_data1)[0]
+    image_id_to_count2 = get_image_id_to_count(struct_data2)[0]
     image_id_to_prob1 = get_image_id_to_prob(struct_data1)
     image_id_to_prob2 = get_image_id_to_prob(struct_data2)
     all_image_ids = [x for x in image_id_to_prob1.keys() if x in image_id_to_prob2]
+
+    # Filter all images without that maximal number of captions
+    max_cap_num1 = max(image_id_to_count1.values())
+    max_cap_num2 = max(image_id_to_count2.values())
+    all_image_ids = [x for x in all_image_ids
+                     if image_id_to_count1[x] == max_cap_num1 and image_id_to_count2[x] == max_cap_num2]
+
     all_image_ids_dict = {x: True for x in all_image_ids}
     image_id_to_prob1 = {x[0]: x[1] for x in image_id_to_prob1.items() if x[0] in all_image_ids_dict}
     image_id_to_prob2 = {x[0]: x[1] for x in image_id_to_prob2.items() if x[0] in all_image_ids_dict}
@@ -411,6 +425,56 @@ def print_consistently_extreme_image_ids(struct_property, aggregate_per_language
         print(generate_list_edges_str(image_id_mean_prob_list, 5))
 
 
+def print_extreme_non_agreement_image_ids(struct_property):
+    orig_dataset_to_configs = get_orig_dataset_to_configs()
+
+    for orig_dataset_name, configs in orig_dataset_to_configs.items():
+        print(orig_dataset_name + ':')
+        # First, generate data for each config
+        all_languages = list(set([x[1] for x in configs]))
+        language_to_dataset_builders = {lan: defaultdict(list) for lan in all_languages}
+        for dataset_name, language, translated in configs:
+            builder = get_dataset_builder(language, dataset_name, struct_property, translated)
+            language_to_dataset_builders[language][translated].append(builder)
+
+        # Join all builders to a single builder
+        language_to_concat_builder = {
+            x[0]: {
+                y[0]:
+                    ConcatenatedDatasetBuilder(y[1], struct_property, 1) for y in x[1].items()
+            }
+            for x in language_to_dataset_builders.items()
+        }
+        # Build dataset
+        language_to_dataset = {}
+        for language, translated_to_builder in language_to_concat_builder.items():
+            TextUtils.set_language(language)
+            for translated, builder in translated_to_builder.items():
+                language_name = language
+                if translated:
+                    language_name += '_translated'
+                language_to_dataset[language_name] = builder.build_dataset()
+        # Build struct data list
+        language_to_struct_data_temp = {x[0]: x[1].struct_data
+                                        for x in language_to_dataset.items()}
+        language_to_struct_data = {x[0]: [(language_to_dataset[x[0]].image_path_finder.new_to_orig_image_id(y[0])[0],
+                                           y[1]) for y in x[1]]
+                                   for x in language_to_struct_data_temp.items()}
+
+        # Finally, search for cases of extreme differences
+        my_list = list(language_to_struct_data.items())
+        for i in range(len(my_list)):
+            for j in range(i + 1, len(my_list)):
+                extreme_list_high_in_1, extreme_list_high_in_2 = \
+                    get_extreme_non_agreement_image_ids(my_list[i][1], my_list[j][1])
+                if len(extreme_list_high_in_1) > 0:
+                    list_for_print = extreme_list_high_in_1[:min(5, len(extreme_list_high_in_1))]
+                    print(f'\tHigh in {my_list[i][0]}, low in {my_list[j][0]}: {list_for_print}')
+                if len(extreme_list_high_in_2) > 0:
+                    list_for_print = extreme_list_high_in_2[:min(5, len(extreme_list_high_in_2))]
+                    print(f'\tHigh in {my_list[j][0]}, low in {my_list[i][0]}: {list_for_print}')
+
+
 def plot_image_histogram(struct_property):
     all_language_vals = []
     for language, dataset_list, translated in language_dataset_list:
@@ -465,9 +529,10 @@ def analyze(struct_property):
     # print_language_agreement(struct_property, True)
     # print_language_agreement(struct_property, False)
     # print_language_mean_val(struct_property)
-    print_consistently_extreme_image_ids(struct_property, True)
-    print_consistently_extreme_image_ids(struct_property, False)
+    # print_consistently_extreme_image_ids(struct_property, True)
+    # print_consistently_extreme_image_ids(struct_property, False)
+    print_extreme_non_agreement_image_ids(struct_property)
     # plot_image_histogram(struct_property)
 
 
-analyze('numbers')
+analyze('passive')
