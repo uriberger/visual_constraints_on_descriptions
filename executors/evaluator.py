@@ -29,7 +29,7 @@ class Evaluator(Executor):
             image_tensor = sampled_batch['image'].to(self.device)
             labels = sampled_batch['struct_info'].to(self.device)
 
-        predictions = self.model.predict(image_tensor)
+        predictions = self.model.predict(image_tensor).to(self.device)
 
         label_num = labels.shape[0]
         incorrect_num = torch.sum((predictions + labels) % 2)
