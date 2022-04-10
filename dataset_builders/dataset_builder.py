@@ -28,7 +28,7 @@ class DatasetBuilder(LoggableObject):
         # The datasets are assumed to be located in a sibling directory named 'datasets'
         self.datasets_dir = datasets_dir
 
-        self.image_path_finder = self.create_image_path_finder()
+        self.image_path_finder = None
 
     # General static setting of the datasets dir, for all datasets
 
@@ -70,7 +70,7 @@ class DatasetBuilder(LoggableObject):
 
         struct_data = [x for x in struct_data if x[0] not in unwanted_image_ids]
 
-        return ImLingStructInfoDataset(struct_data, self.image_path_finder)
+        return ImLingStructInfoDataset(struct_data, self.get_image_path_finder())
 
     """ Create the image id to linguistic structural info mapping. """
 
@@ -83,6 +83,11 @@ class DatasetBuilder(LoggableObject):
     @abc.abstractmethod
     def create_image_path_finder(self):
         return
+
+    def get_image_path_finder(self):
+        if self.image_path_finder is None:
+            self.image_path_finder = self.create_image_path_finder()
+        return self.image_path_finder
 
     """ Return the list of all image ids in this dataset. """
 

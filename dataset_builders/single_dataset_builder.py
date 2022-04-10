@@ -73,7 +73,7 @@ class SingleDatasetBuilder(DatasetBuilder):
     def is_unwanted_image(self, index, item, print_info):
         image_id = item
 
-        image_path = self.image_path_finder.get_image_path(image_id)
+        image_path = self.get_image_path_finder().get_image_path(image_id)
         image_shape = get_image_shape(image_path)
         if image_shape is None:
             # Missing image
