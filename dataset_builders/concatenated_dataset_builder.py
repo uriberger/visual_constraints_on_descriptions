@@ -75,3 +75,38 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
             unwanted_image_ids += [self.orig_to_new_image_id(x, i) for x in cur_image_ids]
 
         return unwanted_image_ids
+
+    def get_class_mapping(self):
+        self.mapping_list = [x.get_class_mapping() for x in self.builder_list]
+        class_mapping = []
+        self.dataset_to_old_class_ind_to_new_class_ind = []
+        class_name_to_new_ind = {}
+        for i in range(len(self.mapping_list)):
+            self.dataset_to_old_class_ind_to_new_class_ind.append({})
+            cur_mapping = self.mapping_list[i]
+            for j in range(len(cur_mapping)):
+                class_name = cur_mapping[j]
+                if class_name in class_name_to_new_ind:
+                    cur_new_class_ind = class_name_to_new_ind[class_name]
+                else:
+                    cur_new_class_ind = len(class_mapping)
+                    class_name_to_new_ind[class_name] = cur_new_class_ind
+                    class_mapping.append(class_name)
+                self.dataset_to_old_class_ind_to_new_class_ind[-1][j] = cur_new_class_ind
+        return class_mapping
+
+    def get_gt_classes_data(self):
+        self.get_class_mapping()
+        gt_classes_data = {}
+        gt_classes_data_list = [x.get_gt_classes_data() for x in self.builder_list]
+        for i in range(len(gt_classes_data_list)):
+            cur_gt_classes_data = gt_classes_data_list[i]
+            # Not sure how to handle cases where the same image is in different datasets
+            intersection_with_existing = set(cur_gt_classes_data.keys()).intersection(gt_classes_data.keys())
+            assert len(intersection_with_existing) == 0
+
+            for orig_image_id, orig_class_list in cur_gt_classes_data.items():
+                gt_classes_data[self.orig_to_new_image_id(orig_image_id, i)] = \
+                    [self.dataset_to_old_class_ind_to_new_class_ind[i][x] for x in orig_class_list]
+
+            return gt_classes_data
