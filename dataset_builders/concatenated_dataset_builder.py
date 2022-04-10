@@ -110,3 +110,17 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
                     [self.dataset_to_old_class_ind_to_new_class_ind[i][x] for x in orig_class_list]
 
             return gt_classes_data
+
+    def get_gt_bboxes_data(self):
+        gt_bboxes_data = {}
+        gt_bboxes_data_list = [x.get_gt_bboxes_data() for x in self.builder_list]
+        for i in range(len(gt_bboxes_data_list)):
+            cur_gt_bboxes_data = gt_bboxes_data_list[i]
+            # Not sure how to handle cases where the same image is in different datasets
+            intersection_with_existing = set(cur_gt_bboxes_data.keys()).intersection(gt_bboxes_data.keys())
+            assert len(intersection_with_existing) == 0
+
+            for orig_image_id, bbox_data in cur_gt_bboxes_data.items():
+                gt_bboxes_data[self.orig_to_new_image_id(orig_image_id, i)] = bbox_data
+
+            return gt_bboxes_data
