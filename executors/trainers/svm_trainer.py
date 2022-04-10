@@ -55,4 +55,6 @@ class SVMTrainer(Trainer):
 
     def train(self):
         self.generate_training_label_mat()
+        self.log_print('Fitting model...')
         self.model.fit(self.training_mat, self.label_mat)
+        self.log_print('Finished fitting model...')
