@@ -23,5 +23,5 @@ class ImLingInfoSVMClassifier(ImLingInfoClassifier):
 
     def predict(self, image_tensor):
         with torch.no_grad():
-            extracted_features = self.backbone_model_inference(image_tensor)
+            extracted_features = self.backbone_model_inference(image_tensor).cpu()
         return torch.from_numpy(self.clf.predict(extracted_features))
