@@ -21,12 +21,10 @@ parser.add_argument('--struct_property', type=str, dest='struct_property',
                     help='the linguistic structural property to be examined')
 parser.add_argument('--dataset', type=str, default=None, dest='dataset',
                     help='the name of the used dataset')
-parser.add_argument('--backbone_model', type=str, default='resnet50', dest='backbone_model',
-                    help='the name of the backbone model')
+parser.add_argument('--pretraining_method', type=str, default='image_net', dest='pretraining_method',
+                    help='the pre-training method for the visual backbone model')
 parser.add_argument('--classifier', type=str, default='neural', dest='classifier',
                     help='the type of classifier')
-parser.add_argument('--freeze_backbone', action='store_true', default=False, dest='freeze_backbone',
-                    help='freeze the parameters of the backbone model during training')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
                     help='use translated captions')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
@@ -41,9 +39,8 @@ datasets_dir = args.datasets_dir
 language = args.language
 struct_property = args.struct_property
 dataset_name = args.dataset
-backbone_model_name = args.backbone_model
+pretraining_method = args.pretraining_method
 classifier_name = args.classifier
-freeze_backbone = args.freeze_backbone
 translated = args.translated
 dump_captions = args.dump_captions
 balanced_training_set = args.balanced_training_set
@@ -70,9 +67,8 @@ def main(should_write_to_log):
 
     model_config = ModelConfig(
         struct_property=struct_property,
-        backbone_model=backbone_model_name,
-        classifier=classifier_name,
-        freeze_backbone=freeze_backbone
+        pretraining_method=pretraining_method,
+        classifier=classifier_name
     )
     log_print(function_name, 0, str(model_config))
     log_print(function_name, 0, f'Dataset: {dataset_name}, language: {language}')

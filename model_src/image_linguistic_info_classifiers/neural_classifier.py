@@ -44,15 +44,13 @@ class ImLingInfoNeuralClassifier(ImLingInfoClassifier):
     def __init__(self, config, model_dir, model_name):
         super(ImLingInfoNeuralClassifier, self).__init__(config, model_dir, model_name)
 
-        if self.config.freeze_backbone:
+        if self.config.pretraining_method == 'none':
             self.get_backbone_model().eval()
-
-        if self.config.freeze_backbone:
             self.get_backbone_model().requires_grad_(False)
 
         self.internal_classifier = InternalClassifier(
             self.backbone_model_inference, self.get_backbone_output_size(),
-            self.output_size, self.config.freeze_backbone
+            self.output_size, self.config.pretraining_method == 'none'
         )
 
     def inference(self, image_tensor):

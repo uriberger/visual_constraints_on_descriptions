@@ -13,7 +13,7 @@ class ImLingInfoSVMClassifier(ImLingInfoClassifier):
     def __init__(self, config, model_dir, model_name):
         super(ImLingInfoSVMClassifier, self).__init__(config, model_dir, model_name)
 
-        if config.freeze_backbone:
+        if config.pretraining_method == 'none':
             self.get_backbone_model().eval()
 
         self.clf = SVC()

@@ -2,9 +2,7 @@ class ModelConfig:
     """ Contains configuration settings for our clustering models.
 
 
-    backbone_model: The underlying visual model, used to extract image embeddings
-
-    freeze_backbone: A flag indicating whether the visual underlying model should be trained along with the classifier
+    pretraining_method: The method for pre-training the underlying visual model, used to extract image embeddings
 
     struct_property: The linguistic structural property that the model is trained to predict
 
@@ -12,17 +10,15 @@ class ModelConfig:
     """
 
     def __init__(self,
-                 backbone_model='resnet50',
+                 pretraining_method='image_net',
                  classifier='neural',
-                 freeze_backbone=True,
                  struct_property='passive',
                  learning_rate=1e-4,
                  ):
         super(ModelConfig, self).__init__()
 
-        self.backbone_model = backbone_model
+        self.pretraining_method = pretraining_method
         self.classifier = classifier
-        self.freeze_backbone = freeze_backbone
         self.struct_property = struct_property
         self.learning_rate = learning_rate
 

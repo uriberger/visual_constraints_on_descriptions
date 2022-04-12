@@ -3,7 +3,7 @@ import os
 import torch
 import torch.nn as nn
 
-from utils.general_utils import model_file_suffix, config_file_suffix
+from utils.general_utils import model_file_suffix, config_file_suffix, models_dir
 from utils.visual_utils import wanted_image_size
 
 import clip
@@ -81,10 +81,30 @@ class ImLingInfoClassifier(nn.Module):
         torch.save(self, self.get_model_path())
 
     def generate_backbone_model(self):
-        if self.config.backbone_model == 'resnet50':
-            return models.resnet50(pretrained=self.config.freeze_backbone).to(self.device)
-        elif self.config.backbone_model == 'clip':
+        if self.config.pretraining_method == 'image_net':
+            return models.resnet50(pretrained=True).to(self.device)
+        elif self.config.pretraining_method == 'clip':
             return clip.load('RN50', self.device)[0]
+        elif self.config.pretraining_method == 'moco':
+            moco_path = os.path.join(models_dir, 'moco_v2_800ep_pretrain.pth.tar')
+            checkpoint = torch.load(moco_path, map_location=self.device)
+
+            # rename moco pre-trained keys
+            state_dict = checkpoint['state_dict']
+            for k in list(state_dict.keys()):
+                # retain only encoder_q up to before the embedding layer
+                if k.startswith('module.encoder_q') and not k.startswith('module.encoder_q.fc'):
+                    # remove prefix
+                    state_dict[k[len("module.encoder_q."):]] = state_dict[k]
+                # delete renamed or unused k
+                del state_dict[k]
+
+            model = models.resnet50(pretrained=False).to(self.device)
+            msg = model.load_state_dict(state_dict, strict=False)
+            assert set(msg.missing_keys) == {"fc.weight", "fc.bias"}
+            return model
+        elif self.config.pretraining_method == 'none':
+            return models.resnet50(pretrained=False).to(self.device)
 
     def get_backbone_model(self):
         if self.backbone_model is None:
@@ -92,10 +112,10 @@ class ImLingInfoClassifier(nn.Module):
         return self.backbone_model
 
     def backbone_model_inference(self, input_tensor):
-        if self.config.backbone_model == 'resnet50':
-            return self.get_backbone_model()(input_tensor)
-        elif self.config.backbone_model == 'clip':
+        if self.config.pretraining_method == 'clip':
             return self.get_backbone_model().encode_image(input_tensor).float()
+        else:
+            return self.get_backbone_model()(input_tensor)
 
     def get_backbone_output_size(self):
         if self.backbone_output_size is None:
