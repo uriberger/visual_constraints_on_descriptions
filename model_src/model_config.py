@@ -10,6 +10,8 @@ class ModelConfig:
 
     classifier_layer_size: The list of sizes of classifier layers, in case a neural classifier is used
 
+    classifier_activation_func: The activation function, in case a neural classifier is used
+
     struct_property: The linguistic structural property that the model is trained to predict
 
     learning_rate: The learning rate for the visual encoder's training
@@ -20,6 +22,7 @@ class ModelConfig:
                  classifier='neural',
                  svm_kernel='rbf',
                  classifier_layer_size=[],
+                 classifier_activation_func='relu',
                  struct_property='passive',
                  learning_rate=1e-4,
                  ):
@@ -29,6 +32,7 @@ class ModelConfig:
         self.classifier = classifier
         self.svm_kernel = svm_kernel
         self.classifier_layer_size = classifier_layer_size
+        self.classifier_activation_func = classifier_activation_func
         self.struct_property = struct_property
         self.learning_rate = learning_rate
 

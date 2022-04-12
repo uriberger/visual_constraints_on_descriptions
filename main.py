@@ -28,7 +28,9 @@ parser.add_argument('--classifier', type=str, default='neural', dest='classifier
 parser.add_argument('--svm_kernel', type=str, default='rbf', dest='svm_kernel',
                     help='the type of kernel if an SVM classifier is used')
 parser.add_argument('--classifier_layer_size', nargs="+", type=int, default=[], dest='classifier_layer_size',
-                    help='the list of sizes of classifier layers')
+                    help='the list of sizes of classifier layers if a neural classifier is used')
+parser.add_argument('--classifier_activation_func', type=str, default='relu', dest='classifier_activation_func',
+                    help='the activation function if a neural classifier is used')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
                     help='use translated captions')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
@@ -47,6 +49,7 @@ pretraining_method = args.pretraining_method
 classifier_name = args.classifier
 svm_kernel = args.svm_kernel
 classifier_layer_size = args.classifier_layer_size
+classifier_activation_func = args.classifier_activation_func
 translated = args.translated
 dump_captions = args.dump_captions
 balanced_training_set = args.balanced_training_set
@@ -76,7 +79,8 @@ def main(should_write_to_log):
         pretraining_method=pretraining_method,
         classifier=classifier_name,
         svm_kernel=svm_kernel,
-        classifier_layer_size=classifier_layer_size
+        classifier_layer_size=classifier_layer_size,
+        classifier_activation_func=classifier_activation_func
     )
     log_print(function_name, 0, str(model_config))
     log_print(function_name, 0, f'Dataset: {dataset_name}, language: {language}')

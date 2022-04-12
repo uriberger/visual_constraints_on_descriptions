@@ -5,8 +5,8 @@ from model_src.image_linguistic_info_classifiers.image_linguistic_info_classifie
 
 
 class InternalClassifier(nn.Module):
-    def __init__(self, backbone_model_inference_func, backbone_output_size, layer_size_list, output_size,
-                 freeze_backbone):
+    def __init__(self, backbone_model_inference_func, activation_func, backbone_output_size, layer_size_list,
+                 output_size, freeze_backbone):
         super(InternalClassifier, self).__init__()
 
         self.freeze_backbone = freeze_backbone
@@ -17,19 +17,28 @@ class InternalClassifier(nn.Module):
         else:
             device = torch.device('cpu')
 
-        self.classification_head = self.get_classification_head(backbone_output_size, layer_size_list, output_size)
+        self.classification_head = self.get_classification_head(activation_func, backbone_output_size, layer_size_list, output_size)
         self.classification_head.to(device)
 
     @staticmethod
-    def get_classification_head(input_size, layer_size_list, class_num):
+    def get_classification_head(activation_func, input_size, layer_size_list, class_num):
+        if activation_func == 'relu':
+            activation_func_class = nn.ReLU
+        elif activation_func == 'sigmoid':
+            activation_func_class = nn.Sigmoid
+        elif activation_func == 'tanh':
+            activation_func_class = nn.Tanh
+        else:
+            assert False
+
         layers = []
         cur_input_size = input_size
         for cur_output_size in layer_size_list:
             layers.append(nn.Linear(cur_input_size, cur_output_size))
-            layers.append(nn.ReLU())
+            layers.append(activation_func_class())
             cur_input_size = cur_output_size
         layers.append(nn.Linear(cur_input_size, class_num))
-        layers.append(nn.ReLU())
+        layers.append(activation_func_class())
         layers.append(nn.Softmax(dim=1))
         return nn.Sequential(*layers)
 
@@ -57,7 +66,7 @@ class ImLingInfoNeuralClassifier(ImLingInfoClassifier):
             self.get_backbone_model().requires_grad_(False)
 
         self.internal_classifier = InternalClassifier(
-            self.backbone_model_inference, self.get_backbone_output_size(),
+            self.backbone_model_inference, self.config.classifier_activation_func, self.get_backbone_output_size(),
             self.config.classifier_layer_size, self.output_size, self.config.pretraining_method == 'none'
         )
 
