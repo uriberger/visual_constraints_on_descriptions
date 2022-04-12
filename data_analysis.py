@@ -83,7 +83,7 @@ def get_class_prob_list(struct_data, gt_class_data, class_mapping):
         2. For each gt class, calculate the mean fraction from 1, averaged across all image ids relevant for this class.
         3. Convert each class ind to a name using the provided class mapping.
     """
-    # Preprocessing: make sure struct_data and gt_class data contain the same imade ids
+    # Preprocessing: make sure struct_data and gt_class data contain the same image ids
     all_image_ids = list(set([x[0] for x in struct_data if x[0] in gt_class_data]))
     gt_class_data = {x: gt_class_data[x] for x in all_image_ids}
     all_image_ids_dict = {x: True for x in all_image_ids}
