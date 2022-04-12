@@ -78,4 +78,4 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
             images_dir_path = self.train_images_dir_path
         elif self.data_split_str == 'val':
             images_dir_path = self.val_images_dir_path
-        return AIChallengerDatasetBuilder(images_dir_path)
+        return AICImagePathFinder(images_dir_path)
