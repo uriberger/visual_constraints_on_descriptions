@@ -6,13 +6,16 @@ from dataset_builders.image_path_finder import ImagePathFinder
 
 class AICImagePathFinder(ImagePathFinder):
 
-    def __init__(self, images_dir_path):
+    def __init__(self, images_dir_path, new_to_orig_image_id):
         super(AICImagePathFinder, self).__init__()
 
         self.images_dir_path = images_dir_path
+        self.new_to_orig_image_id = new_to_orig_image_id
 
     def get_image_path(self, image_id):
-        image_file_name = f'{hex(image_id)[2:]}.jpg'
+        orig_image_id = self.new_to_orig_image_id[image_id]
+
+        image_file_name = f'{hex(orig_image_id)[2:]}.jpg'
         image_path = os.path.join(self.images_dir_path, image_file_name)
 
         return image_path
@@ -39,9 +42,15 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
         self.train_images_dir_path = os.path.join(root_dir_path, train_dir_name, train_images_dir_name)
         self.val_images_dir_path = os.path.join(root_dir_path, val_dir_name, val_images_dir_name)
 
+        self.new_to_orig_image_id = self.generate_new_to_orig_image_id_dict()
+        self.orig_to_new_image_id = {self.new_to_orig_image_id[i]: i for i in range(len(self.new_to_orig_image_id))}
+
     @staticmethod
-    def file_name_to_image_id(file_name):
+    def file_name_to_orig_image_id(file_name):
         return int(file_name.split('.jpg')[0], 16)
+
+    def file_name_to_image_id(self, file_name):
+        return self.orig_to_new_image_id[self.file_name_to_orig_image_id(file_name)]
 
     def load_from_json(self):
         if self.data_split_str == 'train':
@@ -52,9 +61,13 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
             loaded_data = json.load(caption_fp)
         return loaded_data
 
-    def get_all_image_ids(self):
+    def generate_new_to_orig_image_id_dict(self):
         loaded_data = self.load_from_json()
-        return [self.file_name_to_image_id(x['image_id']) for x in loaded_data]
+        return [self.file_name_to_orig_image_id(x['image_id']) for x in loaded_data]
+
+    def get_all_image_ids(self):
+        # We can't use the original image ids because they are too long. So we'll map them to shorter ids
+        return range(len(self.new_to_orig_image_id))
 
     def get_caption_data(self):
         loaded_data = self.load_from_json()
@@ -78,4 +91,5 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
             images_dir_path = self.train_images_dir_path
         elif self.data_split_str == 'val':
             images_dir_path = self.val_images_dir_path
-        return AICImagePathFinder(images_dir_path)
+
+        return AICImagePathFinder(images_dir_path, self.new_to_orig_image_id)
