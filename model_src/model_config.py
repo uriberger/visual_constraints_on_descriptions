@@ -4,6 +4,10 @@ class ModelConfig:
 
     pretraining_method: The method for pre-training the underlying visual model, used to extract image embeddings
 
+    classifier: The type of classifier used on top of the backbone model
+
+    svm_kernel: The type of kernel used, in case an SVM classifier is used
+
     struct_property: The linguistic structural property that the model is trained to predict
 
     learning_rate: The learning rate for the visual encoder's training
@@ -12,6 +16,7 @@ class ModelConfig:
     def __init__(self,
                  pretraining_method='image_net',
                  classifier='neural',
+                 svm_kernel='rbf',
                  struct_property='passive',
                  learning_rate=1e-4,
                  ):
@@ -19,6 +24,7 @@ class ModelConfig:
 
         self.pretraining_method = pretraining_method
         self.classifier = classifier
+        self.svm_kernel = svm_kernel
         self.struct_property = struct_property
         self.learning_rate = learning_rate
 

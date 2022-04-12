@@ -25,6 +25,8 @@ parser.add_argument('--pretraining_method', type=str, default='image_net', dest=
                     help='the pre-training method for the visual backbone model')
 parser.add_argument('--classifier', type=str, default='neural', dest='classifier',
                     help='the type of classifier')
+parser.add_argument('--svm_kernel', type=str, default='rbf', dest='svm_kernel',
+                    help='the type of kernel if an SVM classifier is used')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
                     help='use translated captions')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
@@ -41,6 +43,7 @@ struct_property = args.struct_property
 dataset_name = args.dataset
 pretraining_method = args.pretraining_method
 classifier_name = args.classifier
+svm_kernel = args.svm_kernel
 translated = args.translated
 dump_captions = args.dump_captions
 balanced_training_set = args.balanced_training_set
@@ -68,7 +71,8 @@ def main(should_write_to_log):
     model_config = ModelConfig(
         struct_property=struct_property,
         pretraining_method=pretraining_method,
-        classifier=classifier_name
+        classifier=classifier_name,
+        svm_kernel=svm_kernel
     )
     log_print(function_name, 0, str(model_config))
     log_print(function_name, 0, f'Dataset: {dataset_name}, language: {language}')

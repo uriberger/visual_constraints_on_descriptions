@@ -16,7 +16,7 @@ class ImLingInfoSVMClassifier(ImLingInfoClassifier):
         if config.pretraining_method == 'none':
             self.get_backbone_model().eval()
 
-        self.clf = SVC()
+        self.clf = SVC(kernel=config.svm_kernel)
 
     def fit(self, training_mat, label_mat):
         self.clf.fit(training_mat, label_mat)
