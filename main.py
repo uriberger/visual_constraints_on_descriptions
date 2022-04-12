@@ -27,6 +27,8 @@ parser.add_argument('--classifier', type=str, default='neural', dest='classifier
                     help='the type of classifier')
 parser.add_argument('--svm_kernel', type=str, default='rbf', dest='svm_kernel',
                     help='the type of kernel if an SVM classifier is used')
+parser.add_argument('--classifier_layer_size', nargs="+", type=int, default=[], dest='classifier_layer_size',
+                    help='the list of sizes of classifier layers')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
                     help='use translated captions')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
@@ -44,6 +46,7 @@ dataset_name = args.dataset
 pretraining_method = args.pretraining_method
 classifier_name = args.classifier
 svm_kernel = args.svm_kernel
+classifier_layer_size = args.classifier_layer_size
 translated = args.translated
 dump_captions = args.dump_captions
 balanced_training_set = args.balanced_training_set
@@ -72,7 +75,8 @@ def main(should_write_to_log):
         struct_property=struct_property,
         pretraining_method=pretraining_method,
         classifier=classifier_name,
-        svm_kernel=svm_kernel
+        svm_kernel=svm_kernel,
+        classifier_layer_size=classifier_layer_size
     )
     log_print(function_name, 0, str(model_config))
     log_print(function_name, 0, f'Dataset: {dataset_name}, language: {language}')

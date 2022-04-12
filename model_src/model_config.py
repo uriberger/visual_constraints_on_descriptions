@@ -8,6 +8,8 @@ class ModelConfig:
 
     svm_kernel: The type of kernel used, in case an SVM classifier is used
 
+    classifier_layer_size: The list of sizes of classifier layers, in case a neural classifier is used
+
     struct_property: The linguistic structural property that the model is trained to predict
 
     learning_rate: The learning rate for the visual encoder's training
@@ -17,6 +19,7 @@ class ModelConfig:
                  pretraining_method='image_net',
                  classifier='neural',
                  svm_kernel='rbf',
+                 classifier_layer_size=[],
                  struct_property='passive',
                  learning_rate=1e-4,
                  ):
@@ -25,6 +28,7 @@ class ModelConfig:
         self.pretraining_method = pretraining_method
         self.classifier = classifier
         self.svm_kernel = svm_kernel
+        self.classifier_layer_size = classifier_layer_size
         self.struct_property = struct_property
         self.learning_rate = learning_rate
 
