@@ -58,7 +58,8 @@ class TextUtils:
         elif language == 'French':
             direct_object_dep_tag = 'obj'
         return len([token for token in analyzed_sentence
-                    if token.dep_ == direct_object_dep_tag and token.head.dep_ == 'ROOT']) > 0
+                    if token['dep'] == direct_object_dep_tag and
+                    analyzed_sentence[token['head_ind']]['dep'] == 'ROOT']) > 0
 
     @staticmethod
     def tokenize(sentence):

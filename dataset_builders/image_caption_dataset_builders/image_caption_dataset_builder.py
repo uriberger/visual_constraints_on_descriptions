@@ -107,7 +107,13 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
 
     def collect_nlp_data_from_caption(self, index, sample, should_print):
         caption = sample['caption']
-        self.nlp_data.append(TextUtils.get_nlp()(caption))
+        analyzed_caption = TextUtils.get_nlp()(caption)
+        self.nlp_data.append([{
+            'pos': x.pos_,
+            'dep': x.dep_,
+            'lemma': x.lemma_,
+            'head_ind': x.head.i
+        } for x in analyzed_caption])
 
     def caption_report(self, index, iterable_size, time_from_prev_checkpoint):
         self.log_print('Starting caption ' + str(index) +
@@ -170,12 +176,12 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
                 image_id = sample['image_id']
 
                 # We're only in interested in captions with at least a single verb
-                verbs = [x for x in sample_nlp_data if x.pos_ == 'VERB']
+                verbs = [x for x in sample_nlp_data if x['pos'] == 'VERB']
                 if len(verbs) == 0:
                     continue
 
                 if language == 'Japanese':
-                    lemmas = [x.lemma_ for x in sample_nlp_data]
+                    lemmas = [x['lemma'] for x in sample_nlp_data]
                     sample_passive_indicators = passive_indicators.intersection(lemmas)
                     passive_dataset.append((image_id, int(len(sample_passive_indicators) > 0)))
                 elif language == 'Chinese':
@@ -251,13 +257,13 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
             nlp_data = self.nlp_data[i]
-            roots = [token for token in nlp_data if token.dep_ == 'ROOT']
+            roots = [token for token in nlp_data if token['dep'] == 'ROOT']
             if len(roots) != 1:
                 # We don't know how to deal with zero or multiple roots, for now
                 continue
 
             root = roots[0]
-            if root.pos_ != 'VERB':
+            if root['pos'] != 'VERB':
                 # We're not interested in non-verb roots
                 continue
 
@@ -378,7 +384,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
             elif language == 'German':
                 sample_nlp_data = self.nlp_data[i]
                 negation_words_in_caption = german_negation_words.intersection([
-                    x.lemma_.lower() for x in sample_nlp_data
+                    x['lemma'].lower() for x in sample_nlp_data
                 ])
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
             elif language == 'Chinese':
@@ -429,11 +435,10 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
             So we don't want to consider those words as numbers. '''
             if language == 'French':
                 numbers_list = [x for x in numbers_list
-                                if [y.lemma_ for y in nlp(x.text)] not in [['un'], ['un', 'sur', 'un']]]
+                                if [y['lemma'] for y in nlp(x.text)] not in [['un'], ['un', 'sur', 'un']]]
             if language == 'German':
-                # TODO: Should the 'eins' word be removed as well? I don't think so
                 numbers_list = [x for x in numbers_list
-                                if [y.lemma_ for y in nlp(x.text)][0] not in ['ein', 'einer', 'einen']]
+                                if [y['lemma'] for y in nlp(x.text)][0] not in ['ein', 'einer', 'einen']]
             if language == 'Chinese':
                 numbers_list = [x for x in numbers_list if x.text != '一']
 
@@ -509,15 +514,15 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
             nlp_data = self.nlp_data[i]
-            roots = [token for token in nlp_data if token.dep_ == 'ROOT']
+            roots = [token for token in nlp_data if token['dep'] == 'ROOT']
             if len(roots) != 1:
                 # We don't know how to deal with zero or multiple roots, for now
                 continue
 
             root = roots[0]
-            if root.pos_ in ['NOUN', 'PRON', 'PROPN']:
+            if root['pos'] in ['NOUN', 'PRON', 'PROPN']:
                 val = 0
-            elif root.pos_ == 'VERB':
+            elif root['pos'] == 'VERB':
                 val = 1
             else:
                 # We're only interested in verb or noun roots
