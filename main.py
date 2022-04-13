@@ -15,7 +15,7 @@ parser.add_argument('--write_to_log', action='store_true', default=False, dest='
                     help='redirect output to a log file')
 parser.add_argument('--datasets_dir', type=str, default=os.path.join('..', 'datasets'), dest='datasets_dir',
                     help='the path to the datasets dir')
-parser.add_argument('--language', type=str, default='English', dest='language',
+parser.add_argument('--language', type=str, default=None, dest='language',
                     help='the language of the used dataset')
 parser.add_argument('--struct_property', type=str, dest='struct_property',
                     help='the linguistic structural property to be examined')
@@ -58,9 +58,9 @@ balanced_test_set = args.balanced_test_set
 DatasetBuilder.set_datasets_dir(datasets_dir)
 
 
-def get_dataset_builder(data_split_str):
+def get_dataset_builder(cur_language, data_split_str):
     if dataset_name is None:
-        dataset_names = [x for x in language_dataset_list if x[0] == language and x[2] == translated][0][1]
+        dataset_names = [x for x in language_dataset_list if x[0] == cur_language and x[2] == translated][0][1]
         builder_list = [create_dataset_builder(x, data_split_str, struct_property, translated)
                         for x in dataset_names]
         builder = ConcatenatedDatasetBuilder(builder_list, struct_property, 1)
@@ -72,7 +72,6 @@ def get_dataset_builder(data_split_str):
 
 def main(should_write_to_log):
     function_name = 'main'
-    timestamp = init_entry_point(should_write_to_log, language)
 
     model_config = ModelConfig(
         struct_property=struct_property,
@@ -90,49 +89,60 @@ def main(should_write_to_log):
                                     f' Please use the --translated flag. Stopping!')
         assert False
 
-    log_print(function_name, 0, 'Generating datasets...')
-    training_set_builder = get_dataset_builder('train')
-    test_set_builder = get_dataset_builder('val')
-    if dump_captions:
-        training_set_builder.dump_captions()
-        test_set_builder.dump_captions()
-        return
-
-    # Training set
-    training_set = training_set_builder.build_dataset()
-    training_set.generate_sample_list()
-    threshold = training_set.get_threshold()
-    training_label_to_data_samples = training_set.find_samples_for_labels()
-    training_label_to_sample_num = {x[0]: len(x[1]) for x in training_label_to_data_samples.items()}
-    log_print(function_name, 0, f'Training sample num per label: {training_label_to_sample_num}')
-    if balanced_training_set:
-        log_print(function_name, 0, 'Balancing training data')
-        training_set.balance_data()
-        log_print(function_name, 0, f'After balancing, training data contains {len(training_set.sample_list)} samples')
-
-    # Test set
-    test_set = test_set_builder.build_dataset()
-    test_set.generate_sample_list(threshold)
-    test_label_to_data_samples = test_set.find_samples_for_labels()
-    test_label_to_sample_num = {x[0]: len(x[1]) for x in test_label_to_data_samples.items()}
-    log_print(function_name, 0, f'Test sample num per label: {test_label_to_sample_num}')
-    if balanced_test_set:
-        log_print(function_name, 0, 'Balancing test data')
-        test_set.balance_data()
-        log_print(function_name, 0, f'After balancing, test data contains {len(test_set.sample_list)} samples')
-    log_print(function_name, 0, 'datasets generated')
-
-    log_print(function_name, 0, 'Training model...')
-    model_root_dir = os.path.join(project_root_dir, timestamp)
-    if classifier_name == 'neural':
-        trainer = BackpropagationTrainer(model_root_dir, training_set, test_set, 20, 50, model_config, 1)
-    elif classifier_name == 'svm':
-        trainer = SVMTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
+    if language is None:
+        assert (not translated)
+        # Find all languages
+        languages = list(set([x[0] for x in language_dataset_list if not x[2]]))
     else:
-        log_print(function_name, 0, f'Classifier {classifier_name} not implemented. Stopping!')
-        assert False
-    trainer.run()
-    log_print(function_name, 0, 'Finished training model')
+        languages = [language]
+    for cur_language in languages:
+        timestamp = init_entry_point(should_write_to_log, cur_language)
+        indent = 0
+        log_print(function_name, indent, 'Training for ' + str(cur_language))
+
+        log_print(function_name, indent, 'Generating datasets...')
+        training_set_builder = get_dataset_builder(cur_language, 'train')
+        test_set_builder = get_dataset_builder(cur_language, 'val')
+        if dump_captions:
+            training_set_builder.dump_captions()
+            test_set_builder.dump_captions()
+            return
+
+        # Training set
+        training_set = training_set_builder.build_dataset()
+        training_set.generate_sample_list()
+        threshold = training_set.get_threshold()
+        training_label_to_data_samples = training_set.find_samples_for_labels()
+        training_label_to_sample_num = {x[0]: len(x[1]) for x in training_label_to_data_samples.items()}
+        log_print(function_name, indent, f'Training sample num per label: {training_label_to_sample_num}')
+        if balanced_training_set:
+            log_print(function_name, indent, 'Balancing training data')
+            training_set.balance_data()
+            log_print(function_name, indent, f'After balancing, training data contains {len(training_set.sample_list)} samples')
+
+        # Test set
+        test_set = test_set_builder.build_dataset()
+        test_set.generate_sample_list(threshold)
+        test_label_to_data_samples = test_set.find_samples_for_labels()
+        test_label_to_sample_num = {x[0]: len(x[1]) for x in test_label_to_data_samples.items()}
+        log_print(function_name, indent, f'Test sample num per label: {test_label_to_sample_num}')
+        if balanced_test_set:
+            log_print(function_name, indent, 'Balancing test data')
+            test_set.balance_data()
+            log_print(function_name, indent, f'After balancing, test data contains {len(test_set.sample_list)} samples')
+        log_print(function_name, indent, 'datasets generated')
+
+        log_print(function_name, indent, 'Training model...')
+        model_root_dir = os.path.join(project_root_dir, timestamp)
+        if classifier_name == 'neural':
+            trainer = BackpropagationTrainer(model_root_dir, training_set, test_set, 20, 50, model_config, 1)
+        elif classifier_name == 'svm':
+            trainer = SVMTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
+        else:
+            log_print(function_name, indent, f'Classifier {classifier_name} not implemented. Stopping!')
+            assert False
+        trainer.run()
+        log_print(function_name, indent, 'Finished training model')
 
 
 main(write_to_log)
