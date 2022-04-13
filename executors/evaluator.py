@@ -43,6 +43,7 @@ class Evaluator(Executor):
     def evaluate(self):
         dataloader = data.DataLoader(self.test_set, batch_size=50, shuffle=False)
 
+        self.model.eval()
         checkpoint_len = BATCH_REPORT_NUM
         self.increment_indent()
         for_loop_with_reports(dataloader, len(dataloader), checkpoint_len,
