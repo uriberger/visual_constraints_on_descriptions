@@ -61,7 +61,7 @@ class ImLingInfoNeuralClassifier(ImLingInfoClassifier):
     def __init__(self, config, model_dir, model_name):
         super(ImLingInfoNeuralClassifier, self).__init__(config, model_dir, model_name)
 
-        if self.config.pretraining_method == 'none':
+        if self.config.pretraining_method != 'none':
             self.get_backbone_model().eval()
             self.get_backbone_model().requires_grad_(False)
 
