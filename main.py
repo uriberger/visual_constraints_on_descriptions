@@ -81,8 +81,6 @@ def main(should_write_to_log):
         classifier_layer_size=classifier_layer_size,
         classifier_activation_func=classifier_activation_func
     )
-    log_print(function_name, 0, str(model_config))
-    log_print(function_name, 0, f'Dataset: {dataset_name}, language: {language}')
 
     if dataset_name in translated_only_datasets and (not translated):
         log_print(function_name, 0, f'Dataset {dataset_name} is only translated.'
@@ -98,7 +96,8 @@ def main(should_write_to_log):
     for cur_language in languages:
         timestamp = init_entry_point(should_write_to_log, cur_language)
         indent = 0
-        log_print(function_name, indent, 'Training for ' + str(cur_language))
+        log_print(function_name, indent, str(model_config))
+        log_print(function_name, indent, f'Dataset: {dataset_name}, language: {cur_language}')
 
         log_print(function_name, indent, 'Generating datasets...')
         training_set_builder = get_dataset_builder(cur_language, 'train')
