@@ -19,6 +19,11 @@ class ModelFactory(LoggableObject):
             return ImLingInfoSVMClassifier(model_config, model_dir, model_name)
 
     def load_model(self, model_dir, model_name):
+        if torch.cuda.is_available():
+            device = torch.device('cuda:0')
+        else:
+            device = torch.device('cpu')
+
         config_file_path = os.path.join(model_dir, model_name + config_file_suffix)
         if not os.path.isfile(config_file_path):
             self.log_print('Couldn\'t find model "' + str(model_name) + '" in directory ' + str(model_dir))
@@ -26,7 +31,7 @@ class ModelFactory(LoggableObject):
 
         config = torch.load(config_file_path)
         model_file_path = os.path.join(model_dir, model_name + model_file_suffix)
-        model = torch.load(model_file_path)
+        model = torch.load(model_file_path, map_location=device)
         model.set_dump_path(model_dir, model_name)
 
         return model, config
