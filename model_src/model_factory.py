@@ -15,7 +15,7 @@ class ModelFactory(LoggableObject):
     def create_model(model_config, model_dir, model_name):
         if model_config.classifier == 'neural':
             return ImLingInfoNeuralClassifier(model_config, model_dir, model_name)
-        elif model_config.classifier == 'svm' or model_config.classifier == 'random_forest':
+        elif model_config.classifier in ['svm', 'random_forest', 'xgboost']:
             return ImLingInfoOfflineClassifier(model_config, model_dir, model_name)
 
     def load_model(self, model_dir, model_name):

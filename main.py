@@ -135,7 +135,7 @@ def main(should_write_to_log):
         model_root_dir = os.path.join(project_root_dir, timestamp)
         if classifier_name == 'neural':
             trainer = BackpropagationTrainer(model_root_dir, training_set, test_set, 20, 50, model_config, 1)
-        elif classifier_name == 'svm' or classifier_name == 'random_forest':
+        elif classifier_name in ['svm', 'random_forest', 'xgboost']:
             trainer = OfflineTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
         else:
             log_print(function_name, indent, f'Classifier {classifier_name} not implemented. Stopping!')

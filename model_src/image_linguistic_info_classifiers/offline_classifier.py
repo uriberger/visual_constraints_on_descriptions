@@ -3,6 +3,7 @@ import torch
 from model_src.image_linguistic_info_classifiers.image_linguistic_info_classifier import ImLingInfoClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
 
 
 class ImLingInfoOfflineClassifier(ImLingInfoClassifier):
@@ -22,6 +23,8 @@ class ImLingInfoOfflineClassifier(ImLingInfoClassifier):
             self.clf = SVC(kernel=config.svm_kernel)
         elif config.classifier == 'random_forest':
             self.clf = RandomForestClassifier()
+        elif config.classifier == 'xgboost':
+            self.clf = xgb.XGBClassifier()
 
     def fit(self, training_mat, label_mat):
         self.clf.fit(training_mat, label_mat)
