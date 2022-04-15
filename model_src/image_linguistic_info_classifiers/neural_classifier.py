@@ -36,11 +36,13 @@ class InternalClassifier(nn.Module):
         cur_input_size = input_size
         for cur_output_size in layer_size_list:
             layers.append(nn.Linear(cur_input_size, cur_output_size))
-            layers.append(nn.BatchNorm1d(cur_output_size))
+            if use_batch_norm:
+                layers.append(nn.BatchNorm1d(cur_output_size))
             layers.append(activation_func_class())
             cur_input_size = cur_output_size
         layers.append(nn.Linear(cur_input_size, class_num))
-        layers.append(nn.BatchNorm1d(class_num))
+        if use_batch_norm:
+            layers.append(nn.BatchNorm1d(class_num))
         layers.append(activation_func_class())
         layers.append(nn.Softmax(dim=1))
         return nn.Sequential(*layers)
