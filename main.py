@@ -27,6 +27,8 @@ parser.add_argument('--classifier', type=str, default='neural', dest='classifier
                     help='the type of classifier')
 parser.add_argument('--svm_kernel', type=str, default='rbf', dest='svm_kernel',
                     help='the type of kernel if an SVM classifier is used')
+parser.add_argument('--standardize_data', action='store_true', default=False, dest='standardize_data',
+                    help='standardize data if an offline training method is used')
 parser.add_argument('--classifier_layer_size', nargs="+", type=int, default=[], dest='classifier_layer_size',
                     help='the list of sizes of classifier layers if a neural classifier is used')
 parser.add_argument('--classifier_activation_func', type=str, default='relu', dest='classifier_activation_func',
@@ -50,6 +52,7 @@ dataset_name = args.dataset
 pretraining_method = args.pretraining_method
 classifier_name = args.classifier
 svm_kernel = args.svm_kernel
+standardize_data = args.standardize_data
 classifier_layer_size = args.classifier_layer_size
 classifier_activation_func = args.classifier_activation_func
 use_batch_norm = args.use_batch_norm
@@ -83,7 +86,8 @@ def main(should_write_to_log):
         svm_kernel=svm_kernel,
         classifier_layer_size=classifier_layer_size,
         classifier_activation_func=classifier_activation_func,
-        use_batch_norm=use_batch_norm
+        use_batch_norm=use_batch_norm,
+        standardize_data=standardize_data
     )
 
     if dataset_name in translated_only_datasets and (not translated):

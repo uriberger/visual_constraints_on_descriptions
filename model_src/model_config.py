@@ -8,9 +8,13 @@ class ModelConfig:
 
     svm_kernel: The type of kernel used, in case an SVM classifier is used
 
+    standardize_data: Whether we should standardize the train and test sets, in case an offline training method is used
+
     classifier_layer_size: The list of sizes of classifier layers, in case a neural classifier is used
 
     classifier_activation_func: The activation function, in case a neural classifier is used
+
+    use_batch_norm: Whether we should use batch normalization layers, in case a neural classifier is used
 
     struct_property: The linguistic structural property that the model is trained to predict
 
@@ -24,6 +28,7 @@ class ModelConfig:
                  classifier_layer_size=[],
                  classifier_activation_func='relu',
                  use_batch_norm=False,
+                 standardize_data=False,
                  struct_property='passive',
                  learning_rate=1e-4,
                  ):
@@ -35,6 +40,7 @@ class ModelConfig:
         self.classifier_layer_size = classifier_layer_size
         self.classifier_activation_func = classifier_activation_func
         self.use_batch_norm = use_batch_norm
+        self.standardize_data = standardize_data
         self.struct_property = struct_property
         self.learning_rate = learning_rate
 

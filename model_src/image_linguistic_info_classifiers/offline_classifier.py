@@ -3,6 +3,7 @@ import torch
 from model_src.image_linguistic_info_classifiers.image_linguistic_info_classifier import ImLingInfoClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
 
 
@@ -27,9 +28,14 @@ class ImLingInfoOfflineClassifier(ImLingInfoClassifier):
             self.clf = xgb.XGBClassifier()
 
     def fit(self, training_mat, label_mat):
+        if self.config.standardize_data:
+            self.scale = StandardScaler().fit(training_mat)
+            training_mat = self.scale.transform(training_mat)
         self.clf.fit(training_mat, label_mat)
 
     def predict(self, image_tensor):
         with torch.no_grad():
             extracted_features = self.backbone_model_inference(image_tensor).cpu()
+            if self.config.standardize_data:
+                extracted_features = self.scale.transform(extracted_features)
         return torch.from_numpy(self.clf.predict(extracted_features))
