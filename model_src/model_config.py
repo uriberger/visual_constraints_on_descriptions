@@ -23,6 +23,7 @@ class ModelConfig:
                  svm_kernel='rbf',
                  classifier_layer_size=[],
                  classifier_activation_func='relu',
+                 use_batch_norm=False,
                  struct_property='passive',
                  learning_rate=1e-4,
                  ):
@@ -33,6 +34,7 @@ class ModelConfig:
         self.svm_kernel = svm_kernel
         self.classifier_layer_size = classifier_layer_size
         self.classifier_activation_func = classifier_activation_func
+        self.use_batch_norm = use_batch_norm
         self.struct_property = struct_property
         self.learning_rate = learning_rate
 

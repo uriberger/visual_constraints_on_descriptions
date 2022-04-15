@@ -31,6 +31,8 @@ parser.add_argument('--classifier_layer_size', nargs="+", type=int, default=[], 
                     help='the list of sizes of classifier layers if a neural classifier is used')
 parser.add_argument('--classifier_activation_func', type=str, default='relu', dest='classifier_activation_func',
                     help='the activation function if a neural classifier is used')
+parser.add_argument('--use_batch_norm', action='store_true', default=False, dest='use_batch_norm',
+                    help='use batch normalization if a neural classifier is used')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
                     help='use translated captions')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
@@ -50,6 +52,7 @@ classifier_name = args.classifier
 svm_kernel = args.svm_kernel
 classifier_layer_size = args.classifier_layer_size
 classifier_activation_func = args.classifier_activation_func
+use_batch_norm = args.use_batch_norm
 translated = args.translated
 dump_captions = args.dump_captions
 balanced_training_set = args.balanced_training_set
@@ -79,7 +82,8 @@ def main(should_write_to_log):
         classifier=classifier_name,
         svm_kernel=svm_kernel,
         classifier_layer_size=classifier_layer_size,
-        classifier_activation_func=classifier_activation_func
+        classifier_activation_func=classifier_activation_func,
+        use_batch_norm=use_batch_norm
     )
 
     if dataset_name in translated_only_datasets and (not translated):

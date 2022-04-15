@@ -6,7 +6,7 @@ from model_src.image_linguistic_info_classifiers.image_linguistic_info_classifie
 
 class InternalClassifier(nn.Module):
     def __init__(self, backbone_model_inference_func, activation_func, backbone_output_size, layer_size_list,
-                 output_size, freeze_backbone):
+                 output_size, freeze_backbone, use_batch_norm):
         super(InternalClassifier, self).__init__()
 
         self.freeze_backbone = freeze_backbone
@@ -17,11 +17,12 @@ class InternalClassifier(nn.Module):
         else:
             device = torch.device('cpu')
 
-        self.classification_head = self.get_classification_head(activation_func, backbone_output_size, layer_size_list, output_size)
+        self.classification_head = self.get_classification_head(activation_func, backbone_output_size, layer_size_list,
+                                                                output_size, use_batch_norm)
         self.classification_head.to(device)
 
     @staticmethod
-    def get_classification_head(activation_func, input_size, layer_size_list, class_num):
+    def get_classification_head(activation_func, input_size, layer_size_list, class_num, use_batch_norm):
         if activation_func == 'relu':
             activation_func_class = nn.ReLU
         elif activation_func == 'sigmoid':
@@ -35,9 +36,11 @@ class InternalClassifier(nn.Module):
         cur_input_size = input_size
         for cur_output_size in layer_size_list:
             layers.append(nn.Linear(cur_input_size, cur_output_size))
+            layers.append(nn.BatchNorm1d(cur_output_size))
             layers.append(activation_func_class())
             cur_input_size = cur_output_size
         layers.append(nn.Linear(cur_input_size, class_num))
+        layers.append(nn.BatchNorm1d(class_num))
         layers.append(activation_func_class())
         layers.append(nn.Softmax(dim=1))
         return nn.Sequential(*layers)
@@ -66,7 +69,8 @@ class ImLingInfoNeuralClassifier(ImLingInfoClassifier):
 
         self.internal_classifier = InternalClassifier(
             self.backbone_model_inference, self.config.classifier_activation_func, self.get_backbone_output_size(),
-            self.config.classifier_layer_size, self.output_size, self.config.pretraining_method == 'none'
+            self.config.classifier_layer_size, self.output_size, self.config.pretraining_method == 'none',
+            self.config.use_batch_norm
         )
 
     def inference(self, image_tensor):
