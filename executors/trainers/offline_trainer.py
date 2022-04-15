@@ -5,10 +5,10 @@ from model_src.model_factory import ModelFactory
 import numpy as np
 
 
-class SVMTrainer(Trainer):
+class OfflineTrainer(Trainer):
 
     def __init__(self, model_root_dir, training_set, test_set, batch_size, model_config, indent):
-        super(SVMTrainer, self).__init__(model_root_dir, training_set, test_set, batch_size, model_config, indent)
+        super(OfflineTrainer, self).__init__(model_root_dir, training_set, test_set, batch_size, model_config, indent)
 
         model_factory = ModelFactory(self.indent + 1)
         self.model = model_factory.create_model(model_config, self.model_dir, self.model_name)

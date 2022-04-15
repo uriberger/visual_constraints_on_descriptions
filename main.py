@@ -1,7 +1,7 @@
 from utils.general_utils import init_entry_point, log_print, project_root_dir
 from model_src.model_config import ModelConfig
 from executors.trainers.bp_trainer import BackpropagationTrainer
-from executors.trainers.svm_trainer import SVMTrainer
+from executors.trainers.offline_trainer import OfflineTrainer
 from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
@@ -135,8 +135,8 @@ def main(should_write_to_log):
         model_root_dir = os.path.join(project_root_dir, timestamp)
         if classifier_name == 'neural':
             trainer = BackpropagationTrainer(model_root_dir, training_set, test_set, 20, 50, model_config, 1)
-        elif classifier_name == 'svm':
-            trainer = SVMTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
+        elif classifier_name == 'svm' or classifier_name == 'random_forest':
+            trainer = OfflineTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
         else:
             log_print(function_name, indent, f'Classifier {classifier_name} not implemented. Stopping!')
             assert False

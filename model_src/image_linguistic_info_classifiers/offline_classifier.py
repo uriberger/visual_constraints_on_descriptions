@@ -2,21 +2,26 @@ import torch
 
 from model_src.image_linguistic_info_classifiers.image_linguistic_info_classifier import ImLingInfoClassifier
 from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 
 
-class ImLingInfoSVMClassifier(ImLingInfoClassifier):
+class ImLingInfoOfflineClassifier(ImLingInfoClassifier):
 
     """ This class predicts linguistic structural info of image descriptions, given only the images, using SVM.
-        It is based on a backbone visual model with an svm classifier head for each predicted property.
+        It is based on a backbone visual model with an offline (svm/random forest) classifier head for each predicted
+        property.
     """
 
     def __init__(self, config, model_dir, model_name):
-        super(ImLingInfoSVMClassifier, self).__init__(config, model_dir, model_name)
+        super(ImLingInfoOfflineClassifier, self).__init__(config, model_dir, model_name)
 
         if config.pretraining_method == 'none':
             self.get_backbone_model().eval()
 
-        self.clf = SVC(kernel=config.svm_kernel)
+        if config.classifier == 'svm':
+            self.clf = SVC(kernel=config.svm_kernel)
+        elif config.classifier == 'random_forest':
+            self.clf = RandomForestClassifier()
 
     def fit(self, training_mat, label_mat):
         self.clf.fit(training_mat, label_mat)
