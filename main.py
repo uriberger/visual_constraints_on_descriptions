@@ -1,4 +1,4 @@
-from utils.general_utils import init_entry_point, log_print, project_root_dir
+from utils.general_utils import init_entry_point, log_print, project_root_dir, default_model_name
 from model_src.model_config import ModelConfig
 from executors.trainers.bp_trainer import BackpropagationTrainer
 from executors.trainers.offline_trainer import OfflineTrainer
@@ -37,6 +37,8 @@ parser.add_argument('--use_batch_norm', action='store_true', default=False, dest
                     help='use batch normalization if a neural classifier is used')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
                     help='use translated captions')
+parser.add_argument('--delete_model', action='store_true', default=False, dest='delete_model',
+                    help='delete the created model at the end of training')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
                     help='only dump the captions of the dataset and exit')
 args = parser.parse_args()
@@ -53,6 +55,7 @@ classifier_layer_size = args.classifier_layer_size
 classifier_activation_func = args.classifier_activation_func
 use_batch_norm = args.use_batch_norm
 translated = args.translated
+delete_model = args.delete_model
 dump_captions = args.dump_captions
 
 DatasetBuilder.set_datasets_dir(datasets_dir)
@@ -141,6 +144,12 @@ def main(should_write_to_log):
                 assert False
             trainer.run()
             log_print(function_name, indent, 'Finished training model')
+
+            if delete_model:
+                model_path = os.path.join(timestamp, default_model_name + '.mdl')
+                os.remove(model_path)
+                best_model_path = os.path.join(timestamp, default_model_name + '_best.mdl')
+                os.remove(best_model_path)
 
 
 main(write_to_log)
