@@ -3,7 +3,6 @@ from recognizers_number import recognize_number, Culture
 import os
 import abc
 import jieba
-import random
 
 from dataset_builders.single_dataset_builder import SingleDatasetBuilder
 from utils.general_utils import generate_dataset, for_loop_with_reports
@@ -19,32 +18,27 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
 
         self.dump_caption_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{name}_{TextUtils.get_language()}_dump_captions_{self.data_split_str}.txt'
+            f'{name}_{TextUtils.get_language()}_dump_captions.txt'
         )
 
         self.nlp_data_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{name}_{TextUtils.get_language()}_nlp_data_{self.data_split_str}'
+            f'{name}_{TextUtils.get_language()}_nlp_data'
         )
 
         self.gt_classes_data_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{self.name}_gt_classes_data_{self.data_split_str}'
+            f'{self.name}_gt_classes_data'
         )
 
         self.gt_bboxes_data_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{self.name}_gt_bboxes_data_{self.data_split_str}'
+            f'{self.name}_gt_bboxes_data'
         )
 
         self.parsed_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{name}_{TextUtils.get_language()}_{data_split_str}_parsed.txt'
-        )
-
-        self.train_val_split_file_path = os.path.join(
-            self.cached_dataset_files_dir,
-            f'{name}_{TextUtils.get_language()}_train_val_split'
+            f'{name}_{TextUtils.get_language()}_parsed.txt'
         )
 
         self.nlp_data = None
@@ -130,7 +124,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         if language in ['English', 'German', 'French']:
             # For English, German and French we have an external tool that identifies passive for us
             cached_dataset_files_dir_name = self.cached_dataset_files_dir
-            tmv_out_file_name = f'tmv_out_{language}_{self.name}_{self.data_split_str}.verbs'
+            tmv_out_file_name = f'tmv_out_{language}_{self.name}.verbs'
             tmv_out_file_path = os.path.join(cached_dataset_files_dir_name, tmv_out_file_name)
             if not os.path.isfile(tmv_out_file_path):
                 self.log_print(f'Couldn\'t find the tmv out file in path {tmv_out_file_path}. Stopping!')
@@ -408,10 +402,12 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         if language == 'English':
             culture_language = Culture.English
         elif language == 'French':
+            self.generate_nlp_data()
             culture_language = Culture.French
         elif language == 'Japanese':
             culture_language = Culture.Japanese
         elif language == 'German':
+            self.generate_nlp_data()
             culture_language = Culture.German
         elif language == 'Chinese':
             culture_language = Culture.Chinese
@@ -419,9 +415,8 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
             self.log_print(f'Numbers property not implemented for language {language}')
             assert False
 
-        nlp = TextUtils.get_nlp()
-
-        for sample in caption_data:
+        for i in range(len(caption_data)):
+            sample = caption_data[i]
             image_id = sample['image_id']
             caption = sample['caption']
 
@@ -434,11 +429,13 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
             ''' In French, German and Chinese the words for "one" and "a" are the same.
             So we don't want to consider those words as numbers. '''
             if language == 'French':
+                sample_nlp_data = self.nlp_data[i]
                 numbers_list = [x for x in numbers_list
-                                if [y['lemma'] for y in nlp(x.text)] not in [['un'], ['un', 'sur', 'un']]]
+                                if [y['lemma'] for y in sample_nlp_data] not in [['un'], ['un', 'sur', 'un']]]
             if language == 'German':
+                sample_nlp_data = self.nlp_data[i]
                 numbers_list = [x for x in numbers_list
-                                if [y['lemma'] for y in nlp(x.text)][0] not in ['ein', 'einer', 'einen']]
+                                if [y['lemma'] for y in sample_nlp_data][0] not in ['ein', 'einer', 'einen']]
             if language == 'Chinese':
                 numbers_list = [x for x in numbers_list if x.text != '一']
 
@@ -573,7 +570,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
 
         return spatial_dataset
 
-    def create_struct_data_internal(self):
+    def get_struct_data_internal(self):
         if self.struct_property == 'passive':
             struct_data = self.generate_passive_dataset()
         elif self.struct_property == 'transitivity':
@@ -598,19 +595,3 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
     def get_all_image_ids(self):
         caption_data = self.get_caption_data()
         return list(set([x['image_id'] for x in caption_data]))
-
-    def create_train_val_split(self):
-        all_image_ids = self.get_all_image_ids()
-        train_split_size = int(len(all_image_ids) * 0.8)
-        train_split = random.sample(all_image_ids, train_split_size)
-        train_split_dict = {x: True for x in train_split}
-        val_split = [x for x in all_image_ids if x not in train_split_dict]
-
-        return {'train': train_split, 'val': val_split}
-
-    def get_image_ids_for_split(self):
-        if self.data_split_str == 'all':
-            return self.get_all_image_ids()
-        else:
-            split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
-            return split_to_image_ids[self.data_split_str]

@@ -54,20 +54,6 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
         image_id = id_prefix + image_serial_num
         return image_id
 
-    def get_all_image_ids(self):
-        all_image_ids = []
-        class_mapping = self.get_class_mapping()
-        class_to_ind = {class_mapping[i]: i for i in range(len(class_mapping))}
-        for subdir_name in os.listdir(self.sentences_dir_path):
-            if subdir_name in class_to_ind:
-                subdir_path = os.path.join(self.sentences_dir_path, subdir_name)
-                class_ind = class_to_ind[subdir_name]
-                file_names = os.listdir(subdir_path)
-                image_ids = [self.caption_file_name_to_image_id(file_name, class_ind) for file_name in file_names]
-                all_image_ids += image_ids
-        assert len(all_image_ids) == len(set(all_image_ids))
-        return all_image_ids
-
     def get_caption_data(self):
         caption_data = []
         class_mapping = self.get_class_mapping()
@@ -84,12 +70,11 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
                             caption = line.strip()
                             caption_data.append({'image_id': image_id, 'caption': caption})
 
-        data_split_image_ids = self.get_image_ids_for_split()
-        data_split_image_ids_dict = {x: True for x in data_split_image_ids}
-        return [x for x in caption_data if x['image_id'] in data_split_image_ids_dict]
+        return caption_data
 
     def get_gt_classes_data_internal(self):
-        all_image_ids = self.get_all_image_ids()
+        caption_data = self.get_caption_data()
+        all_image_ids = list(set([x['image_id'] for x in caption_data]))
         gt_class_data = {image_id: [image_id // self.mult_fact] for image_id in all_image_ids}
         return gt_class_data
 

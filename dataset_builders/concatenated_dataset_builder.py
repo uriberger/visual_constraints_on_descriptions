@@ -45,11 +45,11 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
     def orig_to_new_image_id(self, orig_image_id, dataset_ind):
         return dataset_ind*self.mult_fact + orig_image_id
 
-    def create_struct_data(self):
+    def get_struct_data(self):
         struct_data = []
         for i in range(len(self.builder_list)):
             builder = self.builder_list[i]
-            cur_struct_data = builder.create_struct_data()
+            cur_struct_data = builder.get_struct_data()
             struct_data += [(self.orig_to_new_image_id(x[0], i), x[1]) for x in cur_struct_data]
 
         return struct_data
@@ -57,24 +57,6 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
     def create_image_path_finder(self):
         image_path_finders = [builder.create_image_path_finder() for builder in self.builder_list]
         return ConcatImagePathFinder(image_path_finders, self.mult_fact)
-
-    def get_all_image_ids(self):
-        all_image_ids = []
-        for i in range(len(self.builder_list)):
-            builder = self.builder_list[i]
-            cur_image_ids = builder.get_all_image_ids()
-            all_image_ids += [self.orig_to_new_image_id(x, i) for x in cur_image_ids]
-
-        return all_image_ids
-
-    def get_unwanted_image_ids(self):
-        unwanted_image_ids = []
-        for i in range(len(self.builder_list)):
-            builder = self.builder_list[i]
-            cur_image_ids = builder.get_unwanted_image_ids()
-            unwanted_image_ids += [self.orig_to_new_image_id(x, i) for x in cur_image_ids]
-
-        return unwanted_image_ids
 
     def get_class_mapping(self):
         self.mapping_list = [x.get_class_mapping() for x in self.builder_list]
@@ -124,3 +106,12 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
                 gt_bboxes_data[self.orig_to_new_image_id(orig_image_id, i)] = bbox_data
 
             return gt_bboxes_data
+
+    def get_labeled_data_for_split(self):
+        labeled_data = []
+        for i in range(len(self.builder_list)):
+            builder = self.builder_list[i]
+            cur_labeled_data = builder.get_labeled_data_for_split()
+            labeled_data += [(self.orig_to_new_image_id(x[0], i), x[1]) for x in cur_labeled_data]
+
+        return labeled_data

@@ -17,8 +17,6 @@ cd $cur_dir/mate_parser
 javac LemmatizeAndParse.java
 java LemmatizeAndParse $2 $3 $translated_arg
 
-parsed_train_file_name=$3${translated_str}_$2_train_parsed.txt
-parsed_val_file_name=$3${translated_str}_$2_val_parsed.txt
+parsed_file_name=$3${translated_str}_$2_parsed.txt
 
-mv $parsed_train_file_name ../../cached_dataset_files
-mv $parsed_val_file_name ../../cached_dataset_files
+mv $parsed_file_name ../../cached_dataset_files

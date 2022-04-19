@@ -68,12 +68,6 @@ class DeCocoDatasetBuilder(EnglishBasedDatasetBuilder):
     def get_line_ind_to_image_id_mappings(self):
         return generate_dataset(self.line_ind_to_image_id_file_path, self.get_line_ind_to_image_id_mappings_internal)
 
-    def get_all_image_ids(self):
-        line_ind_to_image_id_mappings = self.get_line_ind_to_image_id_mappings()
-        image_ids_lists = list(line_ind_to_image_id_mappings.values())
-        image_id_list = [x for outer in image_ids_lists for x in outer]
-        return list(set(image_id_list))
-
     def get_caption_data(self):
         line_ind_to_image_id_mappings = self.get_line_ind_to_image_id_mappings()
         caption_data = []
@@ -85,10 +79,10 @@ class DeCocoDatasetBuilder(EnglishBasedDatasetBuilder):
             with open(caption_file_path, 'r', encoding='utf8') as caption_fp:
                 for line in caption_fp:
                     caption = line.strip()
-                    image_id = line_ind_to_image_id_mapping[line_ind]
+                    orig_image_id = line_ind_to_image_id_mapping[line_ind]
+                    # All images in de_coco are from the COCO train split, so we should add the train ids prefix
+                    image_id = 1000000 + orig_image_id
                     caption_data.append({'image_id': image_id, 'caption': caption})
                     line_ind += 1
 
-        data_split_image_ids = self.get_image_ids_for_split()
-        data_split_image_ids_dict = {x: True for x in data_split_image_ids}
-        return [x for x in caption_data if x['image_id'] in data_split_image_ids_dict]
+        return caption_data

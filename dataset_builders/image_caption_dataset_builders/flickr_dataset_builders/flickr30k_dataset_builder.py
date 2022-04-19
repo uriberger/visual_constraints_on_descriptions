@@ -48,30 +48,15 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         self.coord_strs = ['xmin', 'ymin', 'xmax', 'ymax']
         self.coord_str_to_ind = {self.coord_strs[x]: x for x in range(len(self.coord_strs))}
 
-    def get_all_image_ids(self):
-        all_image_ids = []
-        with open(self.tokens_file_path, encoding='utf-8') as fp:
-            for line in fp:
-                split_line = line.strip().split('g#')
-                img_file_name = split_line[0] + 'g'
-                image_id = self.image_file_name_to_id(img_file_name)
-                all_image_ids.append(image_id)
-
-        all_image_ids = list(set(all_image_ids))
-        return all_image_ids
-
     def get_caption_data(self):
-        data_split_image_ids = self.get_image_ids_for_split()
-        data_split_image_ids_dict = {x: True for x in data_split_image_ids}
         image_id_captions_pairs = []
         with open(self.tokens_file_path, encoding='utf-8') as fp:
             for line in fp:
                 split_line = line.strip().split('g#')
                 img_file_name = split_line[0] + 'g'
                 image_id = self.image_file_name_to_id(img_file_name)
-                if image_id in data_split_image_ids_dict:
-                    caption = split_line[1].split('\t')[1]  # The first token is caption number
-                    image_id_captions_pairs.append({'image_id': image_id, 'caption': caption})
+                caption = split_line[1].split('\t')[1]  # The first token is caption number
+                image_id_captions_pairs.append({'image_id': image_id, 'caption': caption})
 
         return image_id_captions_pairs
 

@@ -24,10 +24,16 @@ class StairDatasetBuilder(EnglishBasedDatasetBuilder):
         self.val_captions_file_path = os.path.join(root_dir_path, val_captions_file_name)
 
     def get_caption_data(self):
-        if self.data_split_str == 'train':
-            external_caption_file_path = self.train_captions_file_path
-        elif self.data_split_str == 'val':
-            external_caption_file_path = self.val_captions_file_path
-        with open(external_caption_file_path, 'r', encoding='utf8') as caption_fp:
-            caption_data = json.load(caption_fp)['annotations']
+        orig_train_caption_fp = open(self.train_captions_file_path, 'r', encoding='utf-8')
+        orig_val_caption_fp = open(self.val_captions_file_path, 'r', encoding='utf-8')
+        orig_train_caption_data = json.load(orig_train_caption_fp)['annotations']
+        orig_val_caption_data = json.load(orig_val_caption_fp)['annotations']
+        orig_train_caption_fp.close()
+        orig_val_caption_fp.close()
+
+        caption_data = [{'image_id': CocoDatasetBuilder.orig_to_new_image_id(x['image_id'], 'train'),
+                         'caption': x['caption']} for x in orig_train_caption_data] + \
+                       [{'image_id': CocoDatasetBuilder.orig_to_new_image_id(x['image_id'], 'val'),
+                         'caption': x['caption']} for x in orig_val_caption_data]
+
         return caption_data

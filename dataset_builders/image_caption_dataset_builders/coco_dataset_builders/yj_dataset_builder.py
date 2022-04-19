@@ -19,23 +19,8 @@ class YJCaptionsDatasetBuilder(EnglishBasedDatasetBuilder):
         caption_file_name = 'yjcaptions26k_clean.json'
         self.caption_file_path = os.path.join(root_dir_path, caption_file_name)
 
-        # We need to override a parent class behavior: no matter what data split is used in this dataset, we want the
-        # base dataset builder (COCO builder) to use the train split, since all the images in this dataset are from the
-        # COCO train split
-        self.base_dataset_builder = CocoDatasetBuilder(os.path.join(root_dir_path, '..', 'COCO'),
-                                                       'train', self.struct_property, self.indent + 1)
-
-    def get_caption_data_internal(self):
+    def get_caption_data(self):
         with open(self.caption_file_path, 'r', encoding='utf8') as caption_fp:
             caption_data = json.load(caption_fp)['annotations']
-        return caption_data
-
-    def get_all_image_ids(self):
-        caption_data = self.get_caption_data_internal()
-        return list(set([x['image_id'] for x in caption_data]))
-
-    def get_caption_data(self):
-        caption_data = self.get_caption_data_internal()
-        data_split_image_ids = self.get_image_ids_for_split()
-        data_split_image_ids_dict = {x: True for x in data_split_image_ids}
-        return [x for x in caption_data if x['image_id'] in data_split_image_ids_dict]
+        # All images in de_coco are from the COCO train split, so we should add the train ids prefix
+        return [{'image_id': 1000000 + x['image_id'], 'caption': x['caption']} for x in caption_data]

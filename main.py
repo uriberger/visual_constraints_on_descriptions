@@ -39,10 +39,6 @@ parser.add_argument('--translated', action='store_true', default=False, dest='tr
                     help='use translated captions')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
                     help='only dump the captions of the dataset and exit')
-parser.add_argument('--balanced_training_set', action='store_true', default=False, dest='balanced_training_set',
-                    help='balance the number of samples for each label in the training set')
-parser.add_argument('--balanced_test_set', action='store_true', default=False, dest='balanced_test_set',
-                    help='balance the number of samples for each label in the test set')
 args = parser.parse_args()
 write_to_log = args.write_to_log
 datasets_dir = args.datasets_dir
@@ -58,8 +54,6 @@ classifier_activation_func = args.classifier_activation_func
 use_batch_norm = args.use_batch_norm
 translated = args.translated
 dump_captions = args.dump_captions
-balanced_training_set = args.balanced_training_set
-balanced_test_set = args.balanced_test_set
 
 DatasetBuilder.set_datasets_dir(datasets_dir)
 
@@ -129,26 +123,11 @@ def main(should_write_to_log):
 
             # Training set
             training_set = training_set_builder.build_dataset()
-            training_set.generate_sample_list()
-            threshold = training_set.get_threshold()
-            training_label_to_data_samples = training_set.find_samples_for_labels()
-            training_label_to_sample_num = {x[0]: len(x[1]) for x in training_label_to_data_samples.items()}
-            log_print(function_name, indent, f'Training sample num per label: {training_label_to_sample_num}')
-            if balanced_training_set:
-                log_print(function_name, indent, 'Balancing training data')
-                training_set.balance_data()
-                log_print(function_name, indent, f'After balancing, training data contains {len(training_set.sample_list)} samples')
+            log_print(function_name, indent, f'Training sample num: {len(training_set)}')
 
             # Test set
             test_set = test_set_builder.build_dataset()
-            test_set.generate_sample_list(threshold)
-            test_label_to_data_samples = test_set.find_samples_for_labels()
-            test_label_to_sample_num = {x[0]: len(x[1]) for x in test_label_to_data_samples.items()}
-            log_print(function_name, indent, f'Test sample num per label: {test_label_to_sample_num}')
-            if balanced_test_set:
-                log_print(function_name, indent, 'Balancing test data')
-                test_set.balance_data()
-                log_print(function_name, indent, f'After balancing, test data contains {len(test_set.sample_list)} samples')
+            log_print(function_name, indent, f'Test sample num: {len(test_set)}')
             log_print(function_name, indent, 'datasets generated')
 
             log_print(function_name, indent, 'Training model...')

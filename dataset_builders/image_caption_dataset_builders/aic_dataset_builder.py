@@ -6,17 +6,23 @@ from dataset_builders.image_path_finder import ImagePathFinder
 
 class AICImagePathFinder(ImagePathFinder):
 
-    def __init__(self, images_dir_path, new_to_orig_image_id):
+    def __init__(self, train_images_dir_path, val_images_dir_path, new_to_orig_image_id, train_sample_num):
         super(AICImagePathFinder, self).__init__()
 
-        self.images_dir_path = images_dir_path
+        self.train_images_dir_path = train_images_dir_path
+        self.val_images_dir_path = val_images_dir_path
         self.new_to_orig_image_id = new_to_orig_image_id
+        self.train_sample_num = train_sample_num
 
     def get_image_path(self, image_id):
         orig_image_id = self.new_to_orig_image_id[image_id]
 
         image_file_name = f'{hex(orig_image_id)[2:]}.jpg'
-        image_path = os.path.join(self.images_dir_path, image_file_name)
+        if image_id < self.train_sample_num:
+            images_dir_path = self.train_images_dir_path
+        else:
+            images_dir_path = self.val_images_dir_path
+        image_path = os.path.join(images_dir_path, image_file_name)
 
         return image_path
 
@@ -53,27 +59,28 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
         return self.orig_to_new_image_id[self.file_name_to_orig_image_id(file_name)]
 
     def load_from_json(self):
-        if self.data_split_str == 'train':
-            external_caption_file_path = self.train_captions_file_path
-        elif self.data_split_str == 'val':
-            external_caption_file_path = self.val_captions_file_path
-        with open(external_caption_file_path, 'r') as caption_fp:
-            loaded_data = json.load(caption_fp)
+        loaded_data = []
+        for data_split_str in ['train', 'val']:
+            if data_split_str == 'train':
+                external_caption_file_path = self.train_captions_file_path
+            elif data_split_str == 'val':
+                external_caption_file_path = self.val_captions_file_path
+            with open(external_caption_file_path, 'r') as caption_fp:
+                loaded_data.append(json.load(caption_fp))
         return loaded_data
 
     def generate_new_to_orig_image_id_dict(self):
         loaded_data = self.load_from_json()
-        return [self.file_name_to_orig_image_id(x['image_id']) for x in loaded_data]
-
-    def get_all_image_ids(self):
-        # We can't use the original image ids because they are too long. So we'll map them to shorter ids
-        return range(len(self.new_to_orig_image_id))
+        self.train_sample_num = len(loaded_data[0])
+        all_data = loaded_data[0] + loaded_data[1]
+        return [self.file_name_to_orig_image_id(x['image_id']) for x in all_data]
 
     def get_caption_data(self):
         loaded_data = self.load_from_json()
+        all_data = loaded_data[0] + loaded_data[1]
         caption_data = [x for outer in
                         [[{'image_id': self.file_name_to_image_id(y['image_id']), 'caption': z} for z in y['caption']]
-                         for y in loaded_data]
+                         for y in all_data]
                         for x in outer]
         return caption_data
 
@@ -87,9 +94,5 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
         return None
 
     def create_image_path_finder(self):
-        if self.data_split_str == 'train':
-            images_dir_path = self.train_images_dir_path
-        elif self.data_split_str == 'val':
-            images_dir_path = self.val_images_dir_path
-
-        return AICImagePathFinder(images_dir_path, self.new_to_orig_image_id)
+        return AICImagePathFinder(self.train_images_dir_path, self.val_images_dir_path, self.new_to_orig_image_id,
+                                  self.train_sample_num)

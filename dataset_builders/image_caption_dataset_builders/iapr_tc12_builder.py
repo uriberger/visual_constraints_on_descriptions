@@ -43,10 +43,6 @@ class IAPRTC12DatasetBuilder(ImageCaptionDatasetBuilder):
         self.annotations_dir_path = os.path.join(self.root_dir_path, annotations_dir_name)
         self.images_dir_path = os.path.join(self.root_dir_path, 'images')
 
-    def get_all_image_ids(self):
-        all_caption_data = self.get_caption_data_internal()
-        return list(set([x['image_id'] for x in all_caption_data]))
-
     def get_sample_data(self, file_path, encoding=None):
         if encoding is None:
             if self.default_encoding is None:
@@ -66,7 +62,7 @@ class IAPRTC12DatasetBuilder(ImageCaptionDatasetBuilder):
         fp.close()
         return caption, image_id
 
-    def get_caption_data_internal(self):
+    def get_caption_data(self):
         caption_data = []
         for _, dir_names, _ in os.walk(self.annotations_dir_path):
             for dir_name in dir_names:
@@ -81,12 +77,6 @@ class IAPRTC12DatasetBuilder(ImageCaptionDatasetBuilder):
                         caption_data.append({'image_id': image_id, 'caption': caption})
 
         return caption_data
-
-    def get_caption_data(self):
-        caption_data = self.get_caption_data_internal()
-        data_split_image_ids = self.get_image_ids_for_split()
-        data_split_image_ids_dict = {x: True for x in data_split_image_ids}
-        return [x for x in caption_data if x['image_id'] in data_split_image_ids_dict]
 
     def get_gt_classes_data_internal(self):
         return None

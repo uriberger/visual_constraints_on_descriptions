@@ -46,11 +46,11 @@ class CocoCNDatasetBuilder(EnglishBasedDatasetBuilder):
                 image_file_name_parts = image_file_name.split('_')
                 data_split_str = image_file_name_parts[1].split('2014')[0]
                 assert data_split_str in ['train', 'val']
-                if data_split_str != self.data_split_str:
-                    continue
 
                 caption = line_parts[-1]
-                image_id = int(image_file_name_parts[-1].split('#')[0])
+                orig_image_id = int(image_file_name_parts[-1].split('#')[0])
+                # All images in coco-cn are from the COCO train split, so we should add the train ids prefix
+                image_id = 1000000 + orig_image_id
 
                 caption_data.append({'caption': caption, 'image_id': image_id})
         return caption_data

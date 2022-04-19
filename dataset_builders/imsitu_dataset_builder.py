@@ -49,7 +49,7 @@ class ImSituDatasetBuilder(DatasetBuilder):
 
         self.verb_to_ind_file_path = os.path.join(self.cached_dataset_files_dir, 'imsitu_verb_to_ind')
 
-    def create_struct_data_internal(self):
+    def get_struct_data_internal(self):
         if self.struct_property == 'empty_frame_slots_num':
             with open(os.path.join(self.root_dir_path, self.data_split_str + '.json')) as fp:
                 data = json.load(fp)

@@ -52,9 +52,4 @@ class JapanesePascalDatasetBuilder(EnglishBasedDatasetBuilder):
                     caption = line.strip()
                     image_id_captions_pairs.append({'image_id': image_id, 'caption': caption})
 
-        data_split_image_ids = self.get_image_ids_for_split()
-        data_split_image_ids_dict = {x: True for x in data_split_image_ids}
-        return [x for x in image_id_captions_pairs if x['image_id'] in data_split_image_ids_dict]
-
-    def get_all_image_ids(self):
-        return self.base_dataset_builder.get_all_image_ids()
+        return image_id_captions_pairs

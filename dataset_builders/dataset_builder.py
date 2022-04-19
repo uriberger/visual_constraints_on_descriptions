@@ -1,5 +1,4 @@
 import abc
-from collections import defaultdict
 from loggable_object import LoggableObject
 import os
 from utils.general_utils import project_root_dir
@@ -41,41 +40,23 @@ class DatasetBuilder(LoggableObject):
     def get_datasets_dir():
         return datasets_dir
 
-    """ Load the dataset if it's cached, otherwise build it. Arguments:
-        aggregation_func: Each image usually has multiple captions. If aggregation_func isn't None we use it to
-        aggregate the labels of all the caption of an image to a single label.
-    """
+    """ Build the dataset object. """
 
-    def build_dataset(self, aggregation_func=None):
+    def build_dataset(self):
         self.log_print('Generating ' + self.name +
                        ' ' + self.data_split_str +
                        ' ' + self.struct_property + ' dataset...')
 
         self.increment_indent()
-        struct_data = self.create_struct_data()
-
-        if aggregation_func is not None:
-            image_id_to_labels = defaultdict(list)
-            for image_id, label in struct_data:
-                image_id_to_labels[image_id].append(label)
-            struct_data = [(x[0], aggregation_func(x[1])) for x in image_id_to_labels.items()]
-
+        labeled_data_for_split = self.get_labeled_data_for_split()
         self.decrement_indent()
 
-        self.log_print('Filtering unwanted images from ' + self.name + ' ' + self.data_split_str + ' set...')
-        self.increment_indent()
-        unwanted_image_ids = self.get_unwanted_image_ids()
-        unwanted_image_ids = {image_id: True for image_id in unwanted_image_ids}  # For more efficient retrieval
-        self.decrement_indent()
+        return ImLingStructInfoDataset(labeled_data_for_split, self.get_image_path_finder())
 
-        struct_data = [x for x in struct_data if x[0] not in unwanted_image_ids]
-
-        return ImLingStructInfoDataset(struct_data, self.get_image_path_finder())
-
-    """ Create the image id to linguistic structural info mapping. """
+    """ Get the (image id, label) pair list for the relevant split. """
 
     @abc.abstractmethod
-    def create_struct_data(self):
+    def get_labeled_data_for_split(self):
         return
 
     """ Create the ImagePathFinder object for this dataset. """
@@ -88,13 +69,3 @@ class DatasetBuilder(LoggableObject):
         if self.image_path_finder is None:
             self.image_path_finder = self.create_image_path_finder()
         return self.image_path_finder
-
-    """ Return the list of all image ids in this dataset. """
-
-    @abc.abstractmethod
-    def get_all_image_ids(self):
-        return
-
-    @abc.abstractmethod
-    def get_unwanted_image_ids(self):
-        return
