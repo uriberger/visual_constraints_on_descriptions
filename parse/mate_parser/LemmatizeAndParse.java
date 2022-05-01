@@ -58,7 +58,7 @@ public class LemmatizeAndParse {
 		File file = new File(output_file_name);
 		if (file.exists())
 		{
-			continue;
+			return;
 		}
 		
 		Writer myWriter = new OutputStreamWriter(new FileOutputStream(output_file_name), StandardCharsets.UTF_8);
