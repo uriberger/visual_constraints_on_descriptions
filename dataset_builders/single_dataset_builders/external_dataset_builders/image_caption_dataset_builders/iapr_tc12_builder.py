@@ -1,5 +1,5 @@
 import os
-from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
 from utils.text_utils import TextUtils
 
@@ -25,10 +25,11 @@ class IAPRTC12DatasetBuilder(ImageCaptionDatasetBuilder):
         Evaluation Resource for Visual Information Systems" by Grubinger et al.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(IAPRTC12DatasetBuilder, self).__init__(root_dir_path, 'iaprtc12', data_split_str, struct_property, indent)
+    def __init__(self, root_dir_path, language, struct_property, indent):
+        super(IAPRTC12DatasetBuilder, self).__init__(
+            root_dir_path, 'iaprtc12', language, struct_property, indent
+        )
 
-        language = TextUtils.get_language()
         if language == 'English':
             language_str = 'eng'
             self.default_encoding = None

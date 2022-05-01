@@ -1,8 +1,8 @@
 import os
 import json
-from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
     CocoDatasetBuilder
 
 
@@ -12,9 +12,10 @@ class StairDatasetBuilder(EnglishBasedDatasetBuilder):
         This dataset is based on the COCO dataset.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(StairDatasetBuilder, self).__init__(root_dir_path, 'stair', data_split_str, struct_property,
-                                                  CocoDatasetBuilder, 'COCO', indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(StairDatasetBuilder, self).__init__(
+            root_dir_path, 'stair', 'Japanese', struct_property, CocoDatasetBuilder, 'COCO', indent
+        )
 
         captions_file_prefix = 'stair_captions_v1.2'
         train_captions_file_name = f'{captions_file_prefix}_train.json'

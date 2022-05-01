@@ -18,10 +18,15 @@ class DatasetBuilder(LoggableObject):
         images themselves).
     """
 
-    def __init__(self, name, data_split_str, struct_property, indent):
+    def __init__(self, name, struct_property, indent):
         super(DatasetBuilder, self).__init__(indent)
+
+        # This is the directory in which we will keep the cached files of the datasets we create
+        self.cached_dataset_files_dir = os.path.join(project_root_dir, 'cached_dataset_files')
+        if not os.path.isdir(self.cached_dataset_files_dir):
+            os.mkdir(self.cached_dataset_files_dir)
+
         self.name = name
-        self.data_split_str = data_split_str
         self.struct_property = struct_property
 
         # The datasets are assumed to be located in a sibling directory named 'datasets'
@@ -42,21 +47,30 @@ class DatasetBuilder(LoggableObject):
 
     """ Build the dataset object. """
 
-    def build_dataset(self):
+    def build_dataset(self, data_split_str):
         self.log_print('Generating ' + self.name +
-                       ' ' + self.data_split_str +
+                       ' ' + data_split_str +
                        ' ' + self.struct_property + ' dataset...')
 
         self.increment_indent()
-        labeled_data_for_split = self.get_labeled_data_for_split()
+        if data_split_str == 'all':
+            labeled_data = self.get_labeled_data()
+        else:
+            labeled_data = self.get_labeled_data_for_split(data_split_str)
         self.decrement_indent()
 
-        return ImLingStructInfoDataset(labeled_data_for_split, self.get_image_path_finder())
+        return ImLingStructInfoDataset(labeled_data, self.get_image_path_finder())
+
+    """ Get the (image id, label) pair list. """
+
+    @abc.abstractmethod
+    def get_labeled_data(self):
+        return
 
     """ Get the (image id, label) pair list for the relevant split. """
 
     @abc.abstractmethod
-    def get_labeled_data_for_split(self):
+    def get_labeled_data_for_split(self, data_split_str):
         return
 
     """ Create the ImagePathFinder object for this dataset. """

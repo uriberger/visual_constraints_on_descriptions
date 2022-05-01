@@ -1,6 +1,6 @@
 import os
 import json
-from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
 
 
@@ -32,9 +32,10 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
         for Going Deeper in Image Understanding" by Wu et al.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(AIChallengerDatasetBuilder, self).__init__(root_dir_path, 'ai_challenger', data_split_str,
-                                                         struct_property, indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(AIChallengerDatasetBuilder, self).__init__(
+            root_dir_path, 'ai_challenger', 'Chinese', struct_property, indent
+        )
 
         train_dir_name = 'ai_challenger_caption_train_20170902'
         val_dir_name = 'ai_challenger_caption_validation_20170910'

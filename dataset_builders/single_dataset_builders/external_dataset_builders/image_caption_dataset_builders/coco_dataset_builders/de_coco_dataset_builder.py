@@ -1,8 +1,8 @@
 import os
 from utils.general_utils import generate_dataset
-from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
     CocoDatasetBuilder
 
 
@@ -12,9 +12,10 @@ class DeCocoDatasetBuilder(EnglishBasedDatasetBuilder):
         This dataset is based on the COCO dataset.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(DeCocoDatasetBuilder, self).__init__(root_dir_path, 'de_coco_translated', data_split_str, struct_property,
-                                                   CocoDatasetBuilder, 'COCO', indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(DeCocoDatasetBuilder, self).__init__(
+            root_dir_path, 'de_coco_translated', 'German', struct_property, CocoDatasetBuilder, 'COCO', indent
+        )
 
         self.caption_file_name_prefixes = ['dev', 'devtest', 'test']
 

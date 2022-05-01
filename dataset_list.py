@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 # Language, dataset, translated indicator
 language_dataset_list = [
     ('English', ['COCO', 'flickr30', 'iaprtc12', 'pascal_sentences'], False),
@@ -29,3 +32,26 @@ multilingual_dataset_name_to_original_dataset_name = {
     'pascal_sentences': 'pascal_sentences',
     'ai_challenger': 'ai_challenger'
 }
+
+
+def get_orig_dataset_to_configs():
+    dataset_to_language_list = defaultdict(list)
+    for language, dataset_list, translated in language_dataset_list:
+        for dataset in dataset_list:
+            dataset_to_language_list[dataset].append((language, translated))
+
+    orig_to_multilingual_mapping = defaultdict(list)
+    for multilingual_dataset_name, orig_dataset_name in multilingual_dataset_name_to_original_dataset_name.items():
+        orig_to_multilingual_mapping[orig_dataset_name].append(multilingual_dataset_name)
+
+    orig_dataset_to_configs = {}
+    for orig_dataset_name, multilingual_dataset_list in orig_to_multilingual_mapping.items():
+        based_datasets = multilingual_dataset_list
+        configs = []
+        for dataset_name in based_datasets:
+            languages_list = dataset_to_language_list[dataset_name]
+            configs += [(dataset_name, x[0], x[1]) for x in languages_list]
+
+        orig_dataset_to_configs[orig_dataset_name] = configs
+
+    return orig_dataset_to_configs

@@ -4,26 +4,28 @@ import os
 import abc
 import jieba
 
-from dataset_builders.single_dataset_builder import SingleDatasetBuilder
+from dataset_builders.single_dataset_builders.external_dataset_builders.external_dataset_builder \
+    import ExternalDatasetBuilder
 from utils.general_utils import generate_dataset, for_loop_with_reports
 from utils.text_utils import TextUtils
 
 
-class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
+class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
     """ This is the dataset builder class for all datasets of image, caption pairs. """
 
-    def __init__(self, root_dir_path, name, data_split_str, struct_property, indent):
-        super(ImageCaptionDatasetBuilder, self).__init__(name, data_split_str, struct_property, indent)
+    def __init__(self, root_dir_path, name, language, struct_property, indent):
+        super(ImageCaptionDatasetBuilder, self).__init__(name, language, struct_property, indent)
         self.root_dir_path = root_dir_path
+        self.language = language
 
         self.dump_caption_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{name}_{TextUtils.get_language()}_dump_captions.txt'
+            f'{name}_{language}_dump_captions.txt'
         )
 
         self.nlp_data_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{name}_{TextUtils.get_language()}_nlp_data'
+            f'{name}_{language}_nlp_data'
         )
 
         self.gt_classes_data_file_path = os.path.join(
@@ -38,7 +40,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
 
         self.parsed_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{name}_{TextUtils.get_language()}_parsed.txt'
+            f'{name}_{language}_parsed.txt'
         )
 
         self.nlp_data = None
@@ -117,14 +119,13 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
     """ Passive dataset: maps image ids to list of boolean stating whether each caption is passive. """
 
     def generate_passive_dataset(self):
-        language = TextUtils.get_language()
         caption_data = self.get_caption_data()
         passive_dataset = []
 
-        if language in ['English', 'German', 'French']:
+        if self.language in ['English', 'German', 'French']:
             # For English, German and French we have an external tool that identifies passive for us
             cached_dataset_files_dir_name = self.cached_dataset_files_dir
-            tmv_out_file_name = f'tmv_out_{language}_{self.name}.verbs'
+            tmv_out_file_name = f'tmv_out_{self.exteneded_name}.verbs'
             tmv_out_file_path = os.path.join(cached_dataset_files_dir_name, tmv_out_file_name)
             if not os.path.isfile(tmv_out_file_path):
                 self.log_print(f'Couldn\'t find the tmv out file in path {tmv_out_file_path}. Stopping!')
@@ -145,11 +146,11 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
                             passive_dataset.append((image_id, passive_indicator))
                         prev_caption_ind = caption_ind
                         passive_indicator = 0
-                    if language == 'English':
+                    if self.language == 'English':
                         voice_index = -5
-                    elif language == 'German':
+                    elif self.language == 'German':
                         voice_index = -3
-                    elif language == 'French':
+                    elif self.language == 'French':
                         voice_index = -4
                     if line_parts[voice_index] == 'passive':
                         passive_indicator = 1
@@ -160,7 +161,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
         else:
             self.generate_nlp_data()
 
-            if language == 'Japanese':
+            if self.language == 'Japanese':
                 passive_indicators = set(['れる', 'られる'])
 
             for i in range(len(caption_data)):
@@ -174,11 +175,11 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
                 if len(verbs) == 0:
                     continue
 
-                if language == 'Japanese':
+                if self.language == 'Japanese':
                     lemmas = [x['lemma'] for x in sample_nlp_data]
                     sample_passive_indicators = passive_indicators.intersection(lemmas)
                     passive_dataset.append((image_id, int(len(sample_passive_indicators) > 0)))
-                elif language == 'Chinese':
+                elif self.language == 'Chinese':
                     passive_dataset.append((image_id, int('被' in caption)))
 
         return passive_dataset
@@ -188,9 +189,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
     """
 
     def generate_transitivity_dataset(self):
-        language = TextUtils.get_language()
-
-        if language == 'French':
+        if self.language == 'French':
             transitivity_dataset = self.generate_french_transitivity_dataset()
         else:
             transitivity_dataset = self.generate_non_french_transitivity_dataset()
@@ -261,16 +260,14 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
                 # We're not interested in non-verb roots
                 continue
 
-            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data))))
+            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data, self.language))))
 
         return transitivity_dataset
 
     """ Negation dataset: maps image ids to list of boolean stating whether each caption uses negation. """
 
     def generate_negation_dataset(self):
-        language = TextUtils.get_language()
-
-        if language == 'French':
+        if self.language == 'French':
             negation_dataset = self.generate_french_negation_dataset()
         else:
             negation_dataset = self.generate_non_french_negation_dataset()
@@ -363,30 +360,29 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
 
         caption_data = self.get_caption_data()
         negation_dataset = []
-        language = TextUtils.get_language()
-        if language == 'German':
+        if self.language == 'German':
             self.generate_nlp_data()
 
         for i in range(len(caption_data)):
             sample = caption_data[i]
             image_id = sample['image_id']
             caption = sample['caption']
-            if language == 'English':
+            if self.language == 'English':
                 tokenized_caption = TextUtils.tokenize_and_clean(caption)
                 negation_words_in_caption = english_negation_words.intersection(tokenized_caption)
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
-            elif language == 'German':
+            elif self.language == 'German':
                 sample_nlp_data = self.nlp_data[i]
                 negation_words_in_caption = german_negation_words.intersection([
                     x['lemma'].lower() for x in sample_nlp_data
                 ])
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
-            elif language == 'Chinese':
+            elif self.language == 'Chinese':
                 ''' Jieba is a better tokenizer for Chinese than spaCy. '''
                 tokenized_caption = list(jieba.cut(caption, cut_all=False))
                 negation_words_in_caption = chinese_negation_words.intersection(tokenized_caption)
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
-            elif language == 'Japanese':
+            elif self.language == 'Japanese':
                 tokenized_caption = TextUtils.tokenize(caption)
                 negation_words_in_caption = japanese_negation_words.intersection(tokenized_caption)
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
@@ -398,21 +394,20 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
     def generate_numbers_dataset(self):
         caption_data = self.get_caption_data()
         numbers_dataset = []
-        language = TextUtils.get_language()
-        if language == 'English':
+        if self.language == 'English':
             culture_language = Culture.English
-        elif language == 'French':
+        elif self.language == 'French':
             self.generate_nlp_data()
             culture_language = Culture.French
-        elif language == 'Japanese':
+        elif self.language == 'Japanese':
             culture_language = Culture.Japanese
-        elif language == 'German':
+        elif self.language == 'German':
             self.generate_nlp_data()
             culture_language = Culture.German
-        elif language == 'Chinese':
+        elif self.language == 'Chinese':
             culture_language = Culture.Chinese
         else:
-            self.log_print(f'Numbers property not implemented for language {language}')
+            self.log_print(f'Numbers property not implemented for language {self.language}')
             assert False
 
         for i in range(len(caption_data)):
@@ -422,21 +417,21 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
 
             # The recognizers_number package has some bug in logographic languages: it doesn't work if there are no
             # spaces between words
-            if language in ['Japanese', 'Chinese']:
+            if self.language in ['Japanese', 'Chinese']:
                 caption = ' '.join([char for char in caption])
 
             numbers_list = recognize_number(caption, culture_language)
             ''' In French, German and Chinese the words for "one" and "a" are the same.
             So we don't want to consider those words as numbers. '''
-            if language == 'French':
+            if self.language == 'French':
                 sample_nlp_data = self.nlp_data[i]
                 numbers_list = [x for x in numbers_list
                                 if [y['lemma'] for y in sample_nlp_data] not in [['un'], ['un', 'sur', 'un']]]
-            if language == 'German':
+            if self.language == 'German':
                 sample_nlp_data = self.nlp_data[i]
                 numbers_list = [x for x in numbers_list
                                 if [y['lemma'] for y in sample_nlp_data][0] not in ['ein', 'einer', 'einen']]
-            if language == 'Chinese':
+            if self.language == 'Chinese':
                 numbers_list = [x for x in numbers_list if x.text != '一']
 
             numbers_dataset.append((image_id, int(len(numbers_list) > 0)))
@@ -448,9 +443,7 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
     """
 
     def generate_root_pos_dataset(self):
-        language = TextUtils.get_language()
-
-        if language == 'French':
+        if self.language == 'French':
             root_pos_dataset = self.generate_french_root_pos_dataset()
         else:
             root_pos_dataset = self.generate_non_french_root_pos_dataset()
@@ -551,11 +544,10 @@ class ImageCaptionDatasetBuilder(SingleDatasetBuilder):
 
         caption_data = self.get_caption_data()
         spatial_dataset = []
-        language = TextUtils.get_language()
         for sample in caption_data:
             caption = sample['caption']
             image_id = sample['image_id']
-            if language == 'English':
+            if self.language == 'English':
                 tokenized_caption = TextUtils.tokenize_and_clean(caption)
 
                 # Spatial words

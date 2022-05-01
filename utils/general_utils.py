@@ -57,7 +57,7 @@ def get_timestamp_str():
     return str(datetime.now()).replace(' ', '_').replace(':', '-')
 
 
-def init_entry_point(should_write_to_log, language):
+def init_entry_point(should_write_to_log):
     """ Initialization for code execution:
         - Create a directory for this specific execution (using timestamp)
         - Set the relevant value to the write_to_log flag
@@ -67,8 +67,6 @@ def init_entry_point(should_write_to_log, language):
     os.mkdir(os.path.join(project_root_dir, timestamp))
     if should_write_to_log:
         set_write_to_log(timestamp)
-
-    TextUtils.set_language(language)
 
     return timestamp
 

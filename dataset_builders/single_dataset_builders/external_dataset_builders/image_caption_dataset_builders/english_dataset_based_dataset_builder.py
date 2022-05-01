@@ -1,6 +1,6 @@
 import os
 import abc
-from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 
 
 class EnglishBasedDatasetBuilder(ImageCaptionDatasetBuilder):
@@ -8,13 +8,15 @@ class EnglishBasedDatasetBuilder(ImageCaptionDatasetBuilder):
         language.
     """
 
-    def __init__(self, root_dir_path, name, data_split_str, struct_property, base_dataset_class, base_dataset_name,
-                 indent):
-        super(EnglishBasedDatasetBuilder, self).__init__(root_dir_path, name, data_split_str, struct_property, indent)
+    def __init__(self, root_dir_path, name, language, struct_property,
+                 base_dataset_class, base_dataset_name, indent):
+        super(EnglishBasedDatasetBuilder, self).__init__(
+            root_dir_path, name, language, struct_property, indent
+        )
 
         # This dataset doesn't contain the images themselves- the images are in the COCO dataset
         base_dataset_root_path = os.path.join(self.root_dir_path, '..', base_dataset_name)
-        self.base_dataset_builder = base_dataset_class(base_dataset_root_path, self.data_split_str, self.struct_property,
+        self.base_dataset_builder = base_dataset_class(base_dataset_root_path, self.struct_property,
                                                        self.indent + 1)
 
     @abc.abstractmethod

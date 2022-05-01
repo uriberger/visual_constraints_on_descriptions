@@ -1,7 +1,7 @@
 import os
-from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr30k_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr30k_dataset_builder import \
     Flickr30kDatasetBuilder
 
 
@@ -11,9 +11,11 @@ class Flickr8kCNDatasetBuilder(EnglishBasedDatasetBuilder):
         This dataset is based on the Flickr8k dataset.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(Flickr8kCNDatasetBuilder, self).__init__(root_dir_path, 'flickr8kcn', data_split_str, struct_property,
-                                                       Flickr30kDatasetBuilder, 'flickr30', indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(Flickr8kCNDatasetBuilder, self).__init__(
+            root_dir_path, 'flickr8kcn', 'Chinese',
+            struct_property, Flickr30kDatasetBuilder, 'flickr30', indent
+        )
 
         data_dir_name = 'data'
         caption_file_name = 'flickr8kzhc.caption.txt'

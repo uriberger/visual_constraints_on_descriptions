@@ -1,7 +1,7 @@
 import os
 import json
 import torch
-from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
 
 
@@ -42,8 +42,8 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
         test split. So we're going to ignore the test set.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(CocoDatasetBuilder, self).__init__(root_dir_path, 'COCO', data_split_str, struct_property, indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(CocoDatasetBuilder, self).__init__(root_dir_path, 'COCO', 'English', struct_property, indent)
 
         train_val_annotations_dir = 'train_val_annotations2014'
 

@@ -1,7 +1,6 @@
 from spacy import load
 
 
-used_language = 'English'
 nlps = {}
 tokenizers = {}
 
@@ -10,18 +9,8 @@ class TextUtils:
     """ This class contains functions and definitions related to text used across all the project. """
 
     @staticmethod
-    def set_language(language):
-        global used_language
-        used_language = language
-
-    @staticmethod
-    def get_language():
-        return used_language
-
-    @staticmethod
-    def get_nlp():
+    def get_nlp(language):
         global nlps
-        language = TextUtils.get_language()
         if language not in nlps:
             if language == 'English':
                 nlps[language] = load('en_core_web_sm')
@@ -45,8 +34,7 @@ class TextUtils:
     """
 
     @staticmethod
-    def is_transitive_sentence(analyzed_sentence):
-        language = TextUtils.get_language()
+    def is_transitive_sentence(analyzed_sentence, language):
         if language == 'English':
             direct_object_dep_tag = 'dobj'
         elif language == 'German':

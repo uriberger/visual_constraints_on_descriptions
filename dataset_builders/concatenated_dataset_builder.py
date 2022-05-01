@@ -28,7 +28,7 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
         name = 'concat'
         for builder in builder_list:
             name += '_' + builder.name
-        super(ConcatenatedDatasetBuilder, self).__init__(name, 'concat', struct_property, indent)
+        super(ConcatenatedDatasetBuilder, self).__init__(name, struct_property, indent)
 
         self.builder_list = builder_list
         self.mult_fact = self.find_mult_fact()
@@ -36,7 +36,8 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
     def find_mult_fact(self):
         max_image_id = 0
         for builder in self.builder_list:
-            image_ids = builder.get_all_image_ids()
+            cur_builder_struct_data = builder.get_struct_data()
+            image_ids = list(set([x[0] for x in cur_builder_struct_data]))
             cur_max = max(image_ids)
             if cur_max > max_image_id:
                 max_image_id = cur_max
@@ -107,11 +108,20 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
 
             return gt_bboxes_data
 
-    def get_labeled_data_for_split(self):
+    def get_labeled_data(self):
         labeled_data = []
         for i in range(len(self.builder_list)):
             builder = self.builder_list[i]
-            cur_labeled_data = builder.get_labeled_data_for_split()
+            cur_labeled_data = builder.get_labeled_data()
+            labeled_data += [(self.orig_to_new_image_id(x[0], i), x[1]) for x in cur_labeled_data]
+
+        return labeled_data
+
+    def get_labeled_data_for_split(self, data_split_str):
+        labeled_data = []
+        for i in range(len(self.builder_list)):
+            builder = self.builder_list[i]
+            cur_labeled_data = builder.get_labeled_data_for_split(data_split_str)
             labeled_data += [(self.orig_to_new_image_id(x[0], i), x[1]) for x in cur_labeled_data]
 
         return labeled_data

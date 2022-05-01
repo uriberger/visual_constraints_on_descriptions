@@ -1,8 +1,8 @@
 import os
 import json
-from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
     CocoDatasetBuilder
 
 
@@ -12,9 +12,10 @@ class YJCaptionsDatasetBuilder(EnglishBasedDatasetBuilder):
         This dataset is based on the COCO dataset.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(YJCaptionsDatasetBuilder, self).__init__(root_dir_path, 'YJCaptions', data_split_str, struct_property,
-                                                       CocoDatasetBuilder, 'COCO', indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(YJCaptionsDatasetBuilder, self).__init__(
+            root_dir_path, 'YJCaptions', 'Japanese', struct_property, CocoDatasetBuilder, 'COCO', indent
+        )
 
         caption_file_name = 'yjcaptions26k_clean.json'
         self.caption_file_path = os.path.join(root_dir_path, caption_file_name)

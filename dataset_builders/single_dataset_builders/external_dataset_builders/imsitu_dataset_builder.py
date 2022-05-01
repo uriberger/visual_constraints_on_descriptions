@@ -1,5 +1,6 @@
 from dataset_builders.image_path_finder import ImagePathFinder
-from dataset_builders.dataset_builder import DatasetBuilder
+from dataset_builders.single_dataset_builders.external_dataset_builders.external_dataset_builder \
+    import ExternalDatasetBuilder
 from utils.general_utils import generate_dataset
 import os
 import json
@@ -39,11 +40,11 @@ class ImSituImagePathFinder(ImagePathFinder):
         return image_file_path
 
 
-class ImSituDatasetBuilder(DatasetBuilder):
+class ImSituDatasetBuilder(ExternalDatasetBuilder):
     """ This class builds the image->missing slots number dataset. """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(ImSituDatasetBuilder, self).__init__('imsitu', data_split_str, struct_property, indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(ImSituDatasetBuilder, self).__init__('imsitu', 'English', struct_property, indent)
         self.root_dir_path = root_dir_path
         self.images_dir_path = os.path.join(root_dir_path, 'resized_256')
 

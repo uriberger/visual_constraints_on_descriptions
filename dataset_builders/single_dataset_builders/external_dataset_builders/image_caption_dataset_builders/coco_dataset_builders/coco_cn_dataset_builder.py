@@ -1,7 +1,7 @@
 import os
-from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
     CocoDatasetBuilder
 
 
@@ -13,11 +13,11 @@ class CocoCNDatasetBuilder(EnglishBasedDatasetBuilder):
         translated: A flag indicating whether we should use translated captions or original ones.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, translated, indent):
+    def __init__(self, root_dir_path, struct_property, translated, indent):
         translated_str = ''
         if translated:
             translated_str = '_translated'
-        super(CocoCNDatasetBuilder, self).__init__(root_dir_path, 'coco_cn' + translated_str, data_split_str,
+        super(CocoCNDatasetBuilder, self).__init__(root_dir_path, 'coco_cn' + translated_str, 'Chinese',
                                                    struct_property, CocoDatasetBuilder, 'COCO', indent)
 
         caption_file_name_prefix = 'imageid.'

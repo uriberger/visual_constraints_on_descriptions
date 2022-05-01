@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
 from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count
-from utils.text_utils import TextUtils
-from dataset_list import language_dataset_list, multilingual_dataset_name_to_original_dataset_name
+from dataset_list import language_dataset_list, get_orig_dataset_to_configs
 
 
 # Utility functions
@@ -24,22 +23,14 @@ def get_class_to_image_list(gt_class_data):
     return class_to_image_list
 
 
-def get_dataset_builder_for_split(language, dataset_name, data_split, struct_property, translated):
-    TextUtils.set_language(language)
-    builder = create_dataset_builder(dataset_name, data_split, struct_property, translated)
-    return builder
-
-
 def get_dataset_builder(language, dataset_name, struct_property, translated):
-    train_builder = get_dataset_builder_for_split(language, dataset_name, 'train', struct_property, translated)
-    val_builder = get_dataset_builder_for_split(language, dataset_name, 'val', struct_property, translated)
-    concat_builder = ConcatenatedDatasetBuilder([train_builder, val_builder], struct_property, 1)
-    return concat_builder
+    dataset_builder = create_dataset_builder(dataset_name, struct_property, language, translated)
+    return dataset_builder
 
 
 def get_dataset(language, dataset_name, struct_property, translated):
     concat_builder = get_dataset_builder(language, dataset_name, struct_property, translated)
-    dataset = concat_builder.build_dataset()
+    dataset = concat_builder.build_dataset('all')
     return dataset
 
 
@@ -48,29 +39,6 @@ def get_intersection_image_ids(struct_datas):
     unique_image_ids_list = [set([x[0] for x in struct_data]) for struct_data in struct_datas]
     all_image_ids = list(set.intersection(*unique_image_ids_list))
     return all_image_ids
-
-
-def get_orig_dataset_to_configs():
-    dataset_to_language_list = defaultdict(list)
-    for language, dataset_list, translated in language_dataset_list:
-        for dataset in dataset_list:
-            dataset_to_language_list[dataset].append((language, translated))
-
-    orig_to_multilingual_mapping = defaultdict(list)
-    for multilingual_dataset_name, orig_dataset_name in multilingual_dataset_name_to_original_dataset_name.items():
-        orig_to_multilingual_mapping[orig_dataset_name].append(multilingual_dataset_name)
-
-    orig_dataset_to_configs = {}
-    for orig_dataset_name, multilingual_dataset_list in orig_to_multilingual_mapping.items():
-        based_datasets = multilingual_dataset_list
-        configs = []
-        for dataset_name in based_datasets:
-            languages_list = dataset_to_language_list[dataset_name]
-            configs += [(dataset_name, x[0], x[1]) for x in languages_list]
-
-        orig_dataset_to_configs[orig_dataset_name] = configs
-
-    return orig_dataset_to_configs
 
 
 # Data analysis functions
@@ -274,7 +242,7 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
 
 def get_class_prob_list_for_config(language, dataset_name, struct_property, translated):
     builder = get_dataset_builder(language, dataset_name, struct_property, translated)
-    dataset = builder.build_dataset()
+    dataset = builder.build_dataset('all')
 
     struct_data = dataset.struct_data
     gt_class_data = builder.get_gt_classes_data()
@@ -286,7 +254,7 @@ def get_class_prob_list_for_config(language, dataset_name, struct_property, tran
 
 def get_bbox_dist_list_for_config(language, dataset_name, struct_property, translated):
     builder = get_dataset_builder(language, dataset_name, struct_property, translated)
-    dataset = builder.build_dataset()
+    dataset = builder.build_dataset('all')
 
     struct_data = dataset.struct_data
     gt_bbox_data = builder.get_gt_bboxes_data()
@@ -452,12 +420,11 @@ def print_extreme_non_agreement_image_ids(struct_property):
         # Build dataset
         language_to_dataset = {}
         for language, translated_to_builder in language_to_concat_builder.items():
-            TextUtils.set_language(language)
             for translated, builder in translated_to_builder.items():
                 language_name = language
                 if translated:
                     language_name += '_translated'
-                language_to_dataset[language_name] = builder.build_dataset()
+                language_to_dataset[language_name] = builder.build_dataset('all')
         # Build struct data list
         language_to_struct_data_temp = {x[0]: x[1].struct_data
                                         for x in language_to_dataset.items()}

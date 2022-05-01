@@ -1,8 +1,8 @@
 import os
 import csv
-from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.pascal_dataset_builders.pascal_sentences_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.pascal_dataset_builders.pascal_sentences_builder import \
     PascalSentencesDatasetBuilder
 
 
@@ -12,9 +12,11 @@ class JapanesePascalDatasetBuilder(EnglishBasedDatasetBuilder):
         This dataset is based on the Pascal Sentences dataset.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(JapanesePascalDatasetBuilder, self).__init__(root_dir_path, 'pascal_jp', data_split_str, struct_property,
-                                                           PascalSentencesDatasetBuilder, 'pascal_sentences', indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(JapanesePascalDatasetBuilder, self).__init__(
+            root_dir_path, 'pascal_jp', 'Japanese', struct_property,
+            PascalSentencesDatasetBuilder, 'pascal_sentences', indent
+        )
 
         self.correspondence_file_name = 'correspondence.csv'
 

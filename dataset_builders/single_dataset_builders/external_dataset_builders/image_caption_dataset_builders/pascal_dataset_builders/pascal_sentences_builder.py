@@ -1,5 +1,5 @@
 import os
-from dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
 
 
@@ -32,9 +32,9 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
         Using Amazon’s Mechanical Turk" by Rashtchian et al.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, indent):
-        super(PascalSentencesDatasetBuilder, self).__init__(root_dir_path, 'pascal_sentences', data_split_str,
-                                                            struct_property, indent)
+    def __init__(self, root_dir_path, struct_property, indent):
+        super(PascalSentencesDatasetBuilder, self).__init__(
+            root_dir_path, 'pascal_sentences', 'English', struct_property, indent)
 
         self.sentences_dir_path = os.path.join(self.root_dir_path, 'sentence')
         self.images_dir_path = os.path.join(self.root_dir_path, 'dataset')

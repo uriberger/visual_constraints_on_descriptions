@@ -1,8 +1,8 @@
 import os
 import gzip
-from dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
-from dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr30k_dataset_builder import \
+from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr30k_dataset_builder import \
     Flickr30kDatasetBuilder
 from utils.text_utils import TextUtils
 
@@ -15,12 +15,14 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
         translated: A flag indicating whether we should use translated captions or original ones.
     """
 
-    def __init__(self, root_dir_path, data_split_str, struct_property, translated, indent):
+    def __init__(self, root_dir_path, language, struct_property, translated, indent):
         translated_str = ''
         if translated:
             translated_str = '_translated'
-        super(Multi30kDatasetBuilder, self).__init__(root_dir_path, 'multi30k' + translated_str, data_split_str,
-                                                     struct_property, Flickr30kDatasetBuilder, 'flickr30', indent)
+        super(Multi30kDatasetBuilder, self).__init__(
+            root_dir_path, 'multi30k' + translated_str, language,
+            struct_property, Flickr30kDatasetBuilder, 'flickr30', indent
+        )
 
         data_dir_name = 'data'
         if translated:
@@ -36,7 +38,6 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
         if translated:
             test_file_name_prefix += '_flickr'
 
-        language = TextUtils.get_language()
         if language not in ['German', 'French']:
             assert False
         if language == 'French' and (not translated):
