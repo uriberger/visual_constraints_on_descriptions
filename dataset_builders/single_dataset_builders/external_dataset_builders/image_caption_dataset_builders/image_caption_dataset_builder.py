@@ -103,7 +103,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
     def collect_nlp_data_from_caption(self, index, sample, should_print):
         caption = sample['caption']
-        analyzed_caption = TextUtils.get_nlp()(caption)
+        analyzed_caption = TextUtils.get_nlp(self.language)(caption)
         self.nlp_data.append([{
             'pos': x.pos_,
             'dep': x.dep_,
