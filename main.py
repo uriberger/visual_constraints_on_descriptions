@@ -142,7 +142,7 @@ def do_train(training_set, test_set, model_config, timestamp, indent):
     log_print(function_name, indent, 'Training model...')
     model_root_dir = os.path.join(project_root_dir, timestamp)
     if classifier_name == 'neural':
-        trainer = BackpropagationTrainer(model_root_dir, training_set, test_set, 20, 50, model_config, 1)
+        trainer = BackpropagationTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
     elif classifier_name in ['svm', 'random_forest', 'xgboost']:
         trainer = OfflineTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
     else:

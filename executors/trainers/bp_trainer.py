@@ -7,13 +7,11 @@ from model_src.model_factory import ModelFactory
 
 class BackpropagationTrainer(Trainer):
 
-    def __init__(self, model_root_dir, training_set, test_set, epoch_num, batch_size, model_config, indent,
+    def __init__(self, model_root_dir, training_set, test_set, batch_size, model_config, indent,
                  loaded_model_dir=None, loaded_model_name=None):
         super(BackpropagationTrainer, self).__init__(
             model_root_dir, training_set, test_set, batch_size, model_config, indent
         )
-
-        self.epoch_num = epoch_num
 
         model_factory = ModelFactory(self.indent + 1)
         if loaded_model_dir is None:
@@ -60,6 +58,13 @@ class BackpropagationTrainer(Trainer):
         # If this is the best model, save it
         self.dump_best_model_if_needed()
 
+        # We stop training when we get a result that doesn't improve for 5 consecutive epochs
+        epoch_window_len = 5
+        should_continue = (len(self.accuracy_history) < epoch_window_len or
+                           max(self.accuracy_history[-epoch_window_len:]) != self.accuracy_history[-epoch_window_len])
+
+        return should_continue
+
     def dump_best_model_if_needed(self):
         if self.accuracy_history[-1] == max(self.accuracy_history):
             # Current model is the best model so far
@@ -90,8 +95,11 @@ class BackpropagationTrainer(Trainer):
     """ Train on the training set """
 
     def train(self):
-        for epoch_ind in range(self.epoch_num):
+        should_continue = True
+        epoch_ind = 0
+        while should_continue:
+            epoch_ind += 1
             self.log_print('Starting epoch ' + str(epoch_ind))
             self.epoch_ind = epoch_ind
             self.traverse_training_set(self.train_on_batch)
-            self.post_epoch()
+            should_continue = self.post_epoch()
