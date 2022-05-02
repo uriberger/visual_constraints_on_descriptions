@@ -8,6 +8,7 @@ from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBui
 from dataset_builders.single_dataset_builders.aggregated_dataset_builder import AggregatedDatasetBuilder
 from dataset_list import language_dataset_list, translated_only_datasets, get_orig_dataset_to_configs
 import os
+import sys
 import argparse
 
 
@@ -122,7 +123,7 @@ def prepare_train(cur_language, cur_dataset_name, cur_struct_property, should_wr
     dataset_builder = get_dataset_builder(cur_language, cur_dataset_name, cur_struct_property)
     if dump_captions:
         dataset_builder.dump_captions()
-        return None
+        sys.exit(0)
 
     # Training set
     training_set = dataset_builder.build_dataset('train')
