@@ -93,6 +93,7 @@ public class LemmatizeAndParse {
 		}
 		myReader.close();
 		myWriter.close();
+		System.out.println("[LemmatizeAndParse] Finished!");
 	}
 
 	
