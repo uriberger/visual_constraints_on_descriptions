@@ -1,7 +1,6 @@
 import os
 from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.image_caption_dataset_builder import ImageCaptionDatasetBuilder
 from dataset_builders.image_path_finder import ImagePathFinder
-from utils.text_utils import TextUtils
 
 
 class IAPRTC12ImagePathFinder(ImagePathFinder):
@@ -75,7 +74,8 @@ class IAPRTC12DatasetBuilder(ImageCaptionDatasetBuilder):
                             caption, image_id = self.get_sample_data(file_path)
                         except UnicodeDecodeError:
                             caption, image_id = self.get_sample_data(file_path, 'latin-1')
-                        caption_data.append({'image_id': image_id, 'caption': caption})
+                        if len(caption) > 0:
+                            caption_data.append({'image_id': image_id, 'caption': caption})
 
         return caption_data
 
