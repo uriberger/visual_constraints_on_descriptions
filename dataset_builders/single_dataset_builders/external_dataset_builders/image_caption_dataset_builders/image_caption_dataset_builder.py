@@ -310,7 +310,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     3. Negative-positive words: words that can occur both in a negative and a
                     positive form.
                     I should check all three cases. '''
-                    tokenized_caption = TextUtils.tokenize(caption)
+                    tokenized_caption = TextUtils.tokenize(caption, self.language)
                     negation = False
                     # Case 1
                     if len(french_negation_words.intersection(tokenized_caption)) > 0:
@@ -368,7 +368,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             image_id = sample['image_id']
             caption = sample['caption']
             if self.language == 'English':
-                tokenized_caption = TextUtils.tokenize_and_clean(caption)
+                tokenized_caption = TextUtils.tokenize_and_clean(caption, self.language)
                 negation_words_in_caption = english_negation_words.intersection(tokenized_caption)
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
             elif self.language == 'German':
@@ -383,7 +383,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 negation_words_in_caption = chinese_negation_words.intersection(tokenized_caption)
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
             elif self.language == 'Japanese':
-                tokenized_caption = TextUtils.tokenize(caption)
+                tokenized_caption = TextUtils.tokenize(caption, self.language)
                 negation_words_in_caption = japanese_negation_words.intersection(tokenized_caption)
                 negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
 
@@ -548,7 +548,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             caption = sample['caption']
             image_id = sample['image_id']
             if self.language == 'English':
-                tokenized_caption = TextUtils.tokenize_and_clean(caption)
+                tokenized_caption = TextUtils.tokenize_and_clean(caption, self.language)
 
                 # Spatial words
                 spatial_words_in_caption = english_spatial_words.intersection(tokenized_caption)

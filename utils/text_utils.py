@@ -26,8 +26,8 @@ class TextUtils:
         return nlps[language]
 
     @staticmethod
-    def get_tokenizer():
-        return TextUtils.get_nlp().tokenizer
+    def get_tokenizer(language):
+        return TextUtils.get_nlp(language).tokenizer
 
     """ Given a sentence analyze by spaCy, check if its main verb is transitive. This is done by searching if there's a
         token which is a direct object of the root.
@@ -50,9 +50,9 @@ class TextUtils:
                     analyzed_sentence[token['head_ind']]['dep'] == 'ROOT']) > 0
 
     @staticmethod
-    def tokenize(sentence):
+    def tokenize(sentence, language):
         """ Tokenize an input sentence. """
-        return [str(x) for x in list(TextUtils.get_tokenizer()(sentence.lower()))]
+        return [str(x) for x in list(TextUtils.get_tokenizer(language)(sentence.lower()))]
 
     @staticmethod
     def preprocess_token(token):
@@ -62,8 +62,8 @@ class TextUtils:
         return token
 
     @staticmethod
-    def tokenize_and_clean(sentence):
-        tokenized_sentence = TextUtils.tokenize(sentence)
+    def tokenize_and_clean(sentence, language):
+        tokenized_sentence = TextUtils.tokenize(sentence, language)
         return [TextUtils.preprocess_token(x) for x in tokenized_sentence]
 
     @staticmethod
