@@ -153,9 +153,11 @@ def do_train(training_set, test_set, model_config, timestamp, indent):
 
     if delete_model:
         model_path = os.path.join(timestamp, default_model_name + '.mdl')
-        os.remove(model_path)
+        if os.path.isfile(model_path):
+            os.remove(model_path)
         best_model_path = os.path.join(timestamp, default_model_name + '_best.mdl')
-        os.remove(best_model_path)
+        if os.path.isfile(best_model_path):
+            os.remove(best_model_path)
 
 
 def main(should_write_to_log):
