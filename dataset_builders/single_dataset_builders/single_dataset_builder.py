@@ -21,7 +21,7 @@ class SingleDatasetBuilder(DatasetBuilder):
 
         self.train_val_split_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{self.extended_name}_train_val_split'
+            f'{self.extended_name}_{self.struct_property}_train_val_split'
         )
 
     """ Train/Val splits:
