@@ -448,11 +448,24 @@ def print_extreme_non_agreement_image_ids(struct_property):
 
 def plot_image_histogram(struct_property):
     all_language_vals = []
+
+    # fig, ax = plt.subplots()
+    # default_ticks = list(ax.get_yticks())
+    # if min([x for x in default_ticks if x > 0]) >= 1000:
+    #     y_labels = [str(int(x / 1000)) + 'k' for x in default_ticks]
+    #     ax.set_yticks(ticks=default_ticks, labels=y_labels)
+    # ax.set_title(struct_property + ' histogram')
+    # ax.set_xlabel('Proportion of captions with the property')
+    # ax.set_ylabel('Number of images')
+    i = 0
+
     for language, dataset_list, translated in language_dataset_list:
+        if translated:
+            continue
         language_vals = []
         for dataset_name in dataset_list:
-            dataset = get_dataset(language, dataset_name, struct_property, translated)
-            image_id_to_prob = get_image_id_to_prob(dataset.struct_data)
+            builder = get_dataset_builder(language, dataset_name, struct_property, translated)
+            image_id_to_prob = get_image_id_to_prob(builder.get_struct_data())
             language_vals += list(image_id_to_prob.values())
         all_language_vals += language_vals
         x_vals = sorted(list(set(language_vals)))
@@ -460,20 +473,21 @@ def plot_image_histogram(struct_property):
         for val in language_vals:
             count_dict[val] += 1
         y_vals = [count_dict[x_val] for x_val in x_vals]
-        language_name = language
-        if translated:
-            language_name += '_translated'
 
-        fig, ax = plt.subplots()
-        ax.bar(x_vals, y_vals, width=0.1)
-        default_ticks = list(ax.get_yticks())
-        if min([x for x in default_ticks if x > 0]) >= 1000:
-            y_labels = [str(int(x / 1000)) + 'k' for x in default_ticks]
-            ax.set_yticks(ticks=default_ticks, labels=y_labels)
-        ax.set_title(struct_property + ' histogram in ' + language_name)
-        ax.set_xlabel('Proportion of captions with the property')
-        ax.set_ylabel('Number of images')
-        plt.show()
+        # fig, ax = plt.subplots()
+        # ax.bar(x_vals, y_vals, width=0.1)
+        # default_ticks = list(ax.get_yticks())
+        # if min([x for x in default_ticks if x > 0]) >= 1000:
+        #     y_labels = [str(int(x / 1000)) + 'k' for x in default_ticks]
+        #     ax.set_yticks(ticks=default_ticks, labels=y_labels)
+        # ax.set_title(struct_property + ' histogram in ' + language)
+        # ax.set_xlabel('Proportion of captions with the property')
+        # ax.set_ylabel('Number of images')
+        plt.bar([z - 0.05 + 0.025*i for z in x_vals], y_vals, width=0.025, label=language)
+        i += 1
+    plt.legend()
+    plt.show()
+    plt.clf()
 
     # All languages combined
     fig, ax = plt.subplots()
@@ -499,11 +513,11 @@ def analyze(struct_property):
     # plot_bbox_dist_lists(struct_property)
     # print_language_agreement(struct_property, True)
     # print_language_agreement(struct_property, False)
-    print_language_mean_val(struct_property)
+    # print_language_mean_val(struct_property)
     # print_consistently_extreme_image_ids(struct_property, True)
     # print_consistently_extreme_image_ids(struct_property, False)
     # print_extreme_non_agreement_image_ids(struct_property)
-    # plot_image_histogram(struct_property)
+    plot_image_histogram(struct_property)
 
 
-analyze('negation')
+analyze('numbers')
