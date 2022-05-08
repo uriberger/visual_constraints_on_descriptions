@@ -21,6 +21,15 @@ class AggregatedDatasetBuilder(SingleDatasetBuilder):
     def create_image_path_finder(self):
         return self.builder_list[0].create_image_path_finder()
 
+    def get_gt_classes_data(self):
+        return self.builder_list[0].get_gt_classes_data()
+
+    def get_gt_bboxes_data(self):
+        return self.builder_list[0].get_gt_bboxes_data()
+
+    def get_class_mapping(self):
+        return self.builder_list[0].get_class_mapping()
+
     def get_unwanted_image_ids(self):
         unwanted_image_ids = []
         for builder in self.builder_list:

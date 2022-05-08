@@ -83,3 +83,12 @@ class DatasetBuilder(LoggableObject):
         if self.image_path_finder is None:
             self.image_path_finder = self.create_image_path_finder()
         return self.image_path_finder
+
+    def get_gt_classes_data(self):
+        return None
+
+    def get_gt_bboxes_data(self):
+        return None
+
+    def get_class_mapping(self):
+        return None
