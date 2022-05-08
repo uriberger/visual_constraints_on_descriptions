@@ -24,12 +24,6 @@ class DeCocoDatasetBuilder(EnglishBasedDatasetBuilder):
             f'{self.name}_line_ind_to_image_id'
         )
 
-        # We need to override a parent class behavior: no matter what data split is used in this dataset, we want the
-        # base dataset builder (COCO builder) to use the train split, since all the images in this dataset are from the
-        # COCO train split
-        self.base_dataset_builder = CocoDatasetBuilder(os.path.join(root_dir_path, '..', 'COCO'),
-                                                       'train', self.struct_property, self.indent + 1)
-
     def get_line_ind_to_image_id_mappings_internal(self):
         """ For some reason, even though the README file of this dataset states that there supposed to be files
         indicating to which image id each line refers, there is none. So I need to do it manually by searching for the
