@@ -112,9 +112,10 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
                 # Go over all the object annotations
                 for bbox_annotation in bboxes_data[u'annotations']:
                     image_id = bbox_annotation[u'image_id']
+                    new_image_id = self.orig_to_new_image_id(image_id, data_split_str)
                     if image_id not in img_classes_dataset:
-                        img_classes_dataset[image_id] = []
-                        img_bboxes_dataset[image_id] = []
+                        img_classes_dataset[new_image_id] = []
+                        img_bboxes_dataset[new_image_id] = []
 
                     # First, extract the bounding box
                     bbox = bbox_annotation[u'bbox']
@@ -128,7 +129,6 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
                     category_id = bbox_annotation[u'category_id']
                     class_id = category_id_to_class_id[category_id]
 
-                    new_image_id = self.orig_to_new_image_id(image_id, data_split_str)
                     img_classes_dataset[new_image_id].append(class_id)
                     img_bboxes_dataset[new_image_id].append(trnsltd_bbox)
 

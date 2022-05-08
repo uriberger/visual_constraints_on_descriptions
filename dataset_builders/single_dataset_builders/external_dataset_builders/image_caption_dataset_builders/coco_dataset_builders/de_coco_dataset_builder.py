@@ -74,9 +74,7 @@ class DeCocoDatasetBuilder(EnglishBasedDatasetBuilder):
             with open(caption_file_path, 'r', encoding='utf8') as caption_fp:
                 for line in caption_fp:
                     caption = line.strip()
-                    orig_image_id = line_ind_to_image_id_mapping[line_ind]
-                    # All images in de_coco are from the COCO train split, so we should add the train ids prefix
-                    image_id = 1000000 + orig_image_id
+                    image_id = line_ind_to_image_id_mapping[line_ind]
                     caption_data.append({'image_id': image_id, 'caption': caption})
                     line_ind += 1
 
