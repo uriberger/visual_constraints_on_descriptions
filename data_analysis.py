@@ -1,11 +1,15 @@
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import rc
+from matplotlib.lines import Line2D
 
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
+from dataset_builders.single_dataset_builders.aggregated_dataset_builder import AggregatedDatasetBuilder
 from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count
-from dataset_list import language_dataset_list, get_orig_dataset_to_configs
+from dataset_list import language_dataset_list, get_orig_dataset_to_configs, \
+    multilingual_dataset_name_to_original_dataset_name
 
 
 # Utility functions
@@ -149,7 +153,7 @@ def get_mean_val(struct_datas_list):
         total_sum += sum(image_id_to_prob.values())
         total_count += len(image_id_to_prob)
 
-    return total_sum/total_count
+    return total_sum / total_count
 
 
 def get_mean_values_across_datasets(struct_datas_list, languages, aggregate_per_language):
@@ -161,7 +165,7 @@ def get_mean_values_across_datasets(struct_datas_list, languages, aggregate_per_
         2. For each image id, compute the mean of fractions from 1 across different struct datas.
     """
     if not aggregate_per_language:
-        languages = ['all_languages']*len(struct_datas_list)
+        languages = ['all_languages'] * len(struct_datas_list)
 
     # Preprocessing: make sure struct_data and gt_class data contain the same imade ids
     all_image_ids = get_intersection_image_ids(struct_datas_list)
@@ -182,7 +186,7 @@ def get_mean_values_across_datasets(struct_datas_list, languages, aggregate_per_
     # Next, because we want the mean and not the sum, divide the sum by the count
     language_image_id_to_prob_mean = {
         x[0]: {
-            y[0]: y[1]/language_image_id_to_prob_count[x[0]][y[0]]
+            y[0]: y[1] / language_image_id_to_prob_count[x[0]][y[0]]
             for y in x[1].items()
         }
         for x in language_image_id_to_prob_sum.items()
@@ -194,7 +198,7 @@ def get_mean_values_across_datasets(struct_datas_list, languages, aggregate_per_
         for image_id, prob_mean in cur_image_id_to_prob_mean.items():
             image_id_to_prob_sum[image_id] += prob_mean
 
-    image_id_to_mean_prob = {x[0]: x[1]/len(unique_languages) for x in image_id_to_prob_sum.items()}
+    image_id_to_mean_prob = {x[0]: x[1] / len(unique_languages) for x in image_id_to_prob_sum.items()}
 
     return image_id_to_mean_prob
 
@@ -240,11 +244,16 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
 # Main function
 
 
-def get_class_prob_list_for_config(language, dataset_name, struct_property, translated):
-    builder = get_dataset_builder(language, dataset_name, struct_property, translated)
-    dataset = builder.build_dataset('all')
+def get_class_prob_list_for_config(language, struct_property, translated):
+    coco_datasets = [x[0] for x in multilingual_dataset_name_to_original_dataset_name.items() if x[1] == 'COCO']
+    cur_language_datasets = [x[1] for x in language_dataset_list if x[0] == language and x[2] == translated][0]
+    dataset_names = list(set(coco_datasets).intersection(cur_language_datasets))
+    builder_list = [
+        get_dataset_builder(language, dataset_name, struct_property, translated) for dataset_name in dataset_names
+    ]
+    builder = AggregatedDatasetBuilder('COCO', builder_list, struct_property, 1)
 
-    struct_data = dataset.struct_data
+    struct_data = builder.get_struct_data()
     gt_class_data = builder.get_gt_classes_data()
     class_mapping = builder.get_class_mapping()
 
@@ -273,25 +282,126 @@ def generate_list_edges_str(input_list, edge_size):
     for i in range(edge_size):
         if i > 0:
             res += ', '
-        res += input_list[-(i+1)][0] + ': ' + '{:.4f}'.format(input_list[-(i+1)][1])
+        res += input_list[-(i + 1)][0] + ': ' + '{:.4f}'.format(input_list[-(i + 1)][1])
 
     return res
 
 
+def plot_lists_edges(language_data_list, edge_size):
+    font = {'size': 15}
+
+    rc('font', **font)
+
+    x_vals = [x for x in range(len(language_data_list))]
+    x_labels = ['            ' + x[0] for x in language_data_list]
+    high_vals = []
+    low_vals = []
+    vals = []
+    for lan_ind in range(len(language_data_list)):
+        input_list = language_data_list[lan_ind][1]
+        for i in range(edge_size):
+            high_vals.append((lan_ind, input_list[i][1], input_list[i][0]))
+            vals.append((lan_ind, input_list[i][1], input_list[i][0]))
+        for i in range(edge_size):
+            low_vals.append((lan_ind, input_list[i - edge_size][1], input_list[i - edge_size][0]))
+            vals.append((lan_ind, input_list[i - edge_size][1], input_list[i - edge_size][0]))
+
+    fig, ax = plt.subplots()
+    fig.canvas.draw()
+    ax.scatter([x[0] for x in high_vals], [x[1] for x in high_vals], c='r')
+    ax.scatter([x[0] for x in low_vals], [x[1] for x in low_vals], c='b')
+    i = 0
+    for val in vals:
+        y_val = val[1]
+        # if i == 1:
+        #     y_val -= 0.01
+        # elif i == 4:
+        #     y_val -= 0.02
+        # elif i == 5:
+        #     y_val += 0.01
+        # elif i == 6:
+        #     y_val -= 0.01
+        # elif i == 7:
+        #     y_val -= 0.03
+        # elif i == 8:
+        #     y_val -= 0.05
+        # elif i == 9:
+        #     y_val -= 0.07
+        # elif i == 11:
+        #     y_val -= 0.01
+        # elif i == 13:
+        #     y_val -= 0.015
+        # elif i == 15:
+        #     y_val += 0.01
+        # elif i == 16:
+        #     y_val -= 0.01
+        # elif i == 17:
+        #     y_val -= 0.03
+        # elif i == 18:
+        #     y_val -= 0.05
+        # elif i == 19:
+        #     y_val -= 0.06
+        # elif i == 20:
+        #     y_val += 0.01
+        # elif i == 22:
+        #     y_val -= 0.01
+        # elif i == 23:
+        #     y_val -= 0.02
+        # elif i == 24:
+        #     y_val -= 0.025
+        # elif i == 25:
+        #     y_val += 0.025
+        # elif i == 26:
+        #     y_val += 0.01
+        # elif i == 27:
+        #     y_val -= 0.015
+        # elif i == 28:
+        #     y_val += 0.003
+        # elif i == 29:
+        #     y_val -= 0.022
+
+        if i % 10 < 5:
+            color = 'r'
+        else:
+            color = 'b'
+        ax.annotate(val[2], (val[0] + 0.035, y_val), c=color)
+        i += 1
+    ax.set_xticks(x_vals)
+    ax.set_xticklabels(x_labels)
+    ax.tick_params(axis='x', which='both', length=0)
+    cur_lims = plt.xlim()
+    plt.xlim([cur_lims[0], cur_lims[1] + 1])
+
+    legend_elements = [Line2D([0], [0], marker='o', color='w', label='High',
+                              markerfacecolor='r', markersize=15),
+                       Line2D([0], [0], marker='o', color='w', label='Low',
+                              markerfacecolor='b', markersize=15)]
+
+    ax.legend(handles=legend_elements, loc='upper left')
+    ax.set_ylabel('Mean Usage of Numerals Probability')
+
+    plt.show()
+
+
 def print_class_prob_lists(struct_property):
     english_coco_class_prob_list = \
-        get_class_prob_list_for_config('English', 'COCO', struct_property, False)
+        get_class_prob_list_for_config('English', struct_property, False)
     japanese_coco_class_prob_list = \
-        get_class_prob_list_for_config('Japanese', 'STAIR-captions', struct_property, False)
+        get_class_prob_list_for_config('Japanese', struct_property, False)
     chinese_coco_class_prob_list = \
-        get_class_prob_list_for_config('Chinese', 'coco-cn', struct_property, False)
+        get_class_prob_list_for_config('Chinese', struct_property, False)
     translated_chinese_coco_class_prob_list = \
-        get_class_prob_list_for_config('Chinese', 'coco-cn', struct_property, True)
+        get_class_prob_list_for_config('Chinese', struct_property, True)
     translated_german_coco_class_prob_list = \
-        get_class_prob_list_for_config('German', 'de_coco', struct_property, True)
+        get_class_prob_list_for_config('German', struct_property, True)
 
     print('English coco class prob list:')
     print(generate_list_edges_str(english_coco_class_prob_list, 5))
+    plot_lists_edges(
+        [('English', english_coco_class_prob_list),
+         ('Japanese', japanese_coco_class_prob_list),
+         ('Chinese', chinese_coco_class_prob_list)],
+        5)
     print('\nJapanese coco class prob list:')
     print(generate_list_edges_str(japanese_coco_class_prob_list, 5))
     print('\nChinese coco class prob list:')
@@ -349,7 +459,7 @@ def print_language_agreement(struct_property, with_translated):
 
         # Next, calculate agreement between each two datasets
         for i in range(len(filtered_configs)):
-            for j in range(i+1, len(filtered_configs)):
+            for j in range(i + 1, len(filtered_configs)):
                 lang1 = filtered_configs[i][1]
                 if filtered_configs[i][2]:
                     lang1 += '_translated'
@@ -483,7 +593,7 @@ def plot_image_histogram(struct_property):
         # ax.set_title(struct_property + ' histogram in ' + language)
         # ax.set_xlabel('Proportion of captions with the property')
         # ax.set_ylabel('Number of images')
-        plt.bar([z - 0.05 + 0.025*i for z in x_vals], y_vals, width=0.025, label=language)
+        plt.bar([z - 0.05 + 0.025 * i for z in x_vals], y_vals, width=0.025, label=language)
         i += 1
     plt.legend()
     plt.show()
@@ -509,7 +619,7 @@ def plot_image_histogram(struct_property):
 
 
 def analyze(struct_property):
-    # print_class_prob_lists(struct_property)
+    print_class_prob_lists(struct_property)
     # plot_bbox_dist_lists(struct_property)
     # print_language_agreement(struct_property, True)
     # print_language_agreement(struct_property, False)
@@ -517,7 +627,7 @@ def analyze(struct_property):
     # print_consistently_extreme_image_ids(struct_property, True)
     # print_consistently_extreme_image_ids(struct_property, False)
     # print_extreme_non_agreement_image_ids(struct_property)
-    plot_image_histogram(struct_property)
+    # plot_image_histogram(struct_property)
 
 
 analyze('numbers')
