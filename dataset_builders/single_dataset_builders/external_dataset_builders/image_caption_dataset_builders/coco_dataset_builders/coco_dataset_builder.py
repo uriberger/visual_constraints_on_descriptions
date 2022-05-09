@@ -113,7 +113,7 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
                 for bbox_annotation in bboxes_data[u'annotations']:
                     image_id = bbox_annotation[u'image_id']
                     new_image_id = self.orig_to_new_image_id(image_id, data_split_str)
-                    if image_id not in img_classes_dataset:
+                    if new_image_id not in img_classes_dataset:
                         img_classes_dataset[new_image_id] = []
                         img_bboxes_dataset[new_image_id] = []
 
