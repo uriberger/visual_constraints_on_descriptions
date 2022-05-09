@@ -98,11 +98,19 @@ def get_bbox_count_dist(struct_data, gt_bbox_data):
 
     max_bbox_num = max(image_id_to_bbox_num.values())
     bbox_val_to_image_list = get_class_to_image_list({x[0]: [x[1]] for x in image_id_to_bbox_num.items()})
+
+    # Filter bbox vals with a small number of images
+    bbox_val_to_image_num = {x[0]: len(x[1]) for x in bbox_val_to_image_list.items()}
+    cur_bbox_val = max_bbox_num
+    while (cur_bbox_val not in bbox_val_to_image_num) or (bbox_val_to_image_num[cur_bbox_val] < 100):
+        cur_bbox_val -= 1
+    bbox_val_to_image_list = defaultdict(list, {x[0]: x[1] for x in bbox_val_to_image_list.items() if x[0] <= cur_bbox_val})
+
     # 2. For each number of gt bboxes, calculate the mean fraction from 1, averaged across all image ids where this is
     #    the number of bounding boxes.
     bbox_val_to_prob_mean = {
         i: safe_divide(sum([image_id_to_prob[x] for x in bbox_val_to_image_list[i]]), len(bbox_val_to_image_list[i]))
-        for i in range(max_bbox_num + 1)}
+        for i in range(cur_bbox_val + 1)}
 
     bbox_val_prob_list = list(bbox_val_to_prob_mean.items())
     bbox_val_prob_list.sort(key=lambda x: x[0])
@@ -244,7 +252,8 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
 # Main function
 
 
-def get_class_prob_list_for_config(language, struct_property, translated):
+def get_coco_builder_for_config(language, struct_property, translated):
+    """ Get a dataset builders for all the COCO based datasets for the given config. """
     coco_datasets = [x[0] for x in multilingual_dataset_name_to_original_dataset_name.items() if x[1] == 'COCO']
     cur_language_datasets = [x[1] for x in language_dataset_list if x[0] == language and x[2] == translated][0]
     dataset_names = list(set(coco_datasets).intersection(cur_language_datasets))
@@ -252,6 +261,11 @@ def get_class_prob_list_for_config(language, struct_property, translated):
         get_dataset_builder(language, dataset_name, struct_property, translated) for dataset_name in dataset_names
     ]
     builder = AggregatedDatasetBuilder('COCO', builder_list, struct_property, 1)
+    return builder
+
+
+def get_class_prob_list_for_config(language, struct_property, translated):
+    builder = get_coco_builder_for_config(language, struct_property, translated)
 
     struct_data = builder.get_struct_data()
     gt_class_data = builder.get_gt_classes_data()
@@ -261,11 +275,10 @@ def get_class_prob_list_for_config(language, struct_property, translated):
     return class_prob_list
 
 
-def get_bbox_dist_list_for_config(language, dataset_name, struct_property, translated):
-    builder = get_dataset_builder(language, dataset_name, struct_property, translated)
-    dataset = builder.build_dataset('all')
+def get_bbox_dist_list_for_config(language, struct_property, translated):
+    builder = get_coco_builder_for_config(language, struct_property, translated)
 
-    struct_data = dataset.struct_data
+    struct_data = builder.get_struct_data()
     gt_bbox_data = builder.get_gt_bboxes_data()
 
     bbox_count_dist_list = get_bbox_count_dist(struct_data, gt_bbox_data)
@@ -414,23 +427,20 @@ def print_class_prob_lists(struct_property):
 
 def plot_bbox_dist_lists(struct_property):
     english_coco_bbox_dist_list = \
-        get_bbox_dist_list_for_config('English', 'COCO', struct_property, False)
+        get_bbox_dist_list_for_config('English', struct_property, False)
     japanese_coco_bbox_dist_list = \
-        get_bbox_dist_list_for_config('Japanese', 'STAIR-captions', struct_property, False)
+        get_bbox_dist_list_for_config('Japanese', struct_property, False)
     chinese_coco_bbox_dist_list = \
-        get_bbox_dist_list_for_config('Chinese', 'coco-cn', struct_property, False)
-    translated_chinese_coco_bbox_dist_list = \
-        get_bbox_dist_list_for_config('Chinese', 'coco-cn', struct_property, True)
+        get_bbox_dist_list_for_config('Chinese', struct_property, False)
 
     plt.plot(english_coco_bbox_dist_list, label='English')
     plt.plot(japanese_coco_bbox_dist_list, label='Japanese')
     plt.plot(chinese_coco_bbox_dist_list, label='Chinese')
-    plt.plot(translated_chinese_coco_bbox_dist_list, label='Translated Chinese')
 
     plt.legend()
     plt.xlabel('Number of bounding boxes')
     plt.ylabel('Mean ' + struct_property + ' probability')
-    plt.title('Mean ' + struct_property + ' probability as a function of bbox #')
+    # plt.title('Mean ' + struct_property + ' probability as a function of bbox #')
     plt.show()
 
 
@@ -619,8 +629,8 @@ def plot_image_histogram(struct_property):
 
 
 def analyze(struct_property):
-    print_class_prob_lists(struct_property)
-    # plot_bbox_dist_lists(struct_property)
+    # print_class_prob_lists(struct_property)
+    plot_bbox_dist_lists(struct_property)
     # print_language_agreement(struct_property, True)
     # print_language_agreement(struct_property, False)
     # print_language_mean_val(struct_property)
