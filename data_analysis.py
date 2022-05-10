@@ -451,6 +451,8 @@ def print_language_agreement(struct_property, with_translated):
         for config in configs:
             if (not with_translated) and config[2]:
                 continue
+            if struct_property in ['negation', 'passive'] and config[1] == 'Japanese':
+                continue
             filtered_configs.append(config)
 
         # Next, generate data per language
@@ -640,4 +642,4 @@ def analyze(struct_property):
 
 font = {'size': 15}
 rc('font', **font)
-analyze('numbers')
+analyze('root_pos')
