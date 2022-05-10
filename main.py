@@ -12,7 +12,7 @@ import sys
 import argparse
 
 
-parser = argparse.ArgumentParser(description='Train and evaluate a multimodal word learning model.')
+parser = argparse.ArgumentParser(description='Train and evaluate a linguistic properties predictor for images.')
 parser.add_argument('--write_to_log', action='store_true', default=False, dest='write_to_log',
                     help='redirect output to a log file')
 parser.add_argument('--datasets_dir', type=str, default=os.path.join('..', 'datasets'), dest='datasets_dir',
