@@ -33,12 +33,6 @@ def get_dataset_builder(language, dataset_name, struct_property, translated):
     return dataset_builder
 
 
-def get_dataset(language, dataset_name, struct_property, translated):
-    concat_builder = get_dataset_builder(language, dataset_name, struct_property, translated)
-    dataset = concat_builder.build_dataset('all')
-    return dataset
-
-
 def get_intersection_image_ids(struct_datas):
     """ Get a list of image ids that exist in all struct datas. """
     unique_image_ids_list = [set([x[0] for x in struct_data]) for struct_data in struct_datas]
@@ -485,8 +479,8 @@ def print_language_mean_val(struct_property):
     for language, dataset_name_list, translated in language_dataset_list:
         for dataset_name in dataset_name_list:
             struct_datas = []
-            dataset = get_dataset(language, dataset_name, struct_property, translated)
-            struct_datas.append(dataset.struct_data)
+            builder = get_dataset_builder(language, dataset_name, struct_property, translated)
+            struct_datas.append(builder.get_struct_data())
         mean_val = get_mean_val(struct_datas)
         language_str = language
         if translated:
@@ -503,8 +497,8 @@ def print_consistently_extreme_image_ids(struct_property, aggregate_per_language
         struct_datas = []
         languages = []
         for dataset_name, language, translated in configs:
-            dataset = get_dataset(language, dataset_name, struct_property, translated)
-            struct_datas.append(dataset.struct_data)
+            builder = get_dataset_builder(language, dataset_name, struct_property, translated)
+            struct_datas.append(builder.get_struct_data())
             language_name = language
             if translated:
                 language_name += '_translated'
