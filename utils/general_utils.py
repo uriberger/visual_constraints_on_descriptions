@@ -150,3 +150,10 @@ def get_image_id_to_prob(struct_data):
     image_id_to_count, image_id_to_pos_count = get_image_id_to_count(struct_data)
     image_id_to_prob = {x: image_id_to_pos_count[x] / image_id_to_count[x] for x in image_id_to_count.keys()}
     return image_id_to_prob
+
+
+def is_property_implemented(language, struct_property):
+    if struct_property in ['negation', 'passive'] and language == 'Japanese':
+        return False
+    else:
+        return True

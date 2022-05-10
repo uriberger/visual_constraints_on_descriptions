@@ -1,4 +1,5 @@
-from utils.general_utils import init_entry_point, log_print, project_root_dir, default_model_name
+from utils.general_utils import init_entry_point, log_print, project_root_dir, default_model_name, \
+    is_property_implemented
 from model_src.model_config import ModelConfig
 from executors.trainers.bp_trainer import BackpropagationTrainer
 from executors.trainers.offline_trainer import OfflineTrainer
@@ -181,9 +182,8 @@ def main(should_write_to_log):
             # Find all languages
             languages = list(set([x[0] for x in language_dataset_list if not x[2]]))
 
-            # Negation and passive are currently not implemented for Japanese
-            if cur_struct_property in ['negation', 'passive']:
-                languages = [x for x in languages if x != 'Japanese']
+            # Check if this property is implemented for current languages
+            languages = [x for x in languages if is_property_implemented(x, cur_struct_property)]
         else:
             languages = [user_defined_language]
 
