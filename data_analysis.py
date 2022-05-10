@@ -1,3 +1,4 @@
+import argparse
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
@@ -628,18 +629,38 @@ def plot_image_histogram(struct_property):
     plt.show()
 
 
-def analyze(struct_property):
-    # print_class_prob_lists(struct_property)
-    # plot_bbox_dist_lists(struct_property)
-    # print_language_agreement(struct_property, True)
-    print_language_agreement(struct_property, False)
-    # print_language_mean_val(struct_property)
-    # print_consistently_extreme_image_ids(struct_property, True)
-    # print_consistently_extreme_image_ids(struct_property, False)
-    # print_extreme_non_agreement_image_ids(struct_property)
-    # plot_image_histogram(struct_property)
-
-
 font = {'size': 15}
 rc('font', **font)
-analyze('root_pos')
+parser = argparse.ArgumentParser(description='Analyze multimodal datasets.')
+parser.add_argument('--utility', type=str, dest='utility',
+                    help='the utility to be executed')
+parser.add_argument('--struct_property', type=str, dest='struct_property',
+                    help='the linguistic structural property to be examined')
+args = parser.parse_args()
+utility = args.utility
+user_struct_property = args.struct_property
+
+if utility == 'print_class_prob_lists':
+    print_class_prob_lists(user_struct_property)
+elif utility == 'plot_bbox_dist_lists':
+    plot_bbox_dist_lists(user_struct_property)
+elif utility == 'print_language_agreement_with_translated':
+    print_language_agreement(user_struct_property, True)
+elif utility == 'print_language_agreement':
+    print_language_agreement(user_struct_property, False)
+elif utility == 'print_language_mean_val':
+    print_language_mean_val(user_struct_property)
+elif utility == 'print_consistently_extreme_image_ids_aggregate_per_language':
+    print_consistently_extreme_image_ids(user_struct_property, True)
+elif utility == 'print_consistently_extreme_image_ids':
+    print_consistently_extreme_image_ids(user_struct_property, False)
+elif utility == 'print_extreme_non_agreement_image_ids':
+    print_extreme_non_agreement_image_ids(user_struct_property)
+elif utility == 'plot_image_histogram':
+    plot_image_histogram(user_struct_property)
+else:
+    print('Unknown utility ' + utility + '. Please choose from: ' +
+          'print_class_prob_lists, plot_bbox_dist_lists, print_language_agreement_with_translated, ' +
+          'print_language_agreement, print_language_mean_val, ' +
+          'print_consistently_extreme_image_ids_aggregate_per_language, print_consistently_extreme_image_ids' +
+          'print_extreme_non_agreement_image_ids, plot_image_histogram')
