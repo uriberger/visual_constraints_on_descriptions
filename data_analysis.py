@@ -128,7 +128,7 @@ def get_vals_agreement(struct_data1, struct_data2):
     image_id_to_prob1 = get_image_id_to_prob(struct_data1)
     image_id_to_prob2 = get_image_id_to_prob(struct_data2)
     all_image_ids = [x for x in image_id_to_prob1.keys() if x in image_id_to_prob2]
-    print('\t\tImage num in comparison: ' + str(len(all_image_ids)))
+    print('\tImage num in comparison: ' + str(len(all_image_ids)))
     all_image_ids_dict = {x: True for x in all_image_ids}
     image_id_to_prob1 = {x[0]: x[1] for x in image_id_to_prob1.items() if x[0] in all_image_ids_dict}
     image_id_to_prob2 = {x[0]: x[1] for x in image_id_to_prob2.items() if x[0] in all_image_ids_dict}
@@ -252,20 +252,21 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
 # Main function
 
 
-def get_coco_builder_for_config(language, struct_property, translated):
-    """ Get a dataset builders for all the COCO based datasets for the given config. """
-    coco_datasets = [x[0] for x in multilingual_dataset_name_to_original_dataset_name.items() if x[1] == 'COCO']
+def get_english_based_builder_for_config(orig_dataset_name, language, struct_property, translated):
+    """ Get a dataset builders for all datasets based on the provided original dataset for the given config. """
+    based_datasets = [x[0] for x in multilingual_dataset_name_to_original_dataset_name.items()
+                      if x[1] == orig_dataset_name]
     cur_language_datasets = [x[1] for x in language_dataset_list if x[0] == language and x[2] == translated][0]
-    dataset_names = list(set(coco_datasets).intersection(cur_language_datasets))
+    dataset_names = list(set(based_datasets).intersection(cur_language_datasets))
     builder_list = [
         get_dataset_builder(language, dataset_name, struct_property, translated) for dataset_name in dataset_names
     ]
-    builder = AggregatedDatasetBuilder('COCO', builder_list, struct_property, 1)
+    builder = AggregatedDatasetBuilder(orig_dataset_name, builder_list, struct_property, 1)
     return builder
 
 
 def get_class_prob_list_for_config(language, struct_property, translated):
-    builder = get_coco_builder_for_config(language, struct_property, translated)
+    builder = get_english_based_builder_for_config('COCO', language, struct_property, translated)
 
     struct_data = builder.get_struct_data()
     gt_class_data = builder.get_gt_classes_data()
@@ -276,7 +277,7 @@ def get_class_prob_list_for_config(language, struct_property, translated):
 
 
 def get_bbox_dist_list_for_config(language, struct_property, translated):
-    builder = get_coco_builder_for_config(language, struct_property, translated)
+    builder = get_english_based_builder_for_config('COCO', language, struct_property, translated)
 
     struct_data = builder.get_struct_data()
     gt_bbox_data = builder.get_gt_bboxes_data()
@@ -301,10 +302,6 @@ def generate_list_edges_str(input_list, edge_size):
 
 
 def plot_lists_edges(language_data_list, edge_size):
-    font = {'size': 15}
-
-    rc('font', **font)
-
     x_vals = [x for x in range(len(language_data_list))]
     x_labels = ['            ' + x[0] for x in language_data_list]
     high_vals = []
@@ -456,11 +453,12 @@ def print_language_agreement(struct_property, with_translated):
                 continue
             filtered_configs.append(config)
 
-        # Next, generate data for each config
+        # Next, generate data per language
+        configs_without_dataset_name = list(set([(config[1], config[2]) for config in filtered_configs]))
         struct_datas = []
-        for dataset_name, language, translated in filtered_configs:
-            dataset = get_dataset(language, dataset_name, struct_property, translated)
-            struct_datas.append(dataset.struct_data)
+        for language, translated in configs_without_dataset_name:
+            builder = get_english_based_builder_for_config(orig_dataset_name, language, struct_property, translated)
+            struct_datas.append(builder.get_struct_data())
 
         # Filter image ids so that each struct data will have the same image ids
         intersection_image_ids = get_intersection_image_ids(struct_datas)
@@ -468,13 +466,13 @@ def print_language_agreement(struct_property, with_translated):
         struct_datas = [[y for y in x if y[0] in intersection_image_ids_dict] for x in struct_datas]
 
         # Next, calculate agreement between each two datasets
-        for i in range(len(filtered_configs)):
-            for j in range(i + 1, len(filtered_configs)):
-                lang1 = filtered_configs[i][1]
-                if filtered_configs[i][2]:
+        for i in range(len(configs_without_dataset_name)):
+            for j in range(i + 1, len(configs_without_dataset_name)):
+                lang1 = configs_without_dataset_name[i][0]
+                if configs_without_dataset_name[i][1]:
                     lang1 += '_translated'
-                lang2 = filtered_configs[j][1]
-                if filtered_configs[j][2]:
+                lang2 = configs_without_dataset_name[j][0]
+                if configs_without_dataset_name[j][1]:
                     lang2 += '_translated'
                 pearson_coef = get_vals_agreement(struct_datas[i], struct_datas[j])
                 print('\t' + lang1 + ' and ' + lang2 + ' agreement: ' + '{:.4f}'.format(pearson_coef))
@@ -630,9 +628,9 @@ def plot_image_histogram(struct_property):
 
 def analyze(struct_property):
     # print_class_prob_lists(struct_property)
-    plot_bbox_dist_lists(struct_property)
+    # plot_bbox_dist_lists(struct_property)
     # print_language_agreement(struct_property, True)
-    # print_language_agreement(struct_property, False)
+    print_language_agreement(struct_property, False)
     # print_language_mean_val(struct_property)
     # print_consistently_extreme_image_ids(struct_property, True)
     # print_consistently_extreme_image_ids(struct_property, False)
@@ -640,4 +638,6 @@ def analyze(struct_property):
     # plot_image_histogram(struct_property)
 
 
+font = {'size': 15}
+rc('font', **font)
 analyze('numbers')
