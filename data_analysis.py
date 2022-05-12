@@ -8,7 +8,7 @@ from matplotlib.lines import Line2D
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
 from dataset_builders.single_dataset_builders.aggregated_dataset_builder import AggregatedDatasetBuilder
-from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count
+from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count, is_property_implemented
 from dataset_list import language_dataset_list, get_orig_dataset_to_configs, \
     multilingual_dataset_name_to_original_dataset_name
 
@@ -446,7 +446,7 @@ def print_language_agreement(struct_property, with_translated):
         for config in configs:
             if (not with_translated) and config[2]:
                 continue
-            if struct_property in ['negation', 'passive'] and config[1] == 'Japanese':
+            if not is_property_implemented(config[1], struct_property):
                 continue
             filtered_configs.append(config)
 
@@ -496,8 +496,10 @@ def print_consistently_extreme_image_ids(struct_property, aggregate_per_language
         # First, generate data for each config
         struct_datas = []
         languages = []
-        for dataset_name, language, translated in configs:
-            builder = get_dataset_builder(language, dataset_name, struct_property, translated)
+
+        configs_without_dataset_name = list(set([(config[1], config[2]) for config in configs]))
+        for language, translated in configs_without_dataset_name:
+            builder = get_english_based_builder_for_config(orig_dataset_name, language, struct_property, translated)
             struct_datas.append(builder.get_struct_data())
             language_name = language
             if translated:
