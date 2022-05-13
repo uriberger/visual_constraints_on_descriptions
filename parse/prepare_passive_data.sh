@@ -15,7 +15,7 @@ py_path=$cur_dir/$1
 cd tmv-annotator-tool
 
 parsed_file_path=../../cached_dataset_files/$3${translated_str}_$2_parsed.txt
-annotated_file_path=tmv_out_$3_$2${translated_str}
+annotated_file_path=tmv_out_$3${translated_str}_$2
 
 if [ "$2" == "English" ]; then
 	$py_path TMV-EN.py $parsed_file_path $annotated_file_path
