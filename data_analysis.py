@@ -625,6 +625,48 @@ def plot_image_histogram(struct_property):
     plt.show()
 
 
+def print_language_agreement_with_english_and_translated(struct_property, language):
+    english_datasets = [x[1] for x in language_dataset_list if x[0] == 'English'][0]
+    non_trnld_datasets = [x[1] for x in language_dataset_list if x[0] == language and not x[2]][0]
+    trnld_datasets = [x[1] for x in language_dataset_list if x[0] == language and x[2]][0]
+
+    non_trnld_orig_datasets = [multilingual_dataset_name_to_original_dataset_name[x] for x in non_trnld_datasets]
+    trnld_orig_datasets = [multilingual_dataset_name_to_original_dataset_name[x] for x in trnld_datasets]
+
+    orig_dataset_names = list(
+        set(english_datasets).intersection(non_trnld_orig_datasets).intersection(trnld_orig_datasets)
+    )
+
+    english_struct_datas = []
+    non_trnld_struct_datas = []
+    trnld_struct_datas = []
+
+    for orig_dataset_name in orig_dataset_names:
+        english_builder = get_english_based_builder_for_config(orig_dataset_name, 'English', struct_property, False)
+        english_struct_data = english_builder.get_struct_data()
+        non_trnld_builder = get_english_based_builder_for_config(orig_dataset_name, language, struct_property, False)
+        non_trnld_struct_data = non_trnld_builder.get_struct_data()
+        trnld_builder = get_english_based_builder_for_config(orig_dataset_name, language, struct_property, True)
+        trnld_struct_data = trnld_builder.get_struct_data()
+
+        cur_struct_datas = [english_struct_data, non_trnld_struct_data, trnld_struct_data]
+
+        # Filter image ids so that each struct data will have the same image ids
+        intersection_image_ids = get_intersection_image_ids(cur_struct_datas)
+        intersection_image_ids_dict = {x: True for x in intersection_image_ids}
+        cur_struct_datas = [sorted([y for y in x if y[0] in intersection_image_ids_dict]) for x in cur_struct_datas]
+
+        english_struct_datas += cur_struct_datas[0]
+        non_trnld_struct_datas += cur_struct_datas[1]
+        trnld_struct_datas += cur_struct_datas[2]
+
+    # Next, calculate agreement
+    pearson_coef = get_vals_agreement(english_struct_datas, trnld_struct_datas)
+    print('\tEnglish and translated ' + language + ' agreement: ' + '{:.4f}'.format(pearson_coef))
+    pearson_coef = get_vals_agreement(non_trnld_struct_data, trnld_struct_datas)
+    print('\t' + language + ' and translated ' + language + ' agreement: ' + '{:.4f}'.format(pearson_coef))
+
+
 font = {'size': 15}
 rc('font', **font)
 parser = argparse.ArgumentParser(description='Analyze multimodal datasets.')
@@ -632,9 +674,12 @@ parser.add_argument('--utility', type=str, dest='utility',
                     help='the utility to be executed')
 parser.add_argument('--struct_property', type=str, dest='struct_property',
                     help='the linguistic structural property to be examined')
+parser.add_argument('--language', type=str, dest='language',
+                    help='the language to be examined')
 args = parser.parse_args()
 utility = args.utility
 user_struct_property = args.struct_property
+user_language = args.language
 
 if utility == 'print_class_prob_lists':
     print_class_prob_lists(user_struct_property)
@@ -654,9 +699,12 @@ elif utility == 'print_extreme_non_agreement_image_ids':
     print_extreme_non_agreement_image_ids(user_struct_property)
 elif utility == 'plot_image_histogram':
     plot_image_histogram(user_struct_property)
+elif utility == 'print_language_agreement_with_english_and_translated':
+    print_language_agreement_with_english_and_translated(user_struct_property, user_language)
 else:
     print('Unknown utility ' + utility + '. Please choose from: ' +
           'print_class_prob_lists, plot_bbox_dist_lists, print_language_agreement_with_translated, ' +
           'print_language_agreement, print_language_mean_val, ' +
-          'print_consistently_extreme_image_ids_aggregate_per_language, print_consistently_extreme_image_ids' +
-          'print_extreme_non_agreement_image_ids, plot_image_histogram')
+          'print_consistently_extreme_image_ids_aggregate_per_language, print_consistently_extreme_image_ids, ' +
+          'print_extreme_non_agreement_image_ids, plot_image_histogram, ' +
+          'print_language_agreement_with_english_and_translated')
