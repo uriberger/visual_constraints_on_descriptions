@@ -68,7 +68,7 @@ DatasetBuilder.set_datasets_dir(datasets_dir)
 
 
 def get_dataset_builder(cur_language, cur_dataset_name, cur_struct_property):
-    if cur_language is None:
+    if type(cur_language) == list:
         # Create a joint builder of all languages
         orig_dataset_to_configs = get_orig_dataset_to_configs()
         external_builder_list = []
@@ -78,11 +78,13 @@ def get_dataset_builder(cur_language, cur_dataset_name, cur_struct_property):
             for config in configs:
                 if config[2]:
                     continue
+                if config[1] not in cur_language:
+                    continue
                 filtered_configs.append(config)
             # Now, create dataset builders
             builder_list = [get_dataset_builder(config[1], config[0], cur_struct_property)
                             for config in filtered_configs]
-            agg_builder = AggregatedDatasetBuilder(config[0], builder_list, cur_struct_property, 1)
+            agg_builder = AggregatedDatasetBuilder(orig_dataset_name, builder_list, cur_struct_property, 1)
             external_builder_list.append(agg_builder)
         builder = ConcatenatedDatasetBuilder(external_builder_list, cur_struct_property, 1)
     else:
@@ -191,7 +193,7 @@ def main(should_write_to_log):
             # Create a joint dataset from all languages
             assert user_defined_language is None
             timestamp, training_set, test_set, model_config = \
-                prepare_train(None, dataset_name, cur_struct_property, should_write_to_log, indent)
+                prepare_train(languages, dataset_name, cur_struct_property, should_write_to_log, indent)
             do_train(training_set, test_set, model_config, timestamp, indent)
         else:
             for cur_language in languages:
