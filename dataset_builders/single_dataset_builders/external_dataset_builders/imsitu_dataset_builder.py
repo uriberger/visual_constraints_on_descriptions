@@ -59,7 +59,12 @@ class ImSituDatasetBuilder(ExternalDatasetBuilder):
         property_parts = self.struct_property.split('_')
         assert len(property_parts) == 3
         slot_name = property_parts[1]
-        assert slot_name in ['agent', 'place']
+        if slot_name == 'agent':
+            slot_list = ['agent', 'agents']
+        elif slot_name == 'place':
+            slot_list = ['place']
+        else:
+            assert False
 
         struct_data = []
         for data_split_str in self.data_split_strs:
@@ -67,15 +72,15 @@ class ImSituDatasetBuilder(ExternalDatasetBuilder):
                 data = json.load(fp)
 
             # For each image annotation, we count how many of the frame slots were left empty
-            struct_data_lists = [
-                [
-                    (self.image_name_to_ind(x[0], verb_to_ind),
-                     int(slot_name not in y or y[slot_name] == ''))
-                    for y in x[1]['frames']
-                ]
-                for x in data.items()
-            ]
-            struct_data += [x for outer in struct_data_lists for x in outer]
+            for image_name, annotation in data.items():
+                image_id = self.image_name_to_ind(image_name, verb_to_ind)
+                for frame in annotation['frames']:
+                    relevant_slots = list(set(slot_list).intersection(frame.keys()))
+                    empty_slots = int(
+                        len(relevant_slots) > 0 and
+                        len([x for x in relevant_slots if frame[x] != '']) == 0
+                    )
+                    struct_data.append((image_id, empty_slots))
 
         return struct_data
 
