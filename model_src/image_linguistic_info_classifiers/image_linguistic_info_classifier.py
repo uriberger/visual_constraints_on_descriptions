@@ -26,8 +26,10 @@ class ImLingInfoClassifier(nn.Module):
 
         if config.struct_property == 'passive':
             self.output_size = 2
-        elif config.struct_property == 'empty_frame_slots_num':
-            self.output_size = 6
+        elif config.struct_property == 'empty_agent_slot':
+            self.output_size = 2
+        elif config.struct_property == 'empty_place_slot':
+            self.output_size = 2
         elif config.struct_property == 'transitivity':
             self.output_size = 2
         elif config.struct_property == 'negation':
