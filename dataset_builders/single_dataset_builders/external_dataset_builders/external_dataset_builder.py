@@ -53,6 +53,7 @@ class ExternalDatasetBuilder(SingleDatasetBuilder):
         self.unwanted_images_info = {
             'grayscale_count': 0,
             'missing_count': 0,
+            '4_dim_count': 0,
             'unwanted_image_ids': []
         }
 
@@ -63,6 +64,7 @@ class ExternalDatasetBuilder(SingleDatasetBuilder):
 
         self.log_print('Out of ' + str(len(image_ids_by_struct_data)) + ' images:')
         self.log_print('Found ' + str(self.unwanted_images_info['grayscale_count']) + ' grayscale images')
+        self.log_print('Found ' + str(self.unwanted_images_info['4_dim_count']) + ' 4-dim images')
         self.log_print(str(self.unwanted_images_info['missing_count']) + ' images were missing')
 
         self.log_print('Finished filtering unwanted images from ' + self.name)
@@ -83,6 +85,10 @@ class ExternalDatasetBuilder(SingleDatasetBuilder):
             # Grayscale images only has 2 dims
             self.unwanted_images_info['unwanted_image_ids'].append(image_id)
             self.unwanted_images_info['grayscale_count'] += 1
+        elif len(image_shape) == 4:
+            # Some images have 4 dims, don't know what to do with those
+            self.unwanted_images_info['unwanted_image_ids'].append(image_id)
+            self.unwanted_images_info['4_dim_count'] += 1
 
     def unwanted_images_progress_report(self, index, dataset_size, time_from_prev):
         self.log_print('Starting image ' + str(index) +
