@@ -17,7 +17,7 @@ import json
 """
 
 
-MULT_FACT = 1000
+VERB_MULT_FACT = 1000
 
 
 class ImSituImagePathFinder(ImagePathFinder):
@@ -30,11 +30,11 @@ class ImSituImagePathFinder(ImagePathFinder):
         ''' There are less than 1000 images for each verb. So if we'll multiply the verb index by 1000, there will be 3
         digits left for the serial number of the image. For example, if the verb index is 35 and the serial number is
         456, the image id will be 35 * 1000 + 456 = 35,456. '''
-        self.mult_fact = MULT_FACT
+        self.verb_mult_fact = VERB_MULT_FACT
 
     def get_image_path(self, image_id):
-        image_serial_num = image_id % self.mult_fact
-        verb_ind = image_id // self.mult_fact
+        image_serial_num = image_id % self.verb_mult_fact
+        verb_ind = image_id // self.verb_mult_fact
         image_file_name = self.ind_to_verb[verb_ind] + '_' + str(image_serial_num) + '.jpg'
         image_file_path = os.path.join(self.images_dir_path, image_file_name)
         return image_file_path
@@ -50,22 +50,32 @@ class ImSituDatasetBuilder(ExternalDatasetBuilder):
 
         self.verb_to_ind_file_path = os.path.join(self.cached_dataset_files_dir, 'imsitu_verb_to_ind')
 
-    def get_struct_data_internal(self):
-        if self.struct_property == 'empty_frame_slots_num':
-            with open(os.path.join(self.root_dir_path, self.data_split_str + '.json')) as fp:
-                data = json.load(fp)
+        self.data_split_strs = ['train', 'dev', 'test']
 
-            verb_to_ind = self.generate_verb_to_ind_mapping()
+    def get_struct_data_internal(self):
+        verb_to_ind = self.generate_verb_to_ind_mapping()
+
+        # Find the name of the empty slot we want
+        property_parts = self.struct_property.split('_')
+        assert len(property_parts) == 3
+        slot_name = property_parts[1]
+        assert slot_name in ['agent', 'place']
+
+        struct_data = []
+        for data_split_str in self.data_split_strs:
+            with open(os.path.join(self.root_dir_path, data_split_str + '.json')) as fp:
+                data = json.load(fp)
 
             # For each image annotation, we count how many of the frame slots were left empty
             struct_data_lists = [
                 [
                     (self.image_name_to_ind(x[0], verb_to_ind),
-                     len([z for z in y.values() if z == ''])) for y in x[1]['frames']
+                     int(slot_name not in y or y[slot_name] == ''))
+                    for y in x[1]['frames']
                 ]
                 for x in data.items()
             ]
-            struct_data = [x for outer in struct_data_lists for x in outer]
+            struct_data += [x for outer in struct_data_lists for x in outer]
 
         return struct_data
 
@@ -73,11 +83,14 @@ class ImSituDatasetBuilder(ExternalDatasetBuilder):
         return generate_dataset(self.verb_to_ind_file_path, self.generate_verb_to_ind_mapping_internal)
 
     def generate_verb_to_ind_mapping_internal(self):
-        with open(os.path.join(self.root_dir_path, self.data_split_str + '.json')) as fp:
-            data = json.load(fp)
+        all_verbs = []
+        for data_split_str in self.data_split_strs:
+            with open(os.path.join(self.root_dir_path, data_split_str + '.json')) as fp:
+                data = json.load(fp)
 
-        all_image_names = list(data.keys())
-        all_verbs = list(set([image_name.split('_')[0] for image_name in all_image_names]))
+            image_names = list(data.keys())
+            all_verbs += list(set([image_name.split('_')[0] for image_name in image_names]))
+        all_verbs = list(set(all_verbs))
         return {all_verbs[i]: i for i in range(len(all_verbs))}
 
     def create_image_path_finder(self):
@@ -90,4 +103,4 @@ class ImSituDatasetBuilder(ExternalDatasetBuilder):
         name_parts = image_name.split('_')
         verb_name = name_parts[0]
         image_serial_num = name_parts[1].split('.')[0]
-        return verb_to_ind[verb_name] * MULT_FACT + int(image_serial_num)
+        return verb_to_ind[verb_name] * VERB_MULT_FACT + int(image_serial_num)
