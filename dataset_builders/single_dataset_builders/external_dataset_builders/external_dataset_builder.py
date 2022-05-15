@@ -85,7 +85,7 @@ class ExternalDatasetBuilder(SingleDatasetBuilder):
             # Grayscale images only has 2 dims
             self.unwanted_images_info['unwanted_image_ids'].append(image_id)
             self.unwanted_images_info['grayscale_count'] += 1
-        elif len(image_shape) == 4:
+        elif image_shape[2] == 4:
             # Some images have 4 dims, don't know what to do with those
             self.unwanted_images_info['unwanted_image_ids'].append(image_id)
             self.unwanted_images_info['4_dim_count'] += 1
