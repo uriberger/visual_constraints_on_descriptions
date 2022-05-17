@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 from matplotlib.lines import Line2D
 
+from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
 from dataset_builders.single_dataset_builders.aggregated_dataset_builder import AggregatedDatasetBuilder
@@ -676,10 +677,15 @@ parser.add_argument('--struct_property', type=str, dest='struct_property',
                     help='the linguistic structural property to be examined')
 parser.add_argument('--language', type=str, dest='language',
                     help='the language to be examined')
+parser.add_argument('--datasets_dir', type=str, default=os.path.join('..', 'datasets'), dest='datasets_dir',
+                    help='the path to the datasets dir')
 args = parser.parse_args()
 utility = args.utility
 user_struct_property = args.struct_property
 user_language = args.language
+datasets_dir = args.datasets_dir
+
+DatasetBuilder.set_datasets_dir(datasets_dir)
 
 if utility == 'print_class_prob_lists':
     print_class_prob_lists(user_struct_property)
