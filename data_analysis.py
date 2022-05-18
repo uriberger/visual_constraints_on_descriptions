@@ -479,8 +479,8 @@ def print_language_agreement(struct_property, with_translated):
 
 def print_language_mean_val(struct_property):
     for language, dataset_name_list, translated in language_dataset_list:
+        struct_datas = []
         for dataset_name in dataset_name_list:
-            struct_datas = []
             builder = get_dataset_builder(language, dataset_name, struct_property, translated)
             struct_datas.append(builder.get_struct_data())
         mean_val = get_mean_val(struct_datas)
