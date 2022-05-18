@@ -105,6 +105,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         caption = sample['caption']
         analyzed_caption = TextUtils.get_nlp(self.language)(caption)
         self.nlp_data.append([{
+            'start': x.idx,
             'pos': x.pos_,
             'dep': x.dep_,
             'lemma': x.lemma_,
@@ -429,8 +430,15 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                                 if [y['lemma'] for y in sample_nlp_data] not in [['un'], ['un', 'sur', 'un']]]
             if self.language == 'German':
                 sample_nlp_data = self.nlp_data[i]
-                numbers_list = [x for x in numbers_list
-                                if [y['lemma'] for y in sample_nlp_data][0] not in ['ein', 'einer', 'einen']]
+                new_numbers_list = []
+                for x in numbers_list:
+                    match_list = [y['lemma'].lower() for y in sample_nlp_data if y['start'] == x.start]
+                    if len(match_list) == 0:
+                        # We know that there might be some tokenization problems
+                        new_numbers_list.append(x)
+                    elif match_list[0] not in ['ein', 'eine', 'einer', 'einen']:
+                        new_numbers_list.append(x)
+                numbers_list = new_numbers_list
             if self.language == 'Chinese':
                 numbers_list = [x for x in numbers_list if x.text != '一']
 
