@@ -1,4 +1,6 @@
 from dataset_builders.single_dataset_builders.single_dataset_builder import SingleDatasetBuilder
+from utils.general_utils import generate_dataset
+import os
 
 
 class AggregatedDatasetBuilder(SingleDatasetBuilder):
@@ -35,3 +37,13 @@ class AggregatedDatasetBuilder(SingleDatasetBuilder):
         for builder in self.builder_list:
             unwanted_image_ids += builder.get_unwanted_image_ids()
         return list(set(unwanted_image_ids))
+
+    # Generates a dataset of image -> list of numerals identified in each captions of this image
+    def generate_numbers_dataset(self):
+        numbers_dataset = []
+        for i in range(len(self.builder_list)):
+            builder = self.builder_list[i]
+            cur_numbers_dataset = builder.generate_numbers_dataset(False)
+            numbers_dataset += cur_numbers_dataset
+
+        return numbers_dataset

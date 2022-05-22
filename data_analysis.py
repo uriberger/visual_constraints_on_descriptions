@@ -246,7 +246,47 @@ def get_extreme_non_agreement_image_ids(struct_data1, struct_data2):
     return extreme_list_high_in_1, extreme_list_high_in_2
 
 
-# Main function
+def get_image_to_numbers_list(numbers_dataset):
+    res = defaultdict(list)
+    for im, lst in numbers_dataset:
+        res[im].append(lst)
+    res = {x[0]: [tuple(sorted(y)) for y in x[1]] for x in res.items()}
+    return res
+
+
+def get_image_to_agree_numbers(image_to_numbers_list):
+    res = {}
+    for im, lst in image_to_numbers_list.items():
+        x = set(lst)
+        if len(x) == 1 or (len(x) == 2 and () in x):
+            res[im] = sorted(lst)[-1]
+    return res
+
+
+def get_intra_agree_inter_non_agree_ids(numbers_dataset1, numbers_dataset2):
+    image_to_numbers_list1 = get_image_to_numbers_list(numbers_dataset1)
+    image_to_numbers_list2 = get_image_to_numbers_list(numbers_dataset2)
+    image_to_agree_numbers1 = get_image_to_agree_numbers(image_to_numbers_list1)
+    image_to_agree_numbers2 = get_image_to_agree_numbers(image_to_numbers_list2)
+    res = [
+        x[0] for x in image_to_agree_numbers2.items()
+        # The image exists in both languages
+        if x[0] in image_to_agree_numbers1 and
+        # 1st language identified numbers
+        image_to_agree_numbers1[x[0]] != () and
+        # 2nd language identified numbers
+        x[1] != () and
+        # In 1st language, at least 2 captions contained numbers
+        len([y for y in image_to_numbers_list1[x[0]] if y == ()]) < 4 and
+        # In 2nd language, at least 2 captions contained numbers
+        len([y for y in image_to_numbers_list2[x[0]] if y == ()]) < 4 and
+        # The languages disagree
+        x[1] != image_to_agree_numbers1[x[0]]
+    ]
+
+    return res
+
+# Main functions
 
 
 def get_english_based_builder_for_config(orig_dataset_name, language, struct_property, translated):
@@ -669,6 +709,34 @@ def print_language_agreement_with_english_and_translated(struct_property, langua
     print('\t' + language + ' and translated ' + language + ' agreement: ' + '{:.4f}'.format(pearson_coef))
 
 
+def print_numbers_intra_agree_inter_non_agree():
+    orig_dataset_to_configs = get_orig_dataset_to_configs()
+
+    for orig_dataset_name, configs in orig_dataset_to_configs.items():
+        print(orig_dataset_name + ':')
+        # First, filter configs if needed
+        filtered_configs = []
+        for config in configs:
+            if config[2]:
+                continue
+            filtered_configs.append(config)
+
+        # Next, generate data per language
+        configs_without_dataset_name = list(set([(config[1], config[2]) for config in filtered_configs]))
+        numbers_datasets = []
+        for language, translated in configs_without_dataset_name:
+            builder = get_english_based_builder_for_config(orig_dataset_name, language, 'numbers', translated)
+            numbers_datasets.append(builder.generate_numbers_dataset())
+
+        # Next, search for cases with intra-language agreement and inter-language non-agreement
+        for i in range(len(configs_without_dataset_name)):
+            for j in range(i + 1, len(configs_without_dataset_name)):
+                lang1 = configs_without_dataset_name[i][0]
+                lang2 = configs_without_dataset_name[j][0]
+                image_ids = get_intra_agree_inter_non_agree_ids(numbers_datasets[i], numbers_datasets[j])
+                print('\t' + lang1 + ' and ' + lang2 + ': ' + str(len(image_ids)))
+
+
 font = {'size': 15}
 rc('font', **font)
 parser = argparse.ArgumentParser(description='Analyze multimodal datasets.')
@@ -708,10 +776,12 @@ elif utility == 'plot_image_histogram':
     plot_image_histogram(user_struct_property)
 elif utility == 'print_language_agreement_with_english_and_translated':
     print_language_agreement_with_english_and_translated(user_struct_property, user_language)
+elif utility == 'print_numbers_intra_agree_inter_non_agree':
+    print_numbers_intra_agree_inter_non_agree()
 else:
     print('Unknown utility ' + utility + '. Please choose from: ' +
           'print_class_prob_lists, plot_bbox_dist_lists, print_language_agreement_with_translated, ' +
           'print_language_agreement, print_language_mean_val, ' +
           'print_consistently_extreme_image_ids_aggregate_per_language, print_consistently_extreme_image_ids, ' +
           'print_extreme_non_agreement_image_ids, plot_image_histogram, ' +
-          'print_language_agreement_with_english_and_translated')
+          'print_language_agreement_with_english_and_translated, print_numbers_intra_agree_inter_non_agree')

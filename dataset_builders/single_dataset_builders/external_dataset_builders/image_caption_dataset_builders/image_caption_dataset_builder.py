@@ -43,6 +43,11 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             f'{name}_{language}_parsed.txt'
         )
 
+        self.non_binarized_numbers_dataset_file_path = os.path.join(
+            self.cached_dataset_files_dir,
+            f'{self.name}_non_binarized_numbers_dataset'
+        )
+
         self.nlp_data = None
 
     """ Return a list of dictionaries with 'image_id' and 'caption' entries. """
@@ -392,7 +397,15 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
     """ Numbers dataset: maps image ids to list of boolean stating whether each caption contains numbers. """
 
-    def generate_numbers_dataset(self):
+    def generate_numbers_dataset(self, binarized):
+        if binarized:
+            return self.generate_numbers_dataset_internal(True)
+        else:
+            return generate_dataset(
+                self.non_binarized_numbers_dataset_file_path, self.generate_numbers_dataset_internal, False
+            )
+
+    def generate_numbers_dataset_internal(self, binarized):
         caption_data = self.get_caption_data()
         numbers_dataset = []
         if self.language == 'English':
@@ -442,7 +455,11 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             if self.language == 'Chinese':
                 numbers_list = [x for x in numbers_list if x.text != '一']
 
-            numbers_dataset.append((image_id, int(len(numbers_list) > 0)))
+            if binarized:
+                numbers_dataset.append((image_id, int(len(numbers_list) > 0)))
+            else:
+                numbers_dataset.append((image_id, [float(x.resolution['value']) for x in numbers_list
+                                                   if ',' not in x.resolution['value']]))
 
         return numbers_dataset
 
@@ -578,7 +595,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         elif self.struct_property == 'negation':
             struct_data = self.generate_negation_dataset()
         elif self.struct_property == 'numbers':
-            struct_data = self.generate_numbers_dataset()
+            struct_data = self.generate_numbers_dataset(True)
         elif self.struct_property == 'root_pos':
             struct_data = self.generate_root_pos_dataset()
         elif self.struct_property == 'spatial_relations':
