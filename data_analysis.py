@@ -1,10 +1,10 @@
 import os
 import argparse
 from collections import defaultdict
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
 from matplotlib.lines import Line2D
+from scipy.stats import pearsonr
 
 from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
@@ -138,10 +138,9 @@ def get_vals_agreement(struct_data1, struct_data2):
     vals1 = [x[1] for x in sorted(list(image_id_to_prob1.items()), key=lambda x: x[0])]
     vals2 = [x[1] for x in sorted(list(image_id_to_prob2.items()), key=lambda x: x[0])]
 
-    np_arr = np.array([vals1, vals2])
-    pearson_corr = np.corrcoef(np_arr)[0, 1]
+    pearson_corr, p_val = pearsonr(vals1, vals2)
 
-    return pearson_corr
+    return pearson_corr, p_val
 
 
 def get_mean_val(struct_datas_list):
@@ -534,8 +533,9 @@ def print_language_agreement(struct_property, with_translated):
                 lang2 = configs_without_dataset_name[j][0]
                 if configs_without_dataset_name[j][1]:
                     lang2 += '_translated'
-                pearson_coef = get_vals_agreement(struct_datas[i], struct_datas[j])
-                print('\t' + lang1 + ' and ' + lang2 + ' agreement: ' + '{:.4f}'.format(pearson_coef))
+                pearson_coef, p_val = get_vals_agreement(struct_datas[i], struct_datas[j])
+                print('\t' + lang1 + ' and ' + lang2 + ' agreement: ' + '{:.4f}'.format(pearson_coef) +
+                      ', p value ' + '{:.6f}'.format(p_val))
 
 
 def print_language_mean_val(struct_property):
@@ -736,10 +736,12 @@ def print_language_agreement_with_english_and_translated(struct_property, langua
         trnld_struct_datas += cur_struct_datas[2]
 
     # Next, calculate agreement
-    pearson_coef = get_vals_agreement(english_struct_datas, trnld_struct_datas)
-    print('\tEnglish and translated ' + language + ' agreement: ' + '{:.4f}'.format(pearson_coef))
-    pearson_coef = get_vals_agreement(non_trnld_struct_data, trnld_struct_datas)
-    print('\t' + language + ' and translated ' + language + ' agreement: ' + '{:.4f}'.format(pearson_coef))
+    pearson_coef, p_val = get_vals_agreement(english_struct_datas, trnld_struct_datas)
+    print('\tEnglish and translated ' + language + ' agreement: ' + '{:.4f}'.format(pearson_coef) +
+          ', p value ' + '{:.6f}'.format(p_val))
+    pearson_coef, p_val = get_vals_agreement(non_trnld_struct_data, trnld_struct_datas)
+    print('\t' + language + ' and translated ' + language + ' agreement: ' + '{:.4f}'.format(pearson_coef) +
+          ', p value ' + '{:.6f}'.format(p_val))
 
 
 def print_numbers_intra_agree_inter_non_agree():
