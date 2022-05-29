@@ -158,7 +158,7 @@ def get_mean_val(struct_datas_list):
         total_sum += sum(image_id_to_prob.values())
         total_count += len(image_id_to_prob)
 
-    return total_sum / total_count
+    return total_count, total_sum / total_count
 
 
 def get_mean_values_across_datasets(struct_datas_list, languages, aggregate_per_language):
@@ -557,8 +557,8 @@ def print_language_mean_val(struct_property):
         language_to_struct_data_list['all'].append(all_languages_builder.get_struct_data())
 
     for language_name, struct_data_list in language_to_struct_data_list.items():
-        mean_val = get_mean_val(struct_data_list)
-        print(language_name + ': ' + '{:.4f}'.format(mean_val))
+        val_count, mean_val = get_mean_val(struct_data_list)
+        print(language_name + ': ' + '{:.4f}'.format(mean_val) + ', ' + str(val_count) + ' samples')
 
 
 def print_consistently_extreme_image_ids(struct_property, aggregate_per_language):
