@@ -323,6 +323,22 @@ def get_bbox_dist_list_for_config(language, struct_property, translated):
     return bbox_count_dist_list
 
 
+def get_bbox_quan_dist_list_for_config(language, struct_property, translated):
+    builder = get_english_based_builder_for_config('COCO', language, struct_property, translated)
+
+    if language == 'English':
+        quan_list = ['some', 'a lot of', 'many', 'lots of', 'a few', 'several', 'a number of']
+
+    caption_datas = [x.get_caption_data() for x in builder.builder_list]
+    caption_data = [x for outer in caption_datas for x in outer]
+    struct_data = [(x['image_id'], int(len([quan for quan in quan_list if quan in x['caption'].lower()]) > 0))
+                   for x in caption_data]
+    gt_bbox_data = builder.get_gt_bboxes_data()
+
+    bbox_count_dist_list = get_bbox_count_dist(struct_data, gt_bbox_data)
+    return bbox_count_dist_list
+
+
 def generate_list_edges_str(input_list, edge_size):
     res = 'High:\n'
     for i in range(edge_size):
@@ -466,14 +482,19 @@ def plot_bbox_dist_lists(struct_property):
         get_bbox_dist_list_for_config('Japanese', struct_property, False)
     chinese_coco_bbox_dist_list = \
         get_bbox_dist_list_for_config('Chinese', struct_property, False)
+    english_coco_bbox_quan_dist_list = \
+        get_bbox_quan_dist_list_for_config('English', struct_property, False)
 
-    plt.plot(english_coco_bbox_dist_list, label='English')
-    plt.plot(japanese_coco_bbox_dist_list, label='Japanese')
-    plt.plot(chinese_coco_bbox_dist_list, label='Chinese')
+    plt.plot(english_coco_bbox_dist_list, label='English numerals')
+    plt.plot(japanese_coco_bbox_dist_list, label='Japanese numerals')
+    plt.plot(chinese_coco_bbox_dist_list, label='Chinese numerals')
+    plt.plot(english_coco_bbox_quan_dist_list, label='English quantifiers', color='purple')
+    plt.xticks([0, 4, 10, 20, 30])
+    plt.axvline(x=4, color='r', linestyle='--')
 
     plt.legend()
     plt.xlabel('Number of bounding boxes')
-    plt.ylabel('Mean ' + struct_property + ' probability')
+    plt.ylabel('Mean expressiveness probability')
     # plt.title('Mean ' + struct_property + ' probability as a function of bbox #')
     plt.show()
 
