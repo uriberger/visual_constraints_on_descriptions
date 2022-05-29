@@ -539,16 +539,26 @@ def print_language_agreement(struct_property, with_translated):
 
 
 def print_language_mean_val(struct_property):
-    for language, dataset_name_list, translated in language_dataset_list:
-        struct_datas = []
-        for dataset_name in dataset_name_list:
-            builder = get_dataset_builder(language, dataset_name, struct_property, translated)
-            struct_datas.append(builder.get_struct_data())
-        mean_val = get_mean_val(struct_datas)
-        language_str = language
-        if translated:
-            language_str += '_translated'
-        print(language_str + ': ' + '{:.4f}'.format(mean_val))
+    orig_dataset_to_configs = get_orig_dataset_to_configs()
+    language_to_struct_data_list = defaultdict(list)
+
+    for orig_dataset_name, configs in orig_dataset_to_configs.items():
+        all_builders_for_orig_dataset = []
+        configs_without_dataset_name = list(set([(config[1], config[2]) for config in configs]))
+        for language, translated in configs_without_dataset_name:
+            builder = get_english_based_builder_for_config(orig_dataset_name, language, struct_property, translated)
+            all_builders_for_orig_dataset.append(builder)
+            language_name = language
+            if translated:
+                language_name += '_translated'
+            language_to_struct_data_list[language_name].append(builder.get_struct_data())
+        all_languages_builder = \
+            AggregatedDatasetBuilder(orig_dataset_name, all_builders_for_orig_dataset, struct_property, 1)
+        language_to_struct_data_list['all'].append(all_languages_builder.get_struct_data())
+
+    for language_name, struct_data_list in language_to_struct_data_list.items():
+        mean_val = get_mean_val(struct_data_list)
+        print(language_name + ': ' + '{:.4f}'.format(mean_val))
 
 
 def print_consistently_extreme_image_ids(struct_property, aggregate_per_language):
