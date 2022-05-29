@@ -546,6 +546,8 @@ def print_language_mean_val(struct_property):
         all_builders_for_orig_dataset = []
         configs_without_dataset_name = list(set([(config[1], config[2]) for config in configs]))
         for language, translated in configs_without_dataset_name:
+            if not is_property_implemented(language, struct_property):
+                continue
             builder = get_english_based_builder_for_config(orig_dataset_name, language, struct_property, translated)
             all_builders_for_orig_dataset.append(builder)
             language_name = language
