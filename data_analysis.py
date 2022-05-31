@@ -327,6 +327,10 @@ def get_bbox_quan_dist_list_for_config(language, struct_property, translated):
 
     if language == 'English':
         quan_list = ['some', 'a lot of', 'many', 'lots of', 'a few', 'several', 'a number of']
+    elif language == 'Chinese':
+        quan_list = ['些', '多']
+    elif language == 'Japanese':
+        quan_list = ['多くの', 'たくさん', 'いくつか']
 
     caption_datas = [x.get_caption_data() for x in builder.builder_list]
     caption_data = [x for outer in caption_datas for x in outer]
@@ -483,11 +487,17 @@ def plot_bbox_dist_lists(struct_property):
         get_bbox_dist_list_for_config('Chinese', struct_property, False)
     english_coco_bbox_quan_dist_list = \
         get_bbox_quan_dist_list_for_config('English', struct_property, False)
+    chinese_coco_bbox_quan_dist_list = \
+        get_bbox_quan_dist_list_for_config('Chinese', struct_property, False)
+    japanese_coco_bbox_quan_dist_list = \
+        get_bbox_quan_dist_list_for_config('Japanese', struct_property, False)
 
-    plt.plot(english_coco_bbox_dist_list, label='English numerals')
-    plt.plot(japanese_coco_bbox_dist_list, label='Japanese numerals')
-    plt.plot(chinese_coco_bbox_dist_list, label='Chinese numerals')
-    plt.plot(english_coco_bbox_quan_dist_list, label='English quantifiers', color='purple')
+    plt.plot(english_coco_bbox_dist_list, label='English numerals', color='blue')
+    plt.plot(japanese_coco_bbox_dist_list, label='Japanese numerals', color='orange')
+    plt.plot(chinese_coco_bbox_dist_list, label='Chinese numerals', color='green')
+    plt.plot(english_coco_bbox_quan_dist_list, label='English quantifiers', color='blue', linestyle='dotted')
+    plt.plot(japanese_coco_bbox_quan_dist_list, label='Japanese quantifiers', color='orange', linestyle='dotted')
+    plt.plot(chinese_coco_bbox_quan_dist_list, label='Chinese quantifiers', color='green', linestyle='dotted')
     plt.xticks([0, 4, 10, 20, 30])
     plt.axvline(x=4, color='r', linestyle='--')
 
