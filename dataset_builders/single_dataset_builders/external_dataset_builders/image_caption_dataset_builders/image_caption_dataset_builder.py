@@ -1,6 +1,7 @@
 from recognizers_number import recognize_number, Culture
 
 import os
+from collections import defaultdict
 import abc
 import jieba
 
@@ -145,7 +146,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     line_parts = line.strip().split('\t')
                     caption_ind = int(line_parts[0]) - 1
                     if caption_ind != prev_caption_ind:
-                        ''' A caption my have multiple lines, but successive. If we found a new caption ind, it means we
+                        ''' A caption may have multiple lines, but successive. If we found a new caption ind, it means we
                          finished the previous caption, and we should store the results. '''
                         if prev_caption_ind is not None:
                             image_id = caption_data[prev_caption_ind]['image_id']
@@ -356,6 +357,10 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             '不', '不是', '不能', '不可以', '没', '没有', '没什么', '从不', '并不', '从没有', '并没有', '无人', '无处', '无', '别',
             '绝不'
         ])
+        chinese_non_negation_words = defaultdict(list, {
+            '别': ['着'],
+            '不': ['小心', '一样']
+        })
         japanese_negation_words = set([
             'ない',  # When it's at the end of the sentence it's negation, otherwise not sure
             'ませ',  # Mase, but I need masen ません
@@ -376,22 +381,26 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             if self.language == 'English':
                 tokenized_caption = TextUtils.tokenize_and_clean(caption, self.language)
                 negation_words_in_caption = english_negation_words.intersection(tokenized_caption)
-                negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
             elif self.language == 'German':
                 sample_nlp_data = self.nlp_data[i]
                 negation_words_in_caption = german_negation_words.intersection([
                     x['lemma'].lower() for x in sample_nlp_data
                 ])
-                negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
             elif self.language == 'Chinese':
                 ''' Jieba is a better tokenizer for Chinese than spaCy. '''
                 tokenized_caption = list(jieba.cut(caption, cut_all=False))
-                negation_words_in_caption = chinese_negation_words.intersection(tokenized_caption)
-                negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
+                negation_words_in_caption = []
+                caption_suffix = caption
+                for token in tokenized_caption:
+                    caption_suffix = caption_suffix[len(token):]
+                    if token in chinese_negation_words:
+                        relevant_non_negation_words = chinese_non_negation_words[token]
+                        if len([x for x in relevant_non_negation_words if caption_suffix.startswith(x)]) == 0:
+                            negation_words_in_caption.append(token)
             elif self.language == 'Japanese':
                 tokenized_caption = TextUtils.tokenize(caption, self.language)
                 negation_words_in_caption = japanese_negation_words.intersection(tokenized_caption)
-                negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
+            negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
 
         return negation_dataset
 
