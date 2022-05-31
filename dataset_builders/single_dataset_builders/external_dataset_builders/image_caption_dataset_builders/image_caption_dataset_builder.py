@@ -187,7 +187,11 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     sample_passive_indicators = passive_indicators.intersection(lemmas)
                     passive_dataset.append((image_id, int(len(sample_passive_indicators) > 0)))
                 elif self.language == 'Chinese':
-                    passive_dataset.append((image_id, int('被' in caption)))
+                    # For Chinese we search for the passive indicator (被). Just need to rule out the cases where
+                    # it's part of another word (被子)
+                    passive_indicator_inds = [i for i in range(len(caption))
+                                              if caption[i] == '被' and (i == len(caption) - 1 or caption[i+1] != '子')]
+                    passive_dataset.append((image_id, int(len(passive_indicator_inds) > 0)))
 
         return passive_dataset
 
