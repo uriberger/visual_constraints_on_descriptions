@@ -271,6 +271,10 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 # We're not interested in non-verb roots
                 continue
 
+            if self.language == 'Chinese' and caption_data[i]['caption'][root['start']] == '有':
+                # 有 is the Chinese 'be' verb. It's a bit complicated so we'll ignore these cases
+                continue
+
             transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data, self.language))))
 
         return transitivity_dataset
