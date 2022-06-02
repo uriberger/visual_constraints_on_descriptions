@@ -5,6 +5,7 @@ cached_dataset_files*
 *~
 venv
 torch_cache
+stanza_cache
 makefile
 *_script
 slurm-*
