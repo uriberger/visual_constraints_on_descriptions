@@ -1,4 +1,5 @@
 from spacy import load
+import stanza
 
 
 nlps = {}
@@ -19,7 +20,8 @@ class TextUtils:
             elif language == 'Japanese':
                 nlps[language] = load('ja_core_news_sm')
             elif language == 'Chinese':
-                nlps[language] = load('zh_core_web_sm')
+                #nlps[language] = load('zh_core_web_sm')
+                nlps[language] = stanza.Pipeline('zh')
             elif language == 'French':
                 nlps[language] = load('fr_core_news_sm')
 
@@ -40,7 +42,8 @@ class TextUtils:
         elif language == 'German':
             direct_object_dep_tag = 'oa'
         elif language == 'Chinese':
-            direct_object_dep_tag = 'dobj'
+            # direct_object_dep_tag = 'dobj'
+            direct_object_dep_tag = 'obj'
         elif language == 'Japanese':
             direct_object_dep_tag = 'obj'
         elif language == 'French':
@@ -78,3 +81,25 @@ class TextUtils:
             if phrase_ind == len(tokenized_phrase):
                 return True
         return False
+
+    @staticmethod
+    def extract_nlp_info(language, analyzed_sentence):
+        if language == 'Chinese':
+            # In Chinese we use Stanza
+            token_list = [x.to_dict() for x in analyzed_sentence.sentences[0].tokens]
+            return [{
+                'start': x['start_char'],
+                'pos': x['xpos'],
+                'dep': x['deprel'],
+                'lemma': x['lemma'],
+                'head_ind': x['head']
+            } for x in token_list]
+        else:
+            # In other language we use spaCy
+            return [{
+                'start': x.idx,
+                'pos': x.pos_,
+                'dep': x.dep_,
+                'lemma': x.lemma_,
+                'head_ind': x.head.i
+            } for x in analyzed_sentence]

@@ -110,13 +110,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
     def collect_nlp_data_from_caption(self, index, sample, should_print):
         caption = sample['caption']
         analyzed_caption = TextUtils.get_nlp(self.language)(caption)
-        self.nlp_data.append([{
-            'start': x.idx,
-            'pos': x.pos_,
-            'dep': x.dep_,
-            'lemma': x.lemma_,
-            'head_ind': x.head.i
-        } for x in analyzed_caption])
+        self.nlp_data.append(TextUtils.extract_nlp_info(self.language, analyzed_caption))
 
     def caption_report(self, index, iterable_size, time_from_prev_checkpoint):
         self.log_print('Starting caption ' + str(index) +
