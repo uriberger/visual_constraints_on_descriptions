@@ -87,6 +87,10 @@ class TextUtils:
         if language == 'Chinese':
             # In Chinese we use Stanza
             token_list = [x.to_dict() for x in analyzed_sentence.sentences[0].tokens]
+            if max([len(x) for x in token_list]) > 1:
+                print('Tokens longer than 1 in sentence: ' + analyzed_sentence.text)
+                assert False
+            token_list = [x[0] for x in token_list]
             return [{
                 'start': x['start_char'],
                 'pos': x['xpos'],
