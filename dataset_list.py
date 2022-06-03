@@ -5,10 +5,11 @@ from collections import defaultdict
 language_dataset_list = [
     ('English', ['COCO', 'flickr30', 'iaprtc12', 'pascal_sentences'], False),
     ('German', ['multi30k', 'iaprtc12'], False),
-    ('Japanese', ['STAIR-captions', 'pascal_jp', 'YJCaptions'], False),
+    ('Japanese', ['STAIR-captions', 'YJCaptions'], False),
     ('Chinese', ['coco-cn', 'flickr8kcn', 'ai_challenger'], False),
     ('German', ['multi30k', 'de_coco'], True),
     ('French', ['multi30k'], True),
+    ('Japanese', ['pascal_jp'], True),
     ('Chinese', ['coco-cn'], True)
 ]
 
