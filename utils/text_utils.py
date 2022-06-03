@@ -96,7 +96,7 @@ class TextUtils:
                 'pos': x['xpos'],
                 'dep': x['deprel'],
                 'lemma': x['lemma'],
-                'head_ind': x['head']
+                'head_ind': x['head'] - 1
             } for x in y] for y in token_lists]
         else:
             # In other language we use spaCy
