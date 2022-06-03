@@ -50,7 +50,7 @@ class TextUtils:
             direct_object_dep_tag = 'obj'
         return len([token for token in analyzed_sentence
                     if token['dep'] == direct_object_dep_tag and
-                    analyzed_sentence[token['head_ind']]['dep'] == 'ROOT']) > 0
+                    analyzed_sentence[token['head_ind']]['dep'].lower() == 'root']) > 0
 
     @staticmethod
     def tokenize(sentence, language):

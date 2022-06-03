@@ -269,7 +269,11 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 continue
 
             root = roots[0]
-            if root['pos'] != 'VERB':
+            if self.language == 'Chinese':
+                verb_pos = 'VV'
+            else:
+                verb_pos = 'VERB'
+            if root['pos'] != verb_pos:
                 # We're not interested in non-verb roots
                 continue
 
