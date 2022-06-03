@@ -86,18 +86,18 @@ class TextUtils:
     def extract_nlp_info(language, analyzed_sentence):
         if language == 'Chinese':
             # In Chinese we use Stanza
-            token_list = [x.to_dict() for x in analyzed_sentence.sentences[0].tokens]
-            if max([len(x) for x in token_list]) > 1:
+            token_lists = [[x.to_dict() for x in y.tokens] for y in analyzed_sentence.sentences]
+            if max([max([len(y) for y in x]) for x in token_lists]) > 1:
                 print('Tokens longer than 1 in sentence: ' + analyzed_sentence.text)
                 assert False
-            token_list = [x[0] for x in token_list]
-            return [{
+            token_lists = [[x[0] for x in y] for y in token_lists]
+            return [[{
                 'start': x['start_char'],
                 'pos': x['xpos'],
                 'dep': x['deprel'],
                 'lemma': x['lemma'],
                 'head_ind': x['head']
-            } for x in token_list]
+            } for x in y] for y in token_lists]
         else:
             # In other language we use spaCy
             return [{

@@ -100,6 +100,9 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         self.nlp_data = []
 
         self.increment_indent()
+        if self.language == 'Chinese':
+            fac = 10
+            caption_data = [caption_data[x:x+fac] for x in range(len(caption_data)//fac)]
         for_loop_with_reports(caption_data, len(caption_data), 10000, self.collect_nlp_data_from_caption,
                               self.caption_report)
         self.decrement_indent()
@@ -108,9 +111,14 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         return self.nlp_data
 
     def collect_nlp_data_from_caption(self, index, sample, should_print):
-        caption = sample['caption']
-        analyzed_caption = TextUtils.get_nlp(self.language)(caption)
-        self.nlp_data.append(TextUtils.extract_nlp_info(self.language, analyzed_caption))
+        if self.language == 'Chinese':
+            captions = '\n\n'.join([x['caption'].replace('\n', '。') for x in sample])
+            analyzed_captions = TextUtils.get_nlp(self.language)(captions)
+            self.nlp_data += TextUtils.extract_nlp_info(self.language, analyzed_captions)
+        else:
+            caption = sample['caption']
+            analyzed_caption = TextUtils.get_nlp(self.language)(caption)
+            self.nlp_data.append(TextUtils.extract_nlp_info(self.language, analyzed_caption))
 
     def caption_report(self, index, iterable_size, time_from_prev_checkpoint):
         self.log_print('Starting caption ' + str(index) +
