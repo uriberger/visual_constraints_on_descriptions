@@ -263,7 +263,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
             nlp_data = self.nlp_data[i]
-            roots = [token for token in nlp_data if token['dep'] == 'ROOT']
+            roots = [token for token in nlp_data if token['dep'].lower() == 'root']
             if len(roots) != 1:
                 # We don't know how to deal with zero or multiple roots, for now
                 continue
@@ -548,7 +548,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
             nlp_data = self.nlp_data[i]
-            roots = [token for token in nlp_data if token['dep'] == 'ROOT']
+            roots = [token for token in nlp_data if token['dep'].lower() == 'root']
             if len(roots) != 1:
                 # We don't know how to deal with zero or multiple roots, for now
                 continue
