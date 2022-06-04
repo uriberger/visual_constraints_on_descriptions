@@ -21,7 +21,7 @@ class TextUtils:
                 nlps[language] = load('ja_core_news_sm')
             elif language == 'Chinese':
                 #nlps[language] = load('zh_core_web_sm')
-                nlps[language] = stanza.Pipeline('zh')
+                nlps[language] = stanza.Pipeline('zh', tokenize_no_ssplit=True)
             elif language == 'French':
                 nlps[language] = load('fr_core_news_sm')
 
