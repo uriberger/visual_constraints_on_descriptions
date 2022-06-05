@@ -92,7 +92,7 @@ class TextUtils:
                 assert False
             token_lists = [[x[0] for x in y] for y in token_lists]
             return [[{
-                'start': x['start_char'],
+                'start': x['start_char'] - y[0]['start_char'],
                 'pos': x['xpos'],
                 'dep': x['deprel'],
                 'lemma': x['lemma'],

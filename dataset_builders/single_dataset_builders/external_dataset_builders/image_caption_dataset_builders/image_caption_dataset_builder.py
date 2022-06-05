@@ -102,7 +102,10 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         self.increment_indent()
         if self.language == 'Chinese':
             self.fac = 10
-            caption_data = [caption_data[x:x+self.fac] for x in range(len(caption_data)//self.fac)]
+            tmp_caption_data = [caption_data[x:x+self.fac] for x in range(len(caption_data)//self.fac)]
+            if len(caption_data) % self.fac != 0:
+                tmp_caption_data += [caption_data[len(tmp_caption_data)*self.fac:]]
+            caption_data = tmp_caption_data
         for_loop_with_reports(caption_data, len(caption_data), 10000, self.collect_nlp_data_from_caption,
                               self.caption_report)
         self.decrement_indent()
@@ -114,7 +117,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         if self.language == 'Chinese':
             captions = '\n\n'.join([x['caption'].replace('\n', '。') for x in sample])
             analyzed_captions = TextUtils.get_nlp(self.language)(captions)
-            if len(analyzed_captions.sentences) != self.fac:
+            if len(analyzed_captions.sentences) != len(sample):
                 print('Wrong number of analyzed sentences in batch ' + str(index))
                 assert False
             self.nlp_data += TextUtils.extract_nlp_info(self.language, analyzed_captions)
