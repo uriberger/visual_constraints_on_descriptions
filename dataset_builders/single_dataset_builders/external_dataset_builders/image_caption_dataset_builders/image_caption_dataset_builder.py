@@ -102,7 +102,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         self.increment_indent()
         if self.language == 'Chinese':
             self.fac = 10
-            tmp_caption_data = [caption_data[x:x+self.fac] for x in range(len(caption_data)//self.fac)]
+            tmp_caption_data = [caption_data[x*self.fac:(x+1)*self.fac] for x in range(len(caption_data)//self.fac)]
             if len(caption_data) % self.fac != 0:
                 tmp_caption_data += [caption_data[len(tmp_caption_data)*self.fac:]]
             caption_data = tmp_caption_data
