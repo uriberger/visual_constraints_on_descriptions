@@ -127,6 +127,20 @@ class SingleDatasetBuilder(DatasetBuilder):
         split_image_ids_dict = {x: True for x in split_image_ids}
         return [x for x in balanced_labeled_data if x[0] in split_image_ids_dict]
 
+    def generate_cross_validation_data(self, split_num):
+        balanced_labeled_data = self.get_balanced_labeled_data()
+        split_size = len(balanced_labeled_data) // split_num
+        self.data_splits = []
+        for cur_split_ind in range(split_num):
+            if cur_split_ind == split_num - 1:
+                self.data_splits.append(balanced_labeled_data)
+            else:
+                cur_data_split = random.sample(balanced_labeled_data, split_size)
+                split_image_ids = [x[0] for x in cur_data_split]
+                split_image_ids_dict = {x: True for x in split_image_ids}
+                balanced_labeled_data = [x for x in balanced_labeled_data if x[0] not in split_image_ids_dict]
+                self.data_splits.append(cur_data_split)
+
     @abc.abstractmethod
     def get_unwanted_image_ids(self):
         return

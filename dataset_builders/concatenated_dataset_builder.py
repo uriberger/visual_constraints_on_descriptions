@@ -125,3 +125,13 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
             labeled_data += [(self.orig_to_new_image_id(x[0], i), x[1]) for x in cur_labeled_data]
 
         return labeled_data
+
+    def generate_cross_validation_data(self, split_num):
+        self.data_splits = []
+        for _ in range(split_num):
+            self.data_splits.append([])
+        for i in range(len(self.builder_list)):
+            builder = self.builder_list[i]
+            builder.generate_cross_validation_data(split_num)
+            for j in range(split_num):
+                self.data_splits[j] += [(self.orig_to_new_image_id(x[0], i), x[1]) for x in builder.data_splits[j]]

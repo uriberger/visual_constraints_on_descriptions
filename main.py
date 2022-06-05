@@ -42,6 +42,8 @@ parser.add_argument('--translated', action='store_true', default=False, dest='tr
                     help='use translated captions')
 parser.add_argument('--multilingual', action='store_true', default=False, dest='multilingual',
                     help='train the classifier on all languages combined')
+parser.add_argument('--cross_validate', action='store_true', default=False, dest='cross_validate',
+                    help='evaluate the model using cross validation')
 parser.add_argument('--delete_model', action='store_true', default=False, dest='delete_model',
                     help='delete the created model at the end of training')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
@@ -61,6 +63,7 @@ classifier_activation_func = args.classifier_activation_func
 use_batch_norm = args.use_batch_norm
 translated = args.translated
 multilingual = args.multilingual
+cross_validate = args.cross_validate
 delete_model = args.delete_model
 dump_captions = args.dump_captions
 
@@ -104,8 +107,8 @@ def get_dataset_builder(cur_language, cur_dataset_name, cur_struct_property):
     return builder
 
 
-def prepare_train(cur_language, cur_dataset_name, cur_struct_property, should_write_to_log, indent):
-    function_name = 'prepare_train'
+def init(cur_language, cur_dataset_name, cur_struct_property, should_write_to_log, indent):
+    function_name = 'init'
     timestamp = init_entry_point(should_write_to_log)
 
     model_config = ModelConfig(
@@ -121,28 +124,38 @@ def prepare_train(cur_language, cur_dataset_name, cur_struct_property, should_wr
 
     log_print(function_name, indent, str(model_config))
     log_print(function_name, indent, f'Dataset: {cur_dataset_name}, language: {cur_language}')
-
-    log_print(function_name, indent, 'Generating datasets...')
     dataset_builder = get_dataset_builder(cur_language, cur_dataset_name, cur_struct_property)
     if dump_captions:
         dataset_builder.dump_captions()
         sys.exit(0)
 
+    return timestamp, dataset_builder, model_config
+
+
+def prepare_train(dataset_builder, split_ind, indent):
+    function_name = 'prepare_train'
+    log_print(function_name, indent, 'Generating datasets...')
+
     # Training set
-    training_set = dataset_builder.build_dataset('train')
+    if cross_validate:
+        training_set = dataset_builder.build_dataset('train', split_ind)
+    else:
+        training_set = dataset_builder.build_dataset('train')
     log_print(function_name, indent, f'Training sample num: {len(training_set)}')
 
     # Test set
-    test_set = dataset_builder.build_dataset('val')
+    if cross_validate:
+        test_set = dataset_builder.build_dataset('val', split_ind)
+    else:
+        test_set = dataset_builder.build_dataset('val')
     log_print(function_name, indent, f'Test sample num: {len(test_set)}')
     log_print(function_name, indent, 'datasets generated')
 
-    return timestamp, training_set, test_set, model_config
+    return training_set, test_set
 
 
 def do_train(training_set, test_set, model_config, timestamp, indent):
     function_name = 'do_train'
-    log_print(function_name, indent, 'Training model...')
     model_root_dir = os.path.join(project_root_dir, timestamp)
     if classifier_name == 'neural':
         trainer = BackpropagationTrainer(model_root_dir, training_set, test_set, 50, model_config, 1)
@@ -163,9 +176,34 @@ def do_train(training_set, test_set, model_config, timestamp, indent):
             os.remove(best_model_path)
 
 
+def main_for_config(cur_language, cur_dataset_name, cur_struct_property, should_write_to_log):
+    indent = 0
+    function_name = 'model_for_config'
+
+    # 1. Get the dataset builder
+    timestamp, dataset_builder, model_config = \
+        init(cur_language, cur_dataset_name, cur_struct_property, should_write_to_log, indent)
+
+    if cross_validate:
+        dataset_builder.generate_cross_validation_data(5)
+        split_num = len(dataset_builder.data_splits)
+    else:
+        split_num = 1
+    for i in range(split_num):
+        log_print(function_name, indent, 'Training model for split ' + str(i) + '...')
+        indent += 1
+
+        # 2. Prepare the training data
+        training_set, test_set = \
+            prepare_train(dataset_builder, i, indent)
+
+        # 3. Run the trainer
+        do_train(training_set, test_set, model_config, timestamp, indent)
+        indent -= 1
+
+
 def main(should_write_to_log):
     function_name = 'main'
-    indent = 0
 
     if dataset_name in translated_only_datasets and (not translated):
         log_print(function_name, 0, f'Dataset {dataset_name} is only translated.'
@@ -192,15 +230,10 @@ def main(should_write_to_log):
         if multilingual:
             # Create a joint dataset from all languages
             assert user_defined_language is None
-            timestamp, training_set, test_set, model_config = \
-                prepare_train(languages, dataset_name, cur_struct_property, should_write_to_log, indent)
-            do_train(training_set, test_set, model_config, timestamp, indent)
+            main_for_config(languages, dataset_name, cur_struct_property, should_write_to_log)
         else:
             for cur_language in languages:
-                timestamp, training_set, test_set, model_config = \
-                    prepare_train(cur_language, dataset_name, cur_struct_property, should_write_to_log, indent)
-
-                do_train(training_set, test_set, model_config, timestamp, indent)
+                main_for_config(cur_language, dataset_name, cur_struct_property, should_write_to_log)
 
 
 main(write_to_log)

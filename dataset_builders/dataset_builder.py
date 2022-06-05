@@ -47,7 +47,7 @@ class DatasetBuilder(LoggableObject):
 
     """ Build the dataset object. """
 
-    def build_dataset(self, data_split_str):
+    def build_dataset(self, data_split_str, cross_validation_ind=-1):
         self.log_print('Generating ' + self.name +
                        ' ' + data_split_str +
                        ' ' + self.struct_property + ' dataset...')
@@ -55,6 +55,8 @@ class DatasetBuilder(LoggableObject):
         self.increment_indent()
         if data_split_str == 'all':
             labeled_data = self.get_labeled_data()
+        elif cross_validation_ind >= 0:
+            labeled_data = self.get_cross_validation_data(data_split_str, cross_validation_ind)
         else:
             labeled_data = self.get_labeled_data_for_split(data_split_str)
         self.decrement_indent()
@@ -72,6 +74,24 @@ class DatasetBuilder(LoggableObject):
     @abc.abstractmethod
     def get_labeled_data_for_split(self, data_split_str):
         return
+
+    """ Create random splits for cross validation. """
+
+    @abc.abstractmethod
+    def generate_cross_validation_data(self, split_num):
+        return
+
+    """ Get cross validation splits; For train, get all splits except split_ind, for val, get only split_ind. """
+
+    def get_cross_validation_data(self, train_or_val, split_ind):
+        if train_or_val == 'val':
+            return self.data_splits[split_ind]
+        else:
+            res = []
+            for cur_split_ind in range(len(self.data_splits)):
+                if cur_split_ind != split_ind:
+                    res += self.data_splits[cur_split_ind]
+            return res
 
     """ Create the ImagePathFinder object for this dataset. """
 
