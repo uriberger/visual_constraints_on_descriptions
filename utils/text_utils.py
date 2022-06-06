@@ -1,4 +1,3 @@
-from spacy import load
 import stanza
 
 
@@ -14,16 +13,15 @@ class TextUtils:
         global nlps
         if language not in nlps:
             if language == 'English':
-                nlps[language] = load('en_core_web_sm')
+                nlps[language] = stanza.Pipeline('en', tokenize_no_ssplit=True)
             elif language == 'German':
-                nlps[language] = load('de_core_news_sm')
+                nlps[language] = stanza.Pipeline('de', tokenize_no_ssplit=True)
             elif language == 'Japanese':
-                nlps[language] = load('ja_core_news_sm')
+                nlps[language] = stanza.Pipeline('de', tokenize_no_ssplit=True)
             elif language == 'Chinese':
-                #nlps[language] = load('zh_core_web_sm')
                 nlps[language] = stanza.Pipeline('zh', tokenize_no_ssplit=True)
             elif language == 'French':
-                nlps[language] = load('fr_core_news_sm')
+                nlps[language] = stanza.Pipeline('ja', tokenize_no_ssplit=True)
 
         return nlps[language]
 
