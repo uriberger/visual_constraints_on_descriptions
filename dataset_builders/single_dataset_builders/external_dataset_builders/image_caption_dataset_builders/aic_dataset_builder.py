@@ -83,6 +83,7 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
                         [[{'image_id': self.file_name_to_image_id(y['image_id']), 'caption': z} for z in y['caption']]
                          for y in all_data]
                         for x in outer]
+        caption_data = [x for x in caption_data if len(x['caption'].strip()) > 0]
         return caption_data
 
     def get_gt_classes_data_internal(self):
