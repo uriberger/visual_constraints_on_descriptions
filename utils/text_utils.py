@@ -34,18 +34,8 @@ class TextUtils:
     """
 
     @staticmethod
-    def is_transitive_sentence(analyzed_sentence, language):
-        if language == 'English':
-            direct_object_dep_tag = 'dobj'
-        elif language == 'German':
-            direct_object_dep_tag = 'oa'
-        elif language == 'Chinese':
-            # direct_object_dep_tag = 'dobj'
-            direct_object_dep_tag = 'obj'
-        elif language == 'Japanese':
-            direct_object_dep_tag = 'obj'
-        elif language == 'French':
-            direct_object_dep_tag = 'obj'
+    def is_transitive_sentence(analyzed_sentence):
+        direct_object_dep_tag = 'obj'
         return len([token for token in analyzed_sentence
                     if token['dep'] == direct_object_dep_tag and
                     analyzed_sentence[token['head_ind']]['dep'].lower() == 'root']) > 0

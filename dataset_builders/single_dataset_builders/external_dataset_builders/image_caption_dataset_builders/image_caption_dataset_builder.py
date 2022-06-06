@@ -97,6 +97,8 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
     def generate_nlp_data_internal(self):
         self.log_print('Generating nlp data...')
         caption_data = self.get_caption_data()
+        #caption_data = caption_data[:400000]
+        caption_data = caption_data[113000:]
         self.nlp_data = []
 
         self.increment_indent()
@@ -105,7 +107,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         if len(caption_data) % self.fac != 0:
             tmp_caption_data += [caption_data[len(tmp_caption_data)*self.fac:]]
         caption_data = tmp_caption_data
-        for_loop_with_reports(caption_data, len(caption_data), 1000, self.collect_nlp_data_from_caption,
+        for_loop_with_reports(caption_data, len(caption_data), 100, self.collect_nlp_data_from_caption,
                               self.caption_report)
         self.decrement_indent()
 
@@ -285,7 +287,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 # The 'be' verb is not really an action, so we filter these cases
                 continue
 
-            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data, self.language))))
+            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data))))
 
         return transitivity_dataset
 
