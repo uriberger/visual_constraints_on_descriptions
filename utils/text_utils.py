@@ -97,13 +97,19 @@ class TextUtils:
 
     @staticmethod
     def extract_nlp_info(language, analyzed_sentence):
-        token_lists = [[x.to_dict() for x in y.tokens] for y in analyzed_sentence.sentences]
-        if max([max([len(y) for y in x]) for x in token_lists]) > 1:
-            print('Tokens longer than 1 in sentence: ' + analyzed_sentence.text)
-            assert False
-        token_lists = [[x[0] for x in y] for y in token_lists]
+        agg_token_lists = [[x.to_dict() for x in y.tokens] for y in analyzed_sentence.sentences]
+        token_lists = []
+        for agg_token_list in agg_token_lists:
+            token_lists.append([])
+            for agg_token in agg_token_list:
+                if len(agg_token) == 1:
+                    token_lists[-1].append(agg_token[0])
+                else:
+                    if language != 'German':
+                        print('Tokens longer than 1 in sentence: ' + analyzed_sentence.text)
+                        assert False
+                    token_lists[-1] += agg_token[1:]
         return [[{
-            'start': x['start_char'] - y[0]['start_char'],
             'pos': x['upos'],
             'dep': x['deprel'],
             'lemma': x['lemma'],
