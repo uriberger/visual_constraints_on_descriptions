@@ -95,9 +95,6 @@ class TextUtils:
                 if len(agg_token) == 1:
                     token_lists[-1].append(agg_token[0])
                 else:
-                    if language != 'German':
-                        print('Tokens longer than 1 in sentence: ' + analyzed_sentence.text)
-                        assert False
                     token_lists[-1] += agg_token[1:]
         return [[{
             'pos': x['upos'],
