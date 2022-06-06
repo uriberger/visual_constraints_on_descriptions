@@ -97,8 +97,6 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
     def generate_nlp_data_internal(self):
         self.log_print('Generating nlp data...')
         caption_data = self.get_caption_data()
-        #caption_data = caption_data[:400000]
-        caption_data = caption_data[113000:]
         self.nlp_data = []
 
         self.increment_indent()
