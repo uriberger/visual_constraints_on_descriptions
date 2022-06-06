@@ -51,6 +51,21 @@ class TextUtils:
                     analyzed_sentence[token['head_ind']]['dep'].lower() == 'root']) > 0
 
     @staticmethod
+    def is_root_be_verb(analyzed_sentence, language):
+        """ Check if the root is the be verb, assuming that there's a single root. """
+        if language == 'English':
+            be_verb = 'be'
+        elif language == 'German':
+            be_verb = 'sein'
+        elif language == 'Chinese':
+            be_verb = '有'
+        elif language == 'Japanese':
+            be_verb = 'ある'
+
+        root = [token for token in analyzed_sentence if token['dep'].lower() == 'root'][0]
+        return root['lemma'].lower() == be_verb
+
+    @staticmethod
     def tokenize(sentence, language):
         """ Tokenize an input sentence. """
         return [str(x) for x in list(TextUtils.get_tokenizer(language)(sentence.lower()))]
@@ -82,26 +97,15 @@ class TextUtils:
 
     @staticmethod
     def extract_nlp_info(language, analyzed_sentence):
-        if language == 'Chinese':
-            # In Chinese we use Stanza
-            token_lists = [[x.to_dict() for x in y.tokens] for y in analyzed_sentence.sentences]
-            if max([max([len(y) for y in x]) for x in token_lists]) > 1:
-                print('Tokens longer than 1 in sentence: ' + analyzed_sentence.text)
-                assert False
-            token_lists = [[x[0] for x in y] for y in token_lists]
-            return [[{
-                'start': x['start_char'] - y[0]['start_char'],
-                'pos': x['xpos'],
-                'dep': x['deprel'],
-                'lemma': x['lemma'],
-                'head_ind': x['head'] - 1
-            } for x in y] for y in token_lists]
-        else:
-            # In other language we use spaCy
-            return [{
-                'start': x.idx,
-                'pos': x.pos_,
-                'dep': x.dep_,
-                'lemma': x.lemma_,
-                'head_ind': x.head.i
-            } for x in analyzed_sentence]
+        token_lists = [[x.to_dict() for x in y.tokens] for y in analyzed_sentence.sentences]
+        if max([max([len(y) for y in x]) for x in token_lists]) > 1:
+            print('Tokens longer than 1 in sentence: ' + analyzed_sentence.text)
+            assert False
+        token_lists = [[x[0] for x in y] for y in token_lists]
+        return [[{
+            'start': x['start_char'] - y[0]['start_char'],
+            'pos': x['upos'],
+            'dep': x['deprel'],
+            'lemma': x['lemma'],
+            'head_ind': x['head'] - 1
+        } for x in y] for y in token_lists]

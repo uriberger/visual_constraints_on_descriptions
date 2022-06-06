@@ -100,13 +100,12 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         self.nlp_data = []
 
         self.increment_indent()
-        if self.language == 'Chinese':
-            self.fac = 10
-            tmp_caption_data = [caption_data[x*self.fac:(x+1)*self.fac] for x in range(len(caption_data)//self.fac)]
-            if len(caption_data) % self.fac != 0:
-                tmp_caption_data += [caption_data[len(tmp_caption_data)*self.fac:]]
-            caption_data = tmp_caption_data
-        for_loop_with_reports(caption_data, len(caption_data), 10000, self.collect_nlp_data_from_caption,
+        self.fac = 10
+        tmp_caption_data = [caption_data[x*self.fac:(x+1)*self.fac] for x in range(len(caption_data)//self.fac)]
+        if len(caption_data) % self.fac != 0:
+            tmp_caption_data += [caption_data[len(tmp_caption_data)*self.fac:]]
+        caption_data = tmp_caption_data
+        for_loop_with_reports(caption_data, len(caption_data), 1000, self.collect_nlp_data_from_caption,
                               self.caption_report)
         self.decrement_indent()
 
@@ -114,17 +113,16 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         return self.nlp_data
 
     def collect_nlp_data_from_caption(self, index, sample, should_print):
-        if self.language == 'Chinese':
-            captions = '\n\n'.join([x['caption'].replace('\n', '。') for x in sample])
-            analyzed_captions = TextUtils.get_nlp(self.language)(captions)
-            if len(analyzed_captions.sentences) != len(sample):
-                print('Wrong number of analyzed sentences in batch ' + str(index))
-                assert False
-            self.nlp_data += TextUtils.extract_nlp_info(self.language, analyzed_captions)
+        if self.language in ['Chinese', 'Japanese']:
+            dot_str = '。'
         else:
-            caption = sample['caption']
-            analyzed_caption = TextUtils.get_nlp(self.language)(caption)
-            self.nlp_data.append(TextUtils.extract_nlp_info(self.language, analyzed_caption))
+            dot_str = '.'
+        captions = '\n\n'.join([x['caption'].replace('\n', dot_str) for x in sample])
+        analyzed_captions = TextUtils.get_nlp(self.language)(captions)
+        if len(analyzed_captions.sentences) != len(sample):
+            print('Wrong number of analyzed sentences in batch ' + str(index))
+            assert False
+        self.nlp_data += TextUtils.extract_nlp_info(self.language, analyzed_captions)
 
     def caption_report(self, index, iterable_size, time_from_prev_checkpoint):
         self.log_print('Starting caption ' + str(index) +
@@ -283,8 +281,8 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 # We're not interested in non-verb roots
                 continue
 
-            if self.language == 'Chinese' and caption_data[i]['caption'][root['start']] == '有':
-                # 有 is the Chinese 'be' verb. It's a bit complicated so we'll ignore these cases
+            if TextUtils.is_root_be_verb(nlp_data, self.language):
+                # The 'be' verb is not really an action, so we filter these cases
                 continue
 
             transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data, self.language))))
@@ -568,6 +566,9 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 val = 0
             elif root['pos'] == 'VERB':
                 val = 1
+                if TextUtils.is_root_be_verb(nlp_data, self.language):
+                    # The 'be' verb is not really an action, so we consider it as a noun root
+                    val = 0
             else:
                 # We're only interested in verb or noun roots
                 continue
