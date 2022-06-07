@@ -3,8 +3,8 @@ from collections import defaultdict
 
 # Language, dataset, translated indicator
 language_dataset_list = [
-    ('English', ['COCO', 'flickr30', 'iaprtc12', 'pascal_sentences'], False),
-    ('German', ['multi30k', 'iaprtc12'], False),
+    ('English', ['COCO', 'flickr30', 'pascal_sentences'], False),
+    ('German', ['multi30k'], False),
     ('Japanese', ['STAIR-captions', 'YJCaptions'], False),
     ('Chinese', ['coco-cn', 'flickr8kcn', 'ai_challenger'], False),
     ('German', ['multi30k', 'de_coco'], True),
