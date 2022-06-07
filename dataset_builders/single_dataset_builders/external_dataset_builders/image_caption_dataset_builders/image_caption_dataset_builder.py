@@ -458,25 +458,8 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 caption = ' '.join([char for char in caption])
 
             numbers_list = recognize_number(caption, culture_language)
-            ''' In French, German and Chinese the words for "one" and "a" are the same.
-            So we don't want to consider those words as numbers. '''
-            if self.language == 'French':
-                sample_nlp_data = self.nlp_data[i]
-                numbers_list = [x for x in numbers_list
-                                if [y['lemma'] for y in sample_nlp_data] not in [['un'], ['un', 'sur', 'un']]]
-            if self.language == 'German':
-                sample_nlp_data = self.nlp_data[i]
-                new_numbers_list = []
-                for x in numbers_list:
-                    match_list = [y['lemma'].lower() for y in sample_nlp_data if y['start'] == x.start]
-                    if len(match_list) == 0:
-                        # We know that there might be some tokenization problems
-                        new_numbers_list.append(x)
-                    elif match_list[0] not in ['ein', 'eine', 'einer', 'einen']:
-                        new_numbers_list.append(x)
-                numbers_list = new_numbers_list
-            if self.language == 'Chinese':
-                numbers_list = [x for x in numbers_list if x.text != '一']
+            ''' Ignore the numeral one. '''
+            numbers_list = [x for x in numbers_list if x.resolution['value'] != '1']
 
             if binarized:
                 numbers_dataset.append((image_id, int(len(numbers_list) > 0)))
