@@ -99,6 +99,6 @@ class TextUtils:
         return [[{
             'pos': x['upos'],
             'dep': x['deprel'],
-            'lemma': x['lemma'],
+            'lemma': x['lemma'] if 'lemma' in x else x['text'],
             'head_ind': x['head'] - 1
         } for x in y] for y in token_lists]
