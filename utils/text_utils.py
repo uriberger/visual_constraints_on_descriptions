@@ -27,7 +27,20 @@ class TextUtils:
 
     @staticmethod
     def get_tokenizer(language):
-        return TextUtils.get_nlp(language).tokenizer
+        global tokenizers
+        if language not in tokenizers:
+            if language == 'English':
+                tokenizers[language] = stanza.Pipeline('en', processors='tokenize', tokenize_no_ssplit=True)
+            elif language == 'German':
+                tokenizers[language] = stanza.Pipeline('de', processors='tokenize', tokenize_no_ssplit=True)
+            elif language == 'Japanese':
+                tokenizers[language] = stanza.Pipeline('de', processors='tokenize', tokenize_no_ssplit=True)
+            elif language == 'Chinese':
+                tokenizers[language] = stanza.Pipeline('zh', processors='tokenize', tokenize_no_ssplit=True)
+            elif language == 'French':
+                tokenizers[language] = stanza.Pipeline('ja', processors='tokenize', tokenize_no_ssplit=True)
+
+        return tokenizers[language]
 
     """ Given a sentence analyze by spaCy, check if its main verb is transitive. This is done by searching if there's a
         token which is a direct object of the root.
@@ -56,9 +69,18 @@ class TextUtils:
         return root['lemma'].lower() == be_verb
 
     @staticmethod
+    def prepare_caption_for_stanza(caption, language):
+        if language in ['Chinese', 'Japanese']:
+            dot_str = '。'
+        else:
+            dot_str = '.'
+        return caption.replace('\n', dot_str + ' ')
+
+    @staticmethod
     def tokenize(sentence, language):
         """ Tokenize an input sentence. """
-        return [str(x) for x in list(TextUtils.get_tokenizer(language)(sentence.lower()))]
+        sentence = TextUtils.prepare_caption_for_stanza(sentence, language)
+        return [x.to_dict()[0]['text'] for x in TextUtils.get_tokenizer(language)(sentence.lower()).sentences[0].tokens]
 
     @staticmethod
     def preprocess_token(token):
@@ -86,7 +108,7 @@ class TextUtils:
         return False
 
     @staticmethod
-    def extract_nlp_info(language, analyzed_sentence):
+    def extract_nlp_info(analyzed_sentence):
         agg_token_lists = [[x.to_dict() for x in y.tokens] for y in analyzed_sentence.sentences]
         token_lists = []
         for agg_token_list in agg_token_lists:

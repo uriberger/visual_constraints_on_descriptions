@@ -113,16 +113,12 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         return self.nlp_data
 
     def collect_nlp_data_from_caption(self, index, sample, should_print):
-        if self.language in ['Chinese', 'Japanese']:
-            dot_str = '。'
-        else:
-            dot_str = '.'
-        captions = '\n\n'.join([x['caption'].replace('\n', dot_str) for x in sample])
+        captions = '\n\n'.join([TextUtils.prepare_caption_for_stanza(x['caption'], self.language) for x in sample])
         analyzed_captions = TextUtils.get_nlp(self.language)(captions)
         if len(analyzed_captions.sentences) != len(sample):
             print('Wrong number of analyzed sentences in batch ' + str(index))
             assert False
-        self.nlp_data += TextUtils.extract_nlp_info(self.language, analyzed_captions)
+        self.nlp_data += TextUtils.extract_nlp_info(analyzed_captions)
 
     def caption_report(self, index, iterable_size, time_from_prev_checkpoint):
         self.log_print('Starting caption ' + str(index) +
