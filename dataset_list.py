@@ -8,7 +8,7 @@ language_dataset_list = [
     ('Japanese', ['STAIR-captions', 'YJCaptions'], False),
     ('Chinese', ['coco-cn', 'flickr8kcn', 'ai_challenger'], False),
     ('German', ['multi30k', 'de_coco'], True),
-    ('French', ['multi30k'], True),
+    # ('French', ['multi30k'], True),
     ('Japanese', ['pascal_jp'], True),
     ('Chinese', ['coco-cn'], True)
 ]
