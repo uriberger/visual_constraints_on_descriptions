@@ -17,11 +17,11 @@ class TextUtils:
             elif language == 'German':
                 nlps[language] = stanza.Pipeline('de', tokenize_no_ssplit=True)
             elif language == 'Japanese':
-                nlps[language] = stanza.Pipeline('de', tokenize_no_ssplit=True)
+                nlps[language] = stanza.Pipeline('ja', tokenize_no_ssplit=True)
             elif language == 'Chinese':
                 nlps[language] = stanza.Pipeline('zh', tokenize_no_ssplit=True)
             elif language == 'French':
-                nlps[language] = stanza.Pipeline('ja', tokenize_no_ssplit=True)
+                nlps[language] = stanza.Pipeline('fr', tokenize_no_ssplit=True)
 
         return nlps[language]
 
