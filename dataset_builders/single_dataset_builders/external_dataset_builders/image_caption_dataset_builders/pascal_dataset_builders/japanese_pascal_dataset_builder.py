@@ -32,7 +32,7 @@ class JapanesePascalDatasetBuilder(EnglishBasedDatasetBuilder):
     def get_caption_data(self):
         ind_to_image_path_mapping = self.get_ind_to_image_path_mapping()
         image_id_captions_pairs = []
-        file_names = os.listdir(self.root_dir_path)
+        file_names = sorted(os.listdir(self.root_dir_path))
         file_names = [file_name for file_name in file_names
                       if file_name not in [self.correspondence_file_name, 'README.txt']]
         class_mapping = self.get_class_mapping()

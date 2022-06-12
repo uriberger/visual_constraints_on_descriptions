@@ -58,11 +58,13 @@ class PascalSentencesDatasetBuilder(ImageCaptionDatasetBuilder):
         caption_data = []
         class_mapping = self.get_class_mapping()
         class_to_ind = {class_mapping[i]: i for i in range(len(class_mapping))}
-        for subdir_name in os.listdir(self.sentences_dir_path):
+        subdir_names = sorted(os.listdir(self.sentences_dir_path))
+        for subdir_name in subdir_names:
             if subdir_name in class_to_ind:
                 subdir_path = os.path.join(self.sentences_dir_path, subdir_name)
                 class_ind = class_to_ind[subdir_name]
-                for file_name in os.listdir(subdir_path):
+                file_names = sorted(os.listdir(subdir_path))
+                for file_name in file_names:
                     image_id = self.caption_file_name_to_image_id(file_name, class_ind)
                     file_path = os.path.join(subdir_path, file_name)
                     with open(file_path, 'r') as fp:

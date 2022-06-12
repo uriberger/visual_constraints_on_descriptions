@@ -130,7 +130,7 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         class_str_to_ind = {}
         found_chains = {x: False for x in chain_list}
         self.log_print('Extracting chain to class mapping...')
-        file_names = os.listdir(self.sentences_dir_path)
+        file_names = sorted(os.listdir(self.sentences_dir_path))
         for file_ind in range(len(file_names)):
             # Extract annotated sentences from file
             filename = file_names[file_ind]
