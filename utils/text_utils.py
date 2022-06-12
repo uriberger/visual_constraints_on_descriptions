@@ -54,8 +54,8 @@ class TextUtils:
                     analyzed_sentence[token['head_ind']]['dep'].lower() == 'root']) > 0
 
     @staticmethod
-    def is_root_be_verb(analyzed_sentence, language):
-        """ Check if the root is the be verb, assuming that there's a single root. """
+    def is_existential_sentence(analyzed_sentence, language):
+        """ Check if the sentence is existential ("There is a..."), assuming that there's a single root. """
         if language == 'English':
             be_verb = 'be'
         elif language == 'German':
@@ -65,8 +65,13 @@ class TextUtils:
         elif language == 'Japanese':
             be_verb = 'ある'
 
-        root = [token for token in analyzed_sentence if token['dep'].lower() == 'root'][0]
-        return root['lemma'].lower() == be_verb
+        if language == 'Japanese':
+            # In Japanese, if the be verb is in the end of the sentence, this is an existential sentence
+            return analyzed_sentence[-1]['lemma'] == be_verb
+        else:
+            # In other languages, check if the root is the be verb
+            root = [token for token in analyzed_sentence if token['dep'].lower() == 'root'][0]
+            return root['lemma'].lower() == be_verb
 
     @staticmethod
     def prepare_caption_for_stanza(caption, language):

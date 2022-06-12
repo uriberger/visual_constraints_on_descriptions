@@ -273,7 +273,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 # We're not interested in non-verb roots
                 continue
 
-            if TextUtils.is_root_be_verb(nlp_data, self.language):
+            if TextUtils.is_existential_sentence(nlp_data, self.language):
                 # The 'be' verb is not really an action, so we filter these cases
                 continue
 
@@ -541,7 +541,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 val = 0
             elif root['pos'] == 'VERB':
                 val = 1
-                if TextUtils.is_root_be_verb(nlp_data, self.language):
+                if TextUtils.is_existential_sentence(nlp_data, self.language):
                     # The 'be' verb is not really an action, so we consider it as a noun root
                     val = 0
             else:
