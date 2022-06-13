@@ -60,7 +60,7 @@ class TextUtils:
                 continue
             if analyzed_sentence[token['head_ind']]['dep'].lower() != 'root':
                 continue
-            if language == 'Chinese' and prev_token == '在':
+            if language == 'Chinese' and prev_token['lemma'] == '在':
                 # We manually fix a Stanza bug
                 continue
             return True
