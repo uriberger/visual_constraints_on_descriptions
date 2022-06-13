@@ -202,7 +202,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
     """
 
     def generate_transitivity_dataset(self):
-        if self.language == 'French' or self.language == 'German':
+        if self.language == 'French':
             transitivity_dataset = self.generate_transitivity_dataset_using_mate()
         else:
             transitivity_dataset = self.generate_transitivity_dataset_using_stanza()
