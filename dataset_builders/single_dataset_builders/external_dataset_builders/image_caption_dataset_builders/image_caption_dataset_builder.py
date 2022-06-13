@@ -202,14 +202,14 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
     """
 
     def generate_transitivity_dataset(self):
-        if self.language == 'French':
-            transitivity_dataset = self.generate_french_transitivity_dataset()
+        if self.language == 'French' or self.language == 'German':
+            transitivity_dataset = self.generate_transitivity_dataset_using_mate()
         else:
-            transitivity_dataset = self.generate_non_french_transitivity_dataset()
+            transitivity_dataset = self.generate_transitivity_dataset_using_stanza()
 
         return transitivity_dataset
 
-    def generate_french_transitivity_dataset(self):
+    def generate_transitivity_dataset_using_mate(self):
         caption_data = self.get_caption_data()
         transitivity_dataset = []
 
@@ -217,6 +217,16 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             self.log_print(f'Couldn\'t find the parsed file in path {self.parsed_file_path}. Stopping!')
             self.log_print('Did you run the parse/parse.sh script?')
             assert False
+
+        if self.language == 'French':
+            direct_obj_dep_tag = 'obj'
+            root_dep_tag = 'root'
+            be_lemma = 'être'
+        elif self.language == 'German':
+            direct_obj_dep_tag = 'OA'
+            root_dep_tag = '--'
+            be_lemma = 'sein'
+
         with open(self.parsed_file_path, 'r', encoding='utf-8') as fp:
             sample_ind = -1
             new_sentence = True
@@ -231,30 +241,32 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     # Finished current caption
                     if root_ind >= 0:
                         # If we're here there's exactly one root
-                        is_transitive = root_ind in obj_token_heads
+                        is_transitive = root_ind in obj_token_heads and root_lemma != be_lemma
                         transitivity_dataset.append((image_id, int(is_transitive)))
                     new_sentence = True
                 else:
                     split_line = line.split('\t')
                     cur_token_ind = int(split_line[0])
+                    cur_token_lemma = split_line[3].lower()
                     pos_tag = split_line[5]
                     head_ind = int(split_line[9])
                     dep_tag = split_line[11]
                     # Check if current token is the root and is a verb
-                    if dep_tag == 'root' and pos_tag.startswith('V'):
+                    if dep_tag == root_dep_tag and pos_tag.startswith('V'):
                         if root_ind == -1:
                             # This is the first root we found
                             root_ind = cur_token_ind
+                            root_lemma = cur_token_lemma
                         elif root_ind >= 0:
                             # This is the second root we found: we don't know how to handle these sentences
                             root_ind == -2
-                    elif dep_tag == 'obj':
+                    elif dep_tag == direct_obj_dep_tag:
                         obj_token_heads.append(head_ind)
             assert sample_ind == len(caption_data) - 1
 
         return transitivity_dataset
 
-    def generate_non_french_transitivity_dataset(self):
+    def generate_transitivity_dataset_using_stanza(self):
         caption_data = self.get_caption_data()
         transitivity_dataset = []
 
