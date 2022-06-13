@@ -5,11 +5,11 @@ from collections import defaultdict
 language_dataset_list = [
     ('English', ['COCO', 'flickr30', 'pascal_sentences'], False),
     ('German', ['multi30k'], False),
-    ('Japanese', ['STAIR-captions', 'YJCaptions'], False),
+    # ('Japanese', ['STAIR-captions', 'YJCaptions'], False),
     ('Chinese', ['coco-cn', 'flickr8kcn', 'ai_challenger'], False),
     ('German', ['multi30k', 'de_coco'], True),
     # ('French', ['multi30k'], True),
-    ('Japanese', ['pascal_jp'], True),
+    # ('Japanese', ['pascal_jp'], True),
     ('Chinese', ['coco-cn'], True)
 ]
 
@@ -23,12 +23,12 @@ multilingual_dataset_name_to_original_dataset_name = {
     'multi30k': 'flickr30',
     'flickr8kcn': 'flickr30',
     'flickr30': 'flickr30',
-    'STAIR-captions': 'COCO',
-    'YJCaptions': 'COCO',
+    # 'STAIR-captions': 'COCO',
+    # 'YJCaptions': 'COCO',
     'de_coco': 'COCO',
     'coco-cn': 'COCO',
     'COCO': 'COCO',
-    'pascal_jp': 'pascal_sentences',
+    # 'pascal_jp': 'pascal_sentences',
     'pascal_sentences': 'pascal_sentences',
     'ai_challenger': 'ai_challenger'
 }
