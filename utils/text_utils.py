@@ -47,11 +47,24 @@ class TextUtils:
     """
 
     @staticmethod
-    def is_transitive_sentence(analyzed_sentence):
+    def is_transitive_sentence(analyzed_sentence, language):
         direct_object_dep_tag = 'obj'
-        return len([token for token in analyzed_sentence
-                    if token['dep'] == direct_object_dep_tag and
-                    analyzed_sentence[token['head_ind']]['dep'].lower() == 'root']) > 0
+
+        for i in range(len(analyzed_sentence)):
+            token = analyzed_sentence[i]
+            if i == 0:
+                prev_token = ''
+            else:
+                prev_token = analyzed_sentence[i-1]
+            if token['dep'] != direct_object_dep_tag:
+                continue
+            if analyzed_sentence[token['head_ind']]['dep'].lower() != 'root':
+                continue
+            if language == 'Chinese' and prev_token == '在':
+                # We manually fix a Stanza bug
+                continue
+            return True
+        return False
 
     @staticmethod
     def is_existential_sentence(analyzed_sentence, language):
