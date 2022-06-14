@@ -1,5 +1,4 @@
 import stanza
-from collections import defaultdict
 
 
 nlps = {}
