@@ -56,7 +56,10 @@ class TextUtils:
             if token['dep'] == direct_object_dep_tag
             and analyzed_sentence[token['head_ind']]['dep'].lower() == 'root'
             # We manually fix a Stanza bug
-            and (language != 'Chinese' or analyzed_sentence[token['head_ind'] + 1]['lemma'] != '在')
+            and (language != 'Chinese' or (
+                    analyzed_sentence[token['head_ind'] + 1]['lemma'] != '在' and
+                    analyzed_sentence[token['head_ind']]['lemma'] != '在'
+            ))
         ]) > 0
 
     @staticmethod
