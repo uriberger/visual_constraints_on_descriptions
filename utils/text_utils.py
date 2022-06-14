@@ -48,34 +48,16 @@ class TextUtils:
     """
 
     @staticmethod
-    def first_ind_in_subtree(node_to_children, root_ind):
-        children_list = node_to_children[root_ind]
-        if len(children_list) == 0:
-            return root_ind
-        else:
-            return min([root_ind] + [TextUtils.first_ind_in_subtree(node_to_children, x) for x in children_list])
-
-    @staticmethod
     def is_transitive_sentence(analyzed_sentence, language):
         direct_object_dep_tag = 'obj'
-        if language == 'Chinese':
-            node_to_children = defaultdict(list)
 
-        for i in range(len(analyzed_sentence)):
-            token = analyzed_sentence[i]
-            if language == 'Chinese':
-                node_to_children[token['head_ind']].append(i)
-            if token['dep'] != direct_object_dep_tag:
-                continue
-            if analyzed_sentence[token['head_ind']]['dep'].lower() != 'root':
-                continue
-            if language == 'Chinese':
-                # We manually fix a Stanza bug
-                prev_non_subtree_ind = TextUtils.first_ind_in_subtree(node_to_children, i) - 1
-                if analyzed_sentence[prev_non_subtree_ind]['lemma'] == '在':
-                    continue
-            return True
-        return False
+        return len([
+            token for token in analyzed_sentence
+            if token['dep'] == direct_object_dep_tag
+            and analyzed_sentence[token['head_ind']]['dep'].lower() == 'root'
+            # We manually fix a Stanza bug
+            and (language != 'Chinese' or analyzed_sentence[token['head_ind'] + 1]['lemma'] != '在')
+        ]) > 0
 
     @staticmethod
     def is_existential_sentence(analyzed_sentence, language):
