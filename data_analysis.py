@@ -357,7 +357,7 @@ def generate_list_edges_str(input_list, edge_size):
     return res
 
 
-def plot_lists_edges(language_data_list, edge_size):
+def plot_lists_edges(language_data_list, edge_size, with_japanese):
     x_vals = [x for x in range(len(language_data_list))]
     x_labels = ['            ' + x[0] for x in language_data_list]
     high_vals = []
@@ -377,66 +377,133 @@ def plot_lists_edges(language_data_list, edge_size):
     ax.scatter([x[0] for x in high_vals], [x[1] for x in high_vals], c='r')
     ax.scatter([x[0] for x in low_vals], [x[1] for x in low_vals], c='b')
     i = 0
-    for val in vals:
-        y_val = val[1]
-        # if i == 1:
-        #     y_val -= 0.01
-        # elif i == 4:
-        #     y_val -= 0.02
-        # elif i == 5:
-        #     y_val += 0.01
-        # elif i == 6:
-        #     y_val -= 0.01
-        # elif i == 7:
-        #     y_val -= 0.03
-        # elif i == 8:
-        #     y_val -= 0.05
-        # elif i == 9:
-        #     y_val -= 0.07
-        # elif i == 11:
-        #     y_val -= 0.01
-        # elif i == 13:
-        #     y_val -= 0.015
-        # elif i == 15:
-        #     y_val += 0.01
-        # elif i == 16:
-        #     y_val -= 0.01
-        # elif i == 17:
-        #     y_val -= 0.03
-        # elif i == 18:
-        #     y_val -= 0.05
-        # elif i == 19:
-        #     y_val -= 0.06
-        # elif i == 20:
-        #     y_val += 0.01
-        # elif i == 22:
-        #     y_val -= 0.01
-        # elif i == 23:
-        #     y_val -= 0.02
-        # elif i == 24:
-        #     y_val -= 0.025
-        # elif i == 25:
-        #     y_val += 0.025
-        # elif i == 26:
-        #     y_val += 0.01
-        # elif i == 27:
-        #     y_val -= 0.015
-        # elif i == 28:
-        #     y_val += 0.003
-        # elif i == 29:
-        #     y_val -= 0.022
+    if with_japanese:
+        for val in vals:
+            y_val = val[1]
+            # if i == 0:
+            #     y_val -= 0.005
+            # if i == 1:
+            #     y_val -= 0.01
+            # elif i == 2:
+            #     y_val += 0.01
+            # elif i == 3:
+            #     y_val -= 0.01
+            # elif i == 4:
+            #     y_val -= 0.025
+            # elif i == 5:
+            #     y_val += 0.02
+            # elif i == 7:
+            #     y_val -= 0.02
+            # elif i == 8:
+            #     y_val -= 0.04
+            # elif i == 9:
+            #     y_val -= 0.055
+            # elif i == 11:
+            #     y_val -= 0.01
+            # elif i == 12:
+            #     y_val -= 0.03
+            # elif i == 13:
+            #     y_val -= 0.01
+            # elif i == 14:
+            #     y_val -= 0.015
+            # elif i == 15:
+            #     y_val += 0.01
+            # elif i == 16:
+            #     y_val -= 0.01
+            # elif i == 17:
+            #     y_val -= 0.03
+            # elif i == 18:
+            #     y_val -= 0.04
+            # elif i == 19:
+            #     y_val -= 0.05
+            # elif i == 20:
+            #     y_val -= 0.01
+            # elif i == 21:
+            #     y_val -= 0.01
+            # elif i == 22:
+            #     y_val -= 0.005
+            # elif i == 23:
+            #     y_val -= 0.01
+            # elif i == 24:
+            #     y_val -= 0.025
+            # elif i == 25:
+            #     y_val += 0.025
+            # elif i == 26:
+            #     y_val += 0.005
+            # elif i == 27:
+            #     y_val -= 0.015
+            # elif i == 28:
+            #     y_val -= 0.035
+            # elif i == 29:
+            #     y_val -= 0.04
 
-        if i % 10 < 5:
-            color = 'r'
-        else:
-            color = 'b'
-        ax.annotate(val[2], (val[0] + 0.035, y_val), c=color)
-        i += 1
+            if i % 10 < 5:
+                color = 'r'
+            else:
+                color = 'b'
+            ax.annotate(val[2], (val[0] + 0.035, y_val), c=color)
+            i += 1
+    else:
+        for val in vals:
+            y_val = val[1]
+            # if i == 0:
+            #     y_val -= 0.003
+            # if i == 1:
+            #     y_val -= 0.01
+            # elif i == 2:
+            #     y_val += 0.01
+            # elif i == 3:
+            #     y_val -= 0.01
+            # elif i == 4:
+            #     y_val -= 0.03
+            # elif i == 5:
+            #     y_val += 0.015
+            # elif i == 6:
+            #     y_val -= 0.005
+            # elif i == 7:
+            #     y_val -= 0.025
+            # elif i == 8:
+            #     y_val -= 0.045
+            # elif i == 9:
+            #     y_val -= 0.055
+            # elif i == 10:
+            #     y_val -= 0.005
+            # elif i == 11:
+            #     y_val -= 0.01
+            # elif i == 12:
+            #     y_val -= 0.025
+            # elif i == 13:
+            #     y_val -= 0.005
+            # elif i == 14:
+            #     y_val -= 0.005
+            # elif i == 15:
+            #     y_val += 0.02
+            # elif i == 16:
+            #     y_val += 0.00
+            # elif i == 17:
+            #     y_val -= 0.015
+            # elif i == 18:
+            #     y_val -= 0.02
+            # elif i == 19:
+            #     y_val -= 0.025
+
+            if i % 10 < 5:
+                color = 'r'
+            else:
+                color = 'b'
+            ax.annotate(val[2], (val[0] + 0.035, y_val), c=color)
+            i += 1
     ax.set_xticks(x_vals)
     ax.set_xticklabels(x_labels)
     ax.tick_params(axis='x', which='both', length=0)
-    cur_lims = plt.xlim()
-    plt.xlim([cur_lims[0], cur_lims[1] + 1])
+    cur_xlims = plt.xlim()
+    cur_ylims = plt.ylim()
+    if with_japanese:
+        plt.xlim([cur_xlims[0], cur_xlims[1] + 1])
+        plt.ylim([cur_ylims[0] - 0.08, cur_ylims[1] + 0.05])
+    else:
+        plt.xlim([cur_xlims[0], cur_xlims[1] + 0.5])
+        plt.ylim([cur_ylims[0] - 0.05, cur_ylims[1] + 0.05])
 
     legend_elements = [Line2D([0], [0], marker='o', color='w', label='High',
                               markerfacecolor='r', markersize=15),
@@ -444,32 +511,34 @@ def plot_lists_edges(language_data_list, edge_size):
                               markerfacecolor='b', markersize=15)]
 
     ax.legend(handles=legend_elements, loc='upper left')
-    ax.set_ylabel('Mean Usage of Numerals Probability')
+    ax.set_ylabel('Mean Numerals Expression Probability')
 
     plt.show()
 
 
 def print_class_prob_lists(struct_property):
+    with_japanese = True
     english_coco_class_prob_list = \
         get_class_prob_list_for_config('English', struct_property, False)
-    japanese_coco_class_prob_list = \
-        get_class_prob_list_for_config('Japanese', struct_property, False)
     chinese_coco_class_prob_list = \
         get_class_prob_list_for_config('Chinese', struct_property, False)
     translated_chinese_coco_class_prob_list = \
         get_class_prob_list_for_config('Chinese', struct_property, True)
     translated_german_coco_class_prob_list = \
         get_class_prob_list_for_config('German', struct_property, True)
+    if with_japanese:
+        japanese_coco_class_prob_list = \
+            get_class_prob_list_for_config('Japanese', struct_property, False)
 
+    plot_list = [('English', english_coco_class_prob_list), ('Chinese', chinese_coco_class_prob_list)]
+    if with_japanese:
+        plot_list.append(('Japanese', japanese_coco_class_prob_list))
+    plot_lists_edges(plot_list, 5, with_japanese)
     print('English coco class prob list:')
     print(generate_list_edges_str(english_coco_class_prob_list, 5))
-    plot_lists_edges(
-        [('English', english_coco_class_prob_list),
-         ('Japanese', japanese_coco_class_prob_list),
-         ('Chinese', chinese_coco_class_prob_list)],
-        5)
-    print('\nJapanese coco class prob list:')
-    print(generate_list_edges_str(japanese_coco_class_prob_list, 5))
+    if with_japanese:
+        print('\nJapanese coco class prob list:')
+        print(generate_list_edges_str(japanese_coco_class_prob_list, 5))
     print('\nChinese coco class prob list:')
     print(generate_list_edges_str(chinese_coco_class_prob_list, 5))
     print('\nTranslated Chinese coco class prob list:')
@@ -479,31 +548,35 @@ def print_class_prob_lists(struct_property):
 
 
 def plot_bbox_dist_lists(struct_property):
+    with_japanese = True
+
     english_coco_bbox_dist_list = \
         get_bbox_dist_list_for_config('English', struct_property, False)
-    japanese_coco_bbox_dist_list = \
-        get_bbox_dist_list_for_config('Japanese', struct_property, False)
     chinese_coco_bbox_dist_list = \
         get_bbox_dist_list_for_config('Chinese', struct_property, False)
     english_coco_bbox_quan_dist_list = \
         get_bbox_quan_dist_list_for_config('English', struct_property, False)
     chinese_coco_bbox_quan_dist_list = \
         get_bbox_quan_dist_list_for_config('Chinese', struct_property, False)
-    japanese_coco_bbox_quan_dist_list = \
-        get_bbox_quan_dist_list_for_config('Japanese', struct_property, False)
+    if with_japanese:
+        japanese_coco_bbox_dist_list = \
+            get_bbox_dist_list_for_config('Japanese', struct_property, False)
+        japanese_coco_bbox_quan_dist_list = \
+            get_bbox_quan_dist_list_for_config('Japanese', struct_property, False)
 
     plt.plot(english_coco_bbox_dist_list, label='English numerals', color='blue')
-    plt.plot(japanese_coco_bbox_dist_list, label='Japanese numerals', color='orange')
-    plt.plot(chinese_coco_bbox_dist_list, label='Chinese numerals', color='green')
+    plt.plot(chinese_coco_bbox_dist_list, label='Chinese numerals', color='orange')
     plt.plot(english_coco_bbox_quan_dist_list, label='English quantifiers', color='blue', linestyle='dotted')
-    plt.plot(japanese_coco_bbox_quan_dist_list, label='Japanese quantifiers', color='orange', linestyle='dotted')
-    plt.plot(chinese_coco_bbox_quan_dist_list, label='Chinese quantifiers', color='green', linestyle='dotted')
+    plt.plot(chinese_coco_bbox_quan_dist_list, label='Chinese quantifiers', color='orange', linestyle='dotted')
+    if with_japanese:
+        plt.plot(japanese_coco_bbox_dist_list, label='Japanese numerals', color='green')
+        plt.plot(japanese_coco_bbox_quan_dist_list, label='Japanese quantifiers', color='green', linestyle='dotted')
     plt.xticks([0, 4, 10, 20, 30])
     plt.axvline(x=4, color='r', linestyle='--')
 
     plt.legend()
     plt.xlabel('Number of bounding boxes')
-    plt.ylabel('Mean expressiveness probability')
+    plt.ylabel('Mean Numerals Expression Probability')
     # plt.title('Mean ' + struct_property + ' probability as a function of bbox #')
     plt.show()
 
