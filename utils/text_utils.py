@@ -56,7 +56,7 @@ class TextUtils:
             return len([
                 token for token in analyzed_sentence
                 if analyzed_sentence[token['head_ind']]['dep'].lower() == 'root' and
-                token['pos'] == 'ADV' and token['xpos'] == 'PTKVZ'
+                token['xpos'] == 'PTKVZ'
             ]) > 0
 
     @staticmethod
