@@ -152,7 +152,7 @@ def get_image_id_to_prob(struct_data):
 
 
 def is_property_implemented(language, struct_property):
-    if struct_property in ['negation', 'passive'] and language == 'Japanese':
+    if struct_property in ['negation', 'passive', 'root_pos', 'transitivity'] and language == 'Japanese':
         return False
     else:
         return True
