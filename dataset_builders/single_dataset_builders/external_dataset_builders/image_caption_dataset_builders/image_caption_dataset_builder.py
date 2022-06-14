@@ -289,7 +289,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 # The 'be' verb is not really an action, so we filter these cases
                 continue
 
-            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data))))
+            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data, self.language))))
 
         return transitivity_dataset
 
