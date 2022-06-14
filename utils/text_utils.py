@@ -47,6 +47,19 @@ class TextUtils:
     """
 
     @staticmethod
+    def transitive_exception(analyzed_sentence, language):
+        """ Check for exceptions which seems transitive but are not. """
+        if language == 'Chinese':
+            root_ind = [i for i in range(len(analyzed_sentence)) if analyzed_sentence[i]['dep'].lower() == 'root'][0]
+            return analyzed_sentence[root_ind + 1]['lemma'] == '在' or analyzed_sentence[root_ind]['lemma'] != '在'
+        if language == 'German':
+            return len([
+                token for token in analyzed_sentence
+                if analyzed_sentence[token['head_ind']]['dep'].lower() == 'root' and
+                token['pos'] == 'ADV' and token['xpos'] == 'PTKVZ'
+            ]) > 0
+
+    @staticmethod
     def is_transitive_sentence(analyzed_sentence, language):
         direct_object_dep_tag = 'obj'
 
@@ -55,10 +68,7 @@ class TextUtils:
             if token['dep'] == direct_object_dep_tag
             and analyzed_sentence[token['head_ind']]['dep'].lower() == 'root'
             # We manually fix a Stanza bug
-            and (language != 'Chinese' or (
-                    analyzed_sentence[token['head_ind'] + 1]['lemma'] != '在' and
-                    analyzed_sentence[token['head_ind']]['lemma'] != '在'
-            ))
+            and (not TextUtils.transitive_exception(analyzed_sentence, language))
         ]) > 0
 
     @staticmethod
@@ -133,6 +143,7 @@ class TextUtils:
                     token_lists[-1] += agg_token[1:]
         return [[{
             'pos': x['upos'],
+            'xpos': x['xpos'] if 'xpos' in x else x['upos'],
             'dep': x['deprel'],
             'lemma': x['lemma'] if 'lemma' in x else x['text'],
             'head_ind': x['head'] - 1
