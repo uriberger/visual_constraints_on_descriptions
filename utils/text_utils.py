@@ -51,7 +51,7 @@ class TextUtils:
         """ Check for exceptions which seems transitive but are not. """
         if language == 'Chinese':
             root_ind = [i for i in range(len(analyzed_sentence)) if analyzed_sentence[i]['dep'].lower() == 'root'][0]
-            return analyzed_sentence[root_ind + 1]['lemma'] == '在' or analyzed_sentence[root_ind]['lemma'] != '在'
+            return analyzed_sentence[root_ind + 1]['lemma'] == '在' or analyzed_sentence[root_ind]['lemma'] == '在'
         if language == 'German':
             return len([
                 token for token in analyzed_sentence
