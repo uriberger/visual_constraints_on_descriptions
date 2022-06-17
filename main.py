@@ -84,6 +84,8 @@ def get_dataset_builder(cur_language, cur_dataset_name, cur_struct_property):
                 if config[1] not in cur_language:
                     continue
                 filtered_configs.append(config)
+            if len(filtered_configs) == 0:
+                continue
             # Now, create dataset builders
             builder_list = [get_dataset_builder(config[1], config[0], cur_struct_property)
                             for config in filtered_configs]
