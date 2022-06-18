@@ -170,10 +170,16 @@ def get_mean_agreement(struct_datas_list):
     total_count = 0
     for struct_data in struct_datas_list:
         image_id_to_prob = get_image_id_to_prob(struct_data)
+        image_id_to_count, _ = get_image_id_to_count(struct_data)
+        image_id_to_prob = {x[0]: x[1] for x in image_id_to_prob.items() if image_id_to_count[x[0]] > 1}
         total_sum += sum([2*abs(x-0.5) for x in image_id_to_prob.values()])
         total_count += len(image_id_to_prob)
 
-    return total_count, total_sum / total_count
+    if total_count == 0:
+        average = 0
+    else:
+        average = total_sum/total_count
+    return total_count, average
 
 
 def get_mean_values_across_datasets(struct_datas_list, languages, aggregate_per_language):
