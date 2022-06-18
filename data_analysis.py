@@ -27,6 +27,11 @@ def get_class_to_image_list(gt_class_data):
         unique_gt_class_list = list(set(gt_class_list))
         for gt_class in unique_gt_class_list:
             class_to_image_list[gt_class].append(image_id)
+        # gt_class_count = defaultdict(int)
+        # for gt_class in gt_class_list:
+        #     gt_class_count[gt_class] += 1
+        #     if gt_class_count[gt_class] == 2:
+        #         class_to_image_list[gt_class].append(image_id)
     return class_to_image_list
 
 
@@ -155,6 +160,17 @@ def get_mean_val(struct_datas_list):
     for struct_data in struct_datas_list:
         image_id_to_prob = get_image_id_to_prob(struct_data)
         total_sum += sum(image_id_to_prob.values())
+        total_count += len(image_id_to_prob)
+
+    return total_count, total_sum / total_count
+
+
+def get_mean_agreement(struct_datas_list):
+    total_sum = 0
+    total_count = 0
+    for struct_data in struct_datas_list:
+        image_id_to_prob = get_image_id_to_prob(struct_data)
+        total_sum += sum([2*abs(x-0.5) for x in image_id_to_prob.values()])
         total_count += len(image_id_to_prob)
 
     return total_count, total_sum / total_count
@@ -358,7 +374,7 @@ def generate_list_edges_str(input_list, edge_size):
 
 
 def plot_lists_edges(language_data_list, edge_size, with_japanese):
-    x_vals = [x for x in range(len(language_data_list))]
+    x_vals = [x + 0.15 for x in range(len(language_data_list))]
     x_labels = ['            ' + x[0] for x in language_data_list]
     high_vals = []
     low_vals = []
@@ -380,62 +396,66 @@ def plot_lists_edges(language_data_list, edge_size, with_japanese):
     if with_japanese:
         for val in vals:
             y_val = val[1]
-            # if i == 0:
-            #     y_val -= 0.005
-            # if i == 1:
-            #     y_val -= 0.01
-            # elif i == 2:
-            #     y_val += 0.01
-            # elif i == 3:
-            #     y_val -= 0.01
-            # elif i == 4:
-            #     y_val -= 0.025
-            # elif i == 5:
-            #     y_val += 0.02
-            # elif i == 7:
-            #     y_val -= 0.02
-            # elif i == 8:
-            #     y_val -= 0.04
-            # elif i == 9:
-            #     y_val -= 0.055
+            if i == 0:
+                y_val -= 0.01
+            if i == 1:
+                y_val += 0.005
+            elif i == 2:
+                y_val -= 0.005
+            elif i == 3:
+                y_val -= 0.02
+            elif i == 4:
+                y_val -= 0.05
+            elif i == 5:
+                y_val += 0.06
+            elif i == 6:
+                y_val += 0.025
+            elif i == 7:
+                y_val -= 0.01
+            elif i == 8:
+                y_val -= 0.045
+            elif i == 9:
+                y_val -= 0.08
+            elif i == 10:
+                y_val -= 0.01
             # elif i == 11:
             #     y_val -= 0.01
             # elif i == 12:
             #     y_val -= 0.03
-            # elif i == 13:
-            #     y_val -= 0.01
-            # elif i == 14:
-            #     y_val -= 0.015
-            # elif i == 15:
-            #     y_val += 0.01
-            # elif i == 16:
-            #     y_val -= 0.01
-            # elif i == 17:
-            #     y_val -= 0.03
-            # elif i == 18:
-            #     y_val -= 0.04
-            # elif i == 19:
-            #     y_val -= 0.05
+            elif i == 13:
+                y_val -= 0.01
+            elif i == 14:
+                y_val -= 0.04
+            elif i == 15:
+                y_val += 0.025
+            elif i == 16:
+                y_val -= 0.005
+            elif i == 17:
+                y_val -= 0.035
+            elif i == 18:
+                y_val -= 0.005
+            elif i == 19:
+                y_val -= 0.045
             # elif i == 20:
             #     y_val -= 0.01
             # elif i == 21:
             #     y_val -= 0.01
             # elif i == 22:
             #     y_val -= 0.005
-            # elif i == 23:
-            #     y_val -= 0.01
-            # elif i == 24:
-            #     y_val -= 0.025
-            # elif i == 25:
-            #     y_val += 0.025
-            # elif i == 26:
-            #     y_val += 0.005
-            # elif i == 27:
-            #     y_val -= 0.015
-            # elif i == 28:
-            #     y_val -= 0.035
-            # elif i == 29:
-            #     y_val -= 0.04
+            elif i == 23:
+                y_val -= 0.01
+            elif i == 24:
+                y_val -= 0.01
+            elif i == 25:
+                y_val += 0.05
+            elif i == 26:
+                y_val += 0.02
+            elif i == 27:
+                y_val -= 0.015
+            elif i == 28:
+                y_val -= 0.05
+            elif i == 29:
+                y_val -= 0.075
 
             if i % 10 < 5:
                 color = 'r'
@@ -499,7 +519,7 @@ def plot_lists_edges(language_data_list, edge_size, with_japanese):
     cur_xlims = plt.xlim()
     cur_ylims = plt.ylim()
     if with_japanese:
-        plt.xlim([cur_xlims[0], cur_xlims[1] + 1])
+        plt.xlim([cur_xlims[0], cur_xlims[1] + 0.5])
         plt.ylim([cur_ylims[0] - 0.08, cur_ylims[1] + 0.05])
     else:
         plt.xlim([cur_xlims[0], cur_xlims[1] + 0.5])
@@ -511,9 +531,12 @@ def plot_lists_edges(language_data_list, edge_size, with_japanese):
                               markerfacecolor='b', markersize=15)]
 
     ax.legend(handles=legend_elements, loc='upper left')
-    ax.set_ylabel('Mean Numerals Expression Probability')
+    ax.set_ylabel(r'$E_{I \in S_c} [P_{\mathrm{numerals}, \mathcal{L}}(I)]$')
 
-    plt.show()
+    # plt.show()
+    image_format = 'pdf'  # e.g .png, .svg, etc.
+    image_name = 'myimage.pdf'
+    fig.savefig(image_name, format=image_format, dpi=1200)
 
 
 def print_class_prob_lists(struct_property):
@@ -564,21 +587,25 @@ def plot_bbox_dist_lists(struct_property):
         japanese_coco_bbox_quan_dist_list = \
             get_bbox_quan_dist_list_for_config('Japanese', struct_property, False)
 
-    plt.plot(english_coco_bbox_dist_list, label='English numerals', color='blue')
-    plt.plot(chinese_coco_bbox_dist_list, label='Chinese numerals', color='orange')
-    plt.plot(english_coco_bbox_quan_dist_list, label='English quantifiers', color='blue', linestyle='dotted')
-    plt.plot(chinese_coco_bbox_quan_dist_list, label='Chinese quantifiers', color='orange', linestyle='dotted')
+    plt.plot(english_coco_bbox_dist_list, label='EN num', color='blue')
+    plt.plot(chinese_coco_bbox_dist_list, label='CH num', color='orange')
     if with_japanese:
-        plt.plot(japanese_coco_bbox_dist_list, label='Japanese numerals', color='green')
-        plt.plot(japanese_coco_bbox_quan_dist_list, label='Japanese quantifiers', color='green', linestyle='dotted')
+        plt.plot(japanese_coco_bbox_dist_list, label='JA num', color='green')
+    plt.plot(english_coco_bbox_quan_dist_list, label='EN quant', color='blue', linestyle='dotted')
+    plt.plot(chinese_coco_bbox_quan_dist_list, label='CH quant', color='orange', linestyle='dotted')
+    if with_japanese:
+        plt.plot(japanese_coco_bbox_quan_dist_list, label='JA quant', color='green', linestyle='dotted')
     plt.xticks([0, 4, 10, 20, 30])
     plt.axvline(x=4, color='r', linestyle='--')
 
-    plt.legend()
+    plt.legend(ncol=2, loc='lower right', bbox_to_anchor=(1.015, -0.02))
     plt.xlabel('Number of bounding boxes')
-    plt.ylabel('Mean Numerals Expression Probability')
+    plt.ylabel(r'$E_{I \in S_k} [P_{\mathrm{property}, \mathcal{L}}(I)]$')
     # plt.title('Mean ' + struct_property + ' probability as a function of bbox #')
-    plt.show()
+    # plt.show()
+    image_format = 'pdf'  # e.g .png, .svg, etc.
+    image_name = 'myimage.pdf'
+    plt.savefig(image_name, format=image_format, dpi=1200)
 
 
 def print_language_agreement(struct_property, with_translated):
@@ -855,8 +882,34 @@ def print_numbers_intra_agree_inter_non_agree():
                 print('\t' + lang1 + ' and ' + lang2 + ': ' + str(len(image_ids)))
 
 
+def print_annotators_agreement(struct_property):
+    orig_dataset_to_configs = get_orig_dataset_to_configs()
+    language_to_struct_data_list = defaultdict(list)
+
+    for orig_dataset_name, configs in orig_dataset_to_configs.items():
+        all_builders_for_orig_dataset = []
+        configs_without_dataset_name = list(set([(config[1], config[2]) for config in configs]))
+        for language, translated in configs_without_dataset_name:
+            if not is_property_implemented(language, struct_property):
+                continue
+            builder = get_english_based_builder_for_config(orig_dataset_name, language, struct_property, translated)
+            all_builders_for_orig_dataset.append(builder)
+            language_name = language
+            if translated:
+                language_name += '_translated'
+            language_to_struct_data_list[language_name].append(builder.get_struct_data())
+        all_languages_builder = \
+            AggregatedDatasetBuilder(orig_dataset_name, all_builders_for_orig_dataset, struct_property, 1)
+        language_to_struct_data_list['all'].append(all_languages_builder.get_struct_data())
+
+    for language_name, struct_data_list in language_to_struct_data_list.items():
+        val_count, mean_val = get_mean_agreement(struct_data_list)
+        print(language_name + ': ' + '{:.4f}'.format(mean_val) + ', ' + str(val_count) + ' samples')
+
+
 font = {'size': 15}
 rc('font', **font)
+plt.rcParams['text.usetex'] = True
 parser = argparse.ArgumentParser(description='Analyze multimodal datasets.')
 parser.add_argument('--utility', type=str, dest='utility',
                     help='the utility to be executed')
@@ -896,10 +949,13 @@ elif utility == 'print_language_agreement_with_english_and_translated':
     print_language_agreement_with_english_and_translated(user_struct_property, user_language)
 elif utility == 'print_numbers_intra_agree_inter_non_agree':
     print_numbers_intra_agree_inter_non_agree()
+elif utility == 'print_annotators_agreement':
+    print_annotators_agreement(user_struct_property)
 else:
     print('Unknown utility ' + utility + '. Please choose from: ' +
           'print_class_prob_lists, plot_bbox_dist_lists, print_language_agreement_with_translated, ' +
           'print_language_agreement, print_language_mean_val, ' +
           'print_consistently_extreme_image_ids_aggregate_per_language, print_consistently_extreme_image_ids, ' +
           'print_extreme_non_agreement_image_ids, plot_image_histogram, ' +
-          'print_language_agreement_with_english_and_translated, print_numbers_intra_agree_inter_non_agree')
+          'print_language_agreement_with_english_and_translated, print_numbers_intra_agree_inter_non_agree, '+
+          'print_annotators_agreement')
