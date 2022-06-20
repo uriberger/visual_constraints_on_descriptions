@@ -10,7 +10,8 @@ from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
 from dataset_builders.single_dataset_builders.aggregated_dataset_builder import AggregatedDatasetBuilder
-from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count, is_property_implemented
+from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count, is_property_implemented,\
+    fleiss_kappa
 from dataset_list import language_dataset_list, get_orig_dataset_to_configs, \
     multilingual_dataset_name_to_original_dataset_name
 
@@ -375,7 +376,8 @@ def generate_list_edges_str(input_list, edge_size):
 
 def plot_lists_edges(language_data_list, edge_size, with_japanese):
     x_vals = [x + 0.15 for x in range(len(language_data_list))]
-    x_labels = ['            ' + x[0] for x in language_data_list]
+    # x_labels = ['            ' + x[0] for x in language_data_list]
+    x_labels = ['En', 'Zh', 'Jp']
     high_vals = []
     low_vals = []
     vals = []
@@ -531,7 +533,7 @@ def plot_lists_edges(language_data_list, edge_size, with_japanese):
                               markerfacecolor='b', markersize=15)]
 
     ax.legend(handles=legend_elements, loc='upper left')
-    ax.set_ylabel(r'$E_{I \in S_c} [P_{\mathrm{numerals}, \mathcal{L}}(I)]$')
+    ax.set_ylabel(r'$\mathbb{E}_{I \in S_c} [P_{\mathrm{num}, \mathcal{L}}(I)]$')
 
     # plt.show()
     image_format = 'pdf'  # e.g .png, .svg, etc.
@@ -587,20 +589,20 @@ def plot_bbox_dist_lists(struct_property):
         japanese_coco_bbox_quan_dist_list = \
             get_bbox_quan_dist_list_for_config('Japanese', struct_property, False)
 
-    plt.plot(english_coco_bbox_dist_list, label='EN num', color='blue')
-    plt.plot(chinese_coco_bbox_dist_list, label='CH num', color='orange')
+    plt.plot(english_coco_bbox_dist_list, label='En num', color='blue')
+    plt.plot(chinese_coco_bbox_dist_list, label='Zh num', color='orange')
     if with_japanese:
-        plt.plot(japanese_coco_bbox_dist_list, label='JA num', color='green')
-    plt.plot(english_coco_bbox_quan_dist_list, label='EN quant', color='blue', linestyle='dotted')
-    plt.plot(chinese_coco_bbox_quan_dist_list, label='CH quant', color='orange', linestyle='dotted')
+        plt.plot(japanese_coco_bbox_dist_list, label='Jp num', color='green')
+    plt.plot(english_coco_bbox_quan_dist_list, label='En quant', color='blue', linestyle='dotted')
+    plt.plot(chinese_coco_bbox_quan_dist_list, label='Zh quant', color='orange', linestyle='dotted')
     if with_japanese:
-        plt.plot(japanese_coco_bbox_quan_dist_list, label='JA quant', color='green', linestyle='dotted')
+        plt.plot(japanese_coco_bbox_quan_dist_list, label='Jp quant', color='green', linestyle='dotted')
     plt.xticks([0, 4, 10, 20, 30])
     plt.axvline(x=4, color='r', linestyle='--')
 
     plt.legend(ncol=2, loc='lower right', bbox_to_anchor=(1.015, -0.02))
     plt.xlabel('Number of bounding boxes')
-    plt.ylabel(r'$E_{I \in S_k} [P_{\mathrm{property}, \mathcal{L}}(I)]$')
+    plt.ylabel(r'$\mathbb{E}_{I \in S_k} [P_{\mathrm{p}, \mathcal{L}}(I)]$')
     # plt.title('Mean ' + struct_property + ' probability as a function of bbox #')
     # plt.show()
     image_format = 'pdf'  # e.g .png, .svg, etc.
@@ -903,13 +905,41 @@ def print_annotators_agreement(struct_property):
         language_to_struct_data_list['all'].append(all_languages_builder.get_struct_data())
 
     for language_name, struct_data_list in language_to_struct_data_list.items():
-        val_count, mean_val = get_mean_agreement(struct_data_list)
-        print(language_name + ': ' + '{:.4f}'.format(mean_val) + ', ' + str(val_count) + ' samples')
+        # val_count, mean_val = get_mean_agreement(struct_data_list)
+        # print(language_name + ': ' + '{:.4f}'.format(mean_val) + ', ' + str(val_count) + ' samples')
+        agreement = fleiss_kappa([x for outer in struct_data_list for x in outer])
+        print(language_name + ': ' + '{:.4f}'.format(agreement))
 
+
+import numpy as np
+a = np.array(
+    [
+        # English # German # Chinese # Japanese # All
+        [0.8538, 0.8446, 0.8741, 0.8470, 0.8551],
+        [0.9914, 0.9952, 0.9998, 0, 0.9968],
+        [0.8735, 0.9784, 0.9983, 0, 0.9599],
+        [0.6419, 0.6738, 0.6033, 0, 0.6025],
+        [0.4761, 0.6144, 0.5528, 0, 0.5165],
+        # English # German # Chinese # All
+        # [0.6419, 0.6738, 0.6033, 0.6025],
+        # [0.4761, 0.6144, 0.5528, 0.5165],
+    ]
+)
 
 font = {'size': 15}
 rc('font', **font)
 plt.rcParams['text.usetex'] = True
+plt.rc('text.latex', preamble=r'\usepackage{amsfonts}')
+# fig, ax = plt.subplots(1,1)
+# ax.imshow(a, cmap='hot', interpolation='nearest')
+# ax.set_xticklabels(['En', 'De', 'Zh', 'Jp', 'Mul'])
+# ax.set_yticks([0, 1, 2, 3, 4])
+# ax.set_yticklabels(['Num', 'Neg', 'Pass', 'Tran', 'Verb'])
+# ax.set_xticks([0, 1, 2, 3, 4])
+# image_format = 'pdf'  # e.g .png, .svg, etc.
+# image_name = 'myimage.pdf'
+# fig.savefig(image_name, format=image_format, dpi=1200)
+# assert False
 parser = argparse.ArgumentParser(description='Analyze multimodal datasets.')
 parser.add_argument('--utility', type=str, dest='utility',
                     help='the utility to be executed')

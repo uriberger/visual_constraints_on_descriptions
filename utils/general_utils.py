@@ -158,3 +158,46 @@ def is_property_implemented(language, struct_property):
     #     return False
     else:
         return True
+
+
+def filter_single_annotated_images(struct_data):
+    annotation_num, _ = get_image_id_to_count(struct_data)
+    return [x for x in struct_data if annotation_num[x[0]] > 1]
+
+
+def fleiss_kappa(struct_data):
+    """ Fleiss Kappa: see https://en.wikipedia.org/wiki/Fleiss%27_kappa.
+    In our case subjects are images and categories are 0 (property not expressed) or 1 (property expressed). """
+
+    class_num = 2
+    struct_data = filter_single_annotated_images(struct_data)
+    subjects = list(set([x[0] for x in struct_data]))
+    N = len(subjects)
+
+    # 1. First calculate n_ij: the number of raters who assigned the i-th subject to the j-th category
+    n_ij_dict = {}
+    for image_id, val in struct_data:
+        if image_id not in n_ij_dict:
+            n_ij_dict[image_id] = [0] * 2
+        n_ij_dict[image_id][val] += 1
+
+    # Second, calculate p_j, the proportion of all assignments which were to the j-th category
+    rating_num = len(struct_data)
+    p_j = [(1/rating_num) * sum([x[j] for x in n_ij_dict.values()]) for j in range(class_num)]
+
+    # Next, calculate the number of ratings per subject
+    n_i = {x[0]: x[1][0] + x[1][1] for x in n_ij_dict.items()}
+
+    # Now calculate P_i, the extent to which raters agree for the i-th subject
+    P_i = [(1/(n_i[i]*(n_i[i] - 1)))*sum([n_ij_dict[i][j]*(n_ij_dict[i][j] - 1) for j in range(class_num)])
+                for i in subjects]
+
+    # Now compute Pbar, the mean of the P_i's
+    Pbar = (1/N) * sum(P_i)
+
+    # and Pbar_e which go into the formula for kappa
+    Pbar_e = sum([p_j[j]**2 for j in range(class_num)])
+
+    # Now compute kappa
+    kappa = (Pbar - Pbar_e)/(1 - Pbar_e)
+    return kappa
