@@ -171,6 +171,9 @@ def fleiss_kappa(struct_data):
 
     class_num = 2
     struct_data = filter_single_annotated_images(struct_data)
+    rating_num = len(struct_data)
+    if rating_num == 0:
+        return 'None'
     subjects = list(set([x[0] for x in struct_data]))
     N = len(subjects)
 
@@ -182,7 +185,6 @@ def fleiss_kappa(struct_data):
         n_ij_dict[image_id][val] += 1
 
     # Second, calculate p_j, the proportion of all assignments which were to the j-th category
-    rating_num = len(struct_data)
     p_j = [(1/rating_num) * sum([x[j] for x in n_ij_dict.values()]) for j in range(class_num)]
 
     # Next, calculate the number of ratings per subject
