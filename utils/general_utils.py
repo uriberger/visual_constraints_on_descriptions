@@ -173,7 +173,7 @@ def fleiss_kappa(struct_data):
     struct_data = filter_single_annotated_images(struct_data)
     rating_num = len(struct_data)
     if rating_num == 0:
-        return 'None'
+        return 2
     subjects = list(set([x[0] for x in struct_data]))
     N = len(subjects)
 
