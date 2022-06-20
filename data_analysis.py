@@ -173,7 +173,8 @@ def get_mean_agreement(struct_datas_list):
         image_id_to_prob = get_image_id_to_prob(struct_data)
         image_id_to_count, _ = get_image_id_to_count(struct_data)
         image_id_to_prob = {x[0]: x[1] for x in image_id_to_prob.items() if image_id_to_count[x[0]] > 1}
-        total_sum += sum([2*abs(x-0.5) for x in image_id_to_prob.values()])
+        # total_sum += sum([2*abs(x-0.5) for x in image_id_to_prob.values()])
+        total_sum += sum([abs(x - 0.5) + 0.5 for x in image_id_to_prob.values()])
         total_count += len(image_id_to_prob)
 
     if total_count == 0:
@@ -911,10 +912,10 @@ def print_annotators_agreement(struct_property):
         language_to_struct_data_list['all'].append(all_languages_builder.get_struct_data())
 
     for language_name, struct_data_list in language_to_struct_data_list.items():
-        # val_count, mean_val = get_mean_agreement(struct_data_list)
-        # print(language_name + ': ' + '{:.4f}'.format(mean_val) + ', ' + str(val_count) + ' samples')
-        agreement = fleiss_kappa([x for outer in struct_data_list for x in outer])
-        print(language_name + ': ' + '{:.4f}'.format(agreement))
+        val_count, mean_val = get_mean_agreement(struct_data_list)
+        print(language_name + ': ' + '{:.4f}'.format(mean_val) + ', ' + str(val_count) + ' samples')
+        # agreement = fleiss_kappa([x for outer in struct_data_list for x in outer])
+        # print(language_name + ': ' + '{:.4f}'.format(agreement))
 
 
 import numpy as np
