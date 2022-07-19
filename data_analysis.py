@@ -2,7 +2,6 @@ import os
 import argparse
 from collections import defaultdict
 import matplotlib.pyplot as plt
-from matplotlib import rc
 from matplotlib.lines import Line2D
 from scipy.stats import pearsonr
 
@@ -10,8 +9,7 @@ from dataset_builders.dataset_builder import DatasetBuilder
 from dataset_builders.dataset_builder_creator import create_dataset_builder
 from dataset_builders.concatenated_dataset_builder import ConcatenatedDatasetBuilder
 from dataset_builders.single_dataset_builders.aggregated_dataset_builder import AggregatedDatasetBuilder
-from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count, is_property_implemented,\
-    fleiss_kappa
+from utils.general_utils import safe_divide, get_image_id_to_prob, get_image_id_to_count, is_property_implemented
 from dataset_list import language_dataset_list, get_orig_dataset_to_configs, \
     multilingual_dataset_name_to_original_dataset_name
 
@@ -918,25 +916,25 @@ def print_annotators_agreement(struct_property):
         # print(language_name + ': ' + '{:.4f}'.format(agreement))
 
 
-import numpy as np
-a = np.array(
-    [
-        # English # German # Chinese # Japanese # All
-        [0.8538, 0.8446, 0.8741, 0.8470, 0.8551],
-        [0.9914, 0.9952, 0.9998, 0, 0.9968],
-        [0.8735, 0.9784, 0.9983, 0, 0.9599],
-        [0.6419, 0.6738, 0.6033, 0, 0.6025],
-        [0.4761, 0.6144, 0.5528, 0, 0.5165],
-        # English # German # Chinese # All
-        # [0.6419, 0.6738, 0.6033, 0.6025],
-        # [0.4761, 0.6144, 0.5528, 0.5165],
-    ]
-)
-
-font = {'size': 15}
-rc('font', **font)
-plt.rcParams['text.usetex'] = True
-plt.rc('text.latex', preamble=r'\usepackage{amsfonts}')
+# import numpy as np
+# a = np.array(
+#     [
+#         # English # German # Chinese # Japanese # All
+#         [0.8538, 0.8446, 0.8741, 0.8470, 0.8551],
+#         [0.9914, 0.9952, 0.9998, 0, 0.9968],
+#         [0.8735, 0.9784, 0.9983, 0, 0.9599],
+#         [0.6419, 0.6738, 0.6033, 0, 0.6025],
+#         [0.4761, 0.6144, 0.5528, 0, 0.5165],
+#         # English # German # Chinese # All
+#         # [0.6419, 0.6738, 0.6033, 0.6025],
+#         # [0.4761, 0.6144, 0.5528, 0.5165],
+#     ]
+# )
+#
+# font = {'size': 15}
+# rc('font', **font)
+# plt.rcParams['text.usetex'] = True
+# plt.rc('text.latex', preamble=r'\usepackage{amsfonts}')
 # fig, ax = plt.subplots(1,1)
 # ax.imshow(a, cmap='hot', interpolation='nearest')
 # ax.set_xticklabels(['En', 'De', 'Zh', 'Jp', 'Mul'])
