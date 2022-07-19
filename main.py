@@ -25,9 +25,11 @@ parser.add_argument('--struct_property', type=str, dest='struct_property',
 parser.add_argument('--dataset', type=str, default=None, dest='dataset',
                     help='the name of the used dataset')
 parser.add_argument('--pretraining_method', type=str, default='image_net', dest='pretraining_method',
-                    help='the pre-training method for the visual backbone model')
+                    help='the pre-training method for the visual backbone model',
+                    choices=['none', 'moco', 'image_net', 'clip'])
 parser.add_argument('--classifier', type=str, default='neural', dest='classifier',
-                    help='the type of classifier')
+                    help='the type of classifier',
+                    choices=['neural', 'svm', 'random_forest', 'xgboost'])
 parser.add_argument('--svm_kernel', type=str, default='rbf', dest='svm_kernel',
                     help='the type of kernel if an SVM classifier is used')
 parser.add_argument('--standardize_data', action='store_true', default=False, dest='standardize_data',
@@ -35,7 +37,8 @@ parser.add_argument('--standardize_data', action='store_true', default=False, de
 parser.add_argument('--classifier_layer_size', nargs="+", type=int, default=[], dest='classifier_layer_size',
                     help='the list of sizes of classifier layers if a neural classifier is used')
 parser.add_argument('--classifier_activation_func', type=str, default='relu', dest='classifier_activation_func',
-                    help='the activation function if a neural classifier is used')
+                    help='the activation function if a neural classifier is used',
+                    choices=['relu', 'sigmoid', 'tanh'])
 parser.add_argument('--use_batch_norm', action='store_true', default=False, dest='use_batch_norm',
                     help='use batch normalization if a neural classifier is used')
 parser.add_argument('--translated', action='store_true', default=False, dest='translated',
