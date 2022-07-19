@@ -86,7 +86,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             for sample in caption_data:
                 dump_caption_fp.write(sample['caption'].strip().replace('\n', '.') + '\n')
 
-    """ NLP data: the nlp data (spaCy analysis of each caption) is expensive to generate. So we'll do it once and cache
+    """ NLP data: the nlp data (stanza analysis of each caption) is expensive to generate. So we'll do it once and cache
         it for future uses.
     """
 
@@ -409,7 +409,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     x['lemma'].lower() for x in sample_nlp_data
                 ])
             elif self.language == 'Chinese':
-                ''' Jieba is a better tokenizer for Chinese than spaCy. '''
+                ''' Jieba is a better tokenizer for Chinese than stanza. '''
                 tokenized_caption = list(jieba.cut(caption, cut_all=False))
                 negation_words_in_caption = []
                 caption_suffix = caption

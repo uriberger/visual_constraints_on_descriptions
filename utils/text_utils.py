@@ -42,7 +42,7 @@ class TextUtils:
 
         return tokenizers[language]
 
-    """ Given a sentence analyze by spaCy, check if its main verb is transitive. This is done by searching if there's a
+    """ Given an analyzed sentence, check if its main verb is transitive. This is done by searching if there's a
         token which is a direct object of the root.
     """
 
