@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
 from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.coco_dataset_builders.coco_dataset_builder import \
@@ -33,8 +34,19 @@ class CocoCNDatasetBuilder(EnglishBasedDatasetBuilder):
 
         self.captions_file_path = os.path.join(root_dir_path, captions_file_name)
 
+    @staticmethod
+    def image_id_to_caption_id(image_id, caption_ind):
+        return 10000000*caption_ind + image_id
+    
+    @staticmethod
+    def caption_id_to_image_id(caption_id):
+        image_id = caption_id % 10000000
+        caption_ind = caption_id // 10000000
+        return image_id, caption_ind
+    
     def get_caption_data(self):
         caption_data = []
+        image_id_to_caption_count = defaultdict(int)
         external_caption_file_path = self.captions_file_path
         with open(external_caption_file_path, 'r', encoding='utf8') as caption_fp:
             for line in caption_fp:
@@ -54,5 +66,9 @@ class CocoCNDatasetBuilder(EnglishBasedDatasetBuilder):
                 else:
                     image_id = 2000000 + orig_image_id
 
-                caption_data.append({'caption': caption, 'image_id': image_id})
+                image_id_to_caption_count[image_id] += 1
+                cur_caption_ind = image_id_to_caption_count[image_id] - 1
+                caption_id = self.image_id_to_caption_id(image_id, cur_caption_ind)
+
+                caption_data.append({'caption': caption, 'image_id': image_id, 'caption_id': caption_id})
         return caption_data
