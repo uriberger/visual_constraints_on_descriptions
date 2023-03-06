@@ -77,9 +77,9 @@ class CocoDatasetBuilder(ImageCaptionDatasetBuilder):
         orig_train_caption_fp.close()
         orig_val_caption_fp.close()
 
-        caption_data = [{'image_id': self.orig_to_new_image_id(x['image_id'], 'train'), 'caption': x['caption']}
+        caption_data = [{'image_id': self.orig_to_new_image_id(x['image_id'], 'train'), 'caption': x['caption'], 'caption_id': x['id']}
                         for x in orig_train_caption_data] + \
-                       [{'image_id': self.orig_to_new_image_id(x['image_id'], 'val'), 'caption': x['caption']}
+                       [{'image_id': self.orig_to_new_image_id(x['image_id'], 'val'), 'caption': x['caption'], 'caption_id': x['id']}
                         for x in orig_val_caption_data]
 
         return caption_data
