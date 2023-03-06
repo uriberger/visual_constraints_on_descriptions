@@ -84,7 +84,13 @@ class AIChallengerDatasetBuilder(ImageCaptionDatasetBuilder):
                          for y in all_data]
                         for x in outer]
         caption_data = [x for x in caption_data if len(x['caption'].strip()) > 0]
-        return caption_data
+        new_caption_data = []
+        counter = 0
+        for x in caption_data:
+            x['caption_id'] = counter
+            new_caption_data.append(x)
+            counter += 1
+        return new_caption_data
 
     def get_gt_classes_data_internal(self):
         return None
