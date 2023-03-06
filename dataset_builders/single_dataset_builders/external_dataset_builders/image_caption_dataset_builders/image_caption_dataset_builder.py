@@ -46,7 +46,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
         self.non_binarized_numbers_dataset_file_path = os.path.join(
             self.cached_dataset_files_dir,
-            f'{self.name}_non_binarized_numbers_dataset'
+            f'{self.name}_{language}_non_binarized_numbers_dataset'
         )
 
         self.nlp_data = None
@@ -127,7 +127,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
     """ Passive dataset: maps image ids to list of boolean stating whether each caption is passive. """
 
-    def generate_passive_dataset(self):
+    def generate_passive_dataset(self, use_image_ids=True):
         caption_data = self.get_caption_data()
         passive_dataset = []
 
@@ -152,7 +152,8 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                          finished the previous caption, and we should store the results. '''
                         if prev_caption_ind is not None:
                             image_id = caption_data[prev_caption_ind]['image_id']
-                            passive_dataset.append((image_id, passive_indicator))
+                            caption_id = caption_data[prev_caption_ind]['caption_id']
+                            passive_dataset.append((image_id if use_image_ids else caption_id, passive_indicator))
                         prev_caption_ind = caption_ind
                         passive_indicator = 0
                     if self.language == 'English':
@@ -166,7 +167,8 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
                 # Now we need to store results for the last caption
                 image_id = caption_data[caption_ind]['image_id']
-                passive_dataset.append((image_id, passive_indicator))
+                caption_id = caption_data[caption_ind]['caption_id']
+                passive_dataset.append((image_id if use_image_ids else caption_id, passive_indicator))
         else:
             self.generate_nlp_data()
 
@@ -187,13 +189,16 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 if self.language == 'Japanese':
                     lemmas = [x['lemma'] for x in sample_nlp_data]
                     sample_passive_indicators = passive_indicators.intersection(lemmas)
-                    passive_dataset.append((image_id, int(len(sample_passive_indicators) > 0)))
+                    passive_indicator = int(len(sample_passive_indicators) > 0)
                 elif self.language == 'Chinese':
                     # For Chinese we search for the passive indicator (被). Just need to rule out the cases where
                     # it's part of another word (被子)
                     passive_indicator_inds = [i for i in range(len(caption))
                                               if caption[i] == '被' and (i == len(caption) - 1 or caption[i+1] != '子')]
-                    passive_dataset.append((image_id, int(len(passive_indicator_inds) > 0)))
+                    passive_indicator = int(len(passive_indicator_inds) > 0)
+                image_id = caption_data[caption_ind]['image_id']
+                caption_id = caption_data[caption_ind]['caption_id']
+                passive_dataset.append((image_id if use_image_ids else caption_id, passive_indicator))
 
         return passive_dataset
 
@@ -201,15 +206,15 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         passive.
     """
 
-    def generate_transitivity_dataset(self):
+    def generate_transitivity_dataset(self, use_image_ids=True):
         if self.language == 'French':
-            transitivity_dataset = self.generate_transitivity_dataset_using_mate()
+            transitivity_dataset = self.generate_transitivity_dataset_using_mate(use_image_ids)
         else:
-            transitivity_dataset = self.generate_transitivity_dataset_using_stanza()
+            transitivity_dataset = self.generate_transitivity_dataset_using_stanza(use_image_ids)
 
         return transitivity_dataset
 
-    def generate_transitivity_dataset_using_mate(self):
+    def generate_transitivity_dataset_using_mate(self, use_image_ids=True):
         caption_data = self.get_caption_data()
         transitivity_dataset = []
 
@@ -234,6 +239,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 if new_sentence:
                     sample_ind += 1
                     image_id = caption_data[sample_ind]['image_id']
+                    caption_id = caption_data[sample_ind]['caption_id']
                     obj_token_heads = []
                     root_ind = -1
                     new_sentence = False
@@ -242,7 +248,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     if root_ind >= 0:
                         # If we're here there's exactly one root
                         is_transitive = root_ind in obj_token_heads and root_lemma != be_lemma
-                        transitivity_dataset.append((image_id, int(is_transitive)))
+                        transitivity_dataset.append((image_id if use_image_ids else caption_id, int(is_transitive)))
                     new_sentence = True
                 else:
                     split_line = line.split('\t')
@@ -266,7 +272,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
         return transitivity_dataset
 
-    def generate_transitivity_dataset_using_stanza(self):
+    def generate_transitivity_dataset_using_stanza(self, use_image_ids=True):
         caption_data = self.get_caption_data()
         transitivity_dataset = []
 
@@ -274,6 +280,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
+            caption_id = caption_data[i]['caption_id']
             nlp_data = self.nlp_data[i]
             roots = [token for token in nlp_data if token['dep'].lower() == 'root']
             if len(roots) != 1:
@@ -289,21 +296,21 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 # The 'be' verb is not really an action, so we filter these cases
                 continue
 
-            transitivity_dataset.append((image_id, int(TextUtils.is_transitive_sentence(nlp_data, self.language))))
+            transitivity_dataset.append((image_id if use_image_ids else caption_id, int(TextUtils.is_transitive_sentence(nlp_data, self.language))))
 
         return transitivity_dataset
 
     """ Negation dataset: maps image ids to list of boolean stating whether each caption uses negation. """
 
-    def generate_negation_dataset(self):
+    def generate_negation_dataset(self, use_image_ids=True):
         if self.language == 'French':
-            negation_dataset = self.generate_french_negation_dataset()
+            negation_dataset = self.generate_french_negation_dataset(use_image_ids)
         else:
-            negation_dataset = self.generate_non_french_negation_dataset()
+            negation_dataset = self.generate_non_french_negation_dataset(use_image_ids)
 
         return negation_dataset
 
-    def generate_french_negation_dataset(self):
+    def generate_french_negation_dataset(self, use_image_ids=True):
         french_pos_neg_words = set([
             'pas', 'personne', 'aucun', 'aucune'
         ])
@@ -328,6 +335,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 if new_sentence:
                     sample_ind += 1
                     image_id = caption_data[sample_ind]['image_id']
+                    caption_id = caption_data[sample_ind]['caption_id']
                     caption = caption_data[sample_ind]['caption']
                     contains_neg_pos_word_in_negative_form = False
                     new_sentence = False
@@ -351,7 +359,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     # Case 3
                     if contains_neg_pos_word_in_negative_form:
                         negation = True
-                    negation_dataset.append((image_id, int(negation)))
+                    negation_dataset.append((image_id if use_image_ids else caption_id, int(negation)))
 
                     new_sentence = True
                 else:
@@ -364,7 +372,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
         return negation_dataset
 
-    def generate_non_french_negation_dataset(self):
+    def generate_non_french_negation_dataset(self, use_image_ids=True):
         english_negation_words = set([
             'not', 'isnt', 'arent', 'doesnt', 'dont', 'cant', 'cannot', 'shouldnt', 'wont', 'wouldnt', 'no', 'none',
             'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'without',
@@ -399,6 +407,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         for i in range(len(caption_data)):
             sample = caption_data[i]
             image_id = sample['image_id']
+            caption_id = sample['caption_id']
             caption = sample['caption']
             if self.language == 'English':
                 tokenized_caption = TextUtils.tokenize_and_clean(caption, self.language)
@@ -422,21 +431,21 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             elif self.language == 'Japanese':
                 tokenized_caption = TextUtils.tokenize(caption, self.language)
                 negation_words_in_caption = japanese_negation_words.intersection(tokenized_caption)
-            negation_dataset.append((image_id, int(len(negation_words_in_caption) > 0)))
+            negation_dataset.append((image_id if use_image_ids else caption_id, int(len(negation_words_in_caption) > 0)))
 
         return negation_dataset
 
     """ Numbers dataset: maps image ids to list of boolean stating whether each caption contains numbers. """
 
-    def generate_numbers_dataset(self, binarized):
+    def generate_numbers_dataset(self, binarized, use_image_ids=True):
         if binarized:
-            return self.generate_numbers_dataset_internal(True)
+            return self.generate_numbers_dataset_internal(True, use_image_ids)
         else:
             return generate_dataset(
-                self.non_binarized_numbers_dataset_file_path, self.generate_numbers_dataset_internal, False
+                self.non_binarized_numbers_dataset_file_path, self.generate_numbers_dataset_internal, False, use_image_ids
             )
 
-    def generate_numbers_dataset_internal(self, binarized):
+    def generate_numbers_dataset_internal(self, binarized, use_image_ids=True):
         caption_data = self.get_caption_data()
         numbers_dataset = []
         if self.language == 'English':
@@ -458,6 +467,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         for i in range(len(caption_data)):
             sample = caption_data[i]
             image_id = sample['image_id']
+            caption_id = sample['caption_id']
             caption = sample['caption']
 
             # The recognizers_number package has some bug in logographic languages: it doesn't work if there are no
@@ -470,9 +480,9 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             numbers_list = [x for x in numbers_list if x.resolution['value'] != '1']
 
             if binarized:
-                numbers_dataset.append((image_id, int(len(numbers_list) > 0)))
+                numbers_dataset.append((image_id if use_image_ids else caption_id, int(len(numbers_list) > 0)))
             else:
-                numbers_dataset.append((image_id, [float(x.resolution['value']) for x in numbers_list
+                numbers_dataset.append((image_id if use_image_ids else caption_id, [float(x.resolution['value']) for x in numbers_list
                                                    if ',' not in x.resolution['value']]))
 
         return numbers_dataset
@@ -481,15 +491,15 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         (1).
     """
 
-    def generate_root_pos_dataset(self):
+    def generate_root_pos_dataset(self, use_image_ids=True):
         if self.language == 'French':
-            root_pos_dataset = self.generate_french_root_pos_dataset()
+            root_pos_dataset = self.generate_french_root_pos_dataset(use_image_ids)
         else:
-            root_pos_dataset = self.generate_non_french_root_pos_dataset()
+            root_pos_dataset = self.generate_non_french_root_pos_dataset(use_image_ids)
 
         return root_pos_dataset
 
-    def generate_french_root_pos_dataset(self):
+    def generate_french_root_pos_dataset(self, use_image_ids):
         caption_data = self.get_caption_data()
         root_pos_dataset = []
 
@@ -504,6 +514,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 if new_sentence:
                     sample_ind += 1
                     image_id = caption_data[sample_ind]['image_id']
+                    caption_id = caption_data[sample_ind]['caption_id']
                     roots_pos = []
                     new_sentence = False
                 if line == '\n':
@@ -524,7 +535,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                         # We're only interested in verb or noun roots
                         continue
 
-                    root_pos_dataset.append((image_id, val))
+                    root_pos_dataset.append((image_id if use_image_ids else caption_id, val))
                 else:
                     split_line = line.split('\t')
                     dep_tag = split_line[11]
@@ -535,13 +546,14 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
         return root_pos_dataset
 
-    def generate_non_french_root_pos_dataset(self):
+    def generate_non_french_root_pos_dataset(self, use_image_ids=True):
         caption_data = self.get_caption_data()
         self.generate_nlp_data()
         root_pos_dataset = []
 
         for i in range(len(caption_data)):
             image_id = caption_data[i]['image_id']
+            caption_id = caption_data[i]['caption_id']
             nlp_data = self.nlp_data[i]
             roots = [token for token in nlp_data if token['dep'].lower() == 'root']
             if len(roots) != 1:
@@ -560,7 +572,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 # We're only interested in verb or noun roots
                 continue
 
-            root_pos_dataset.append((image_id, val))
+            root_pos_dataset.append((image_id if use_image_ids else caption_id, val))
 
         return root_pos_dataset
 
@@ -604,19 +616,19 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
 
         return spatial_dataset
 
-    def get_struct_data_internal(self):
+    def get_struct_data_internal(self, use_image_ids=True):
         if self.struct_property == 'passive':
-            struct_data = self.generate_passive_dataset()
+            struct_data = self.generate_passive_dataset(use_image_ids)
         elif self.struct_property == 'transitivity':
-            struct_data = self.generate_transitivity_dataset()
+            struct_data = self.generate_transitivity_dataset(use_image_ids)
         elif self.struct_property == 'negation':
-            struct_data = self.generate_negation_dataset()
+            struct_data = self.generate_negation_dataset(use_image_ids)
         elif self.struct_property == 'numbers':
-            struct_data = self.generate_numbers_dataset(True)
+            struct_data = self.generate_numbers_dataset(True, use_image_ids)
         elif self.struct_property == 'root_pos':
-            struct_data = self.generate_root_pos_dataset()
+            struct_data = self.generate_root_pos_dataset(use_image_ids)
         elif self.struct_property == 'spatial_relations':
-            struct_data = self.generate_spatial_relations_dataset()
+            struct_data = self.generate_spatial_relations_dataset(use_image_ids)
 
         return struct_data
 
