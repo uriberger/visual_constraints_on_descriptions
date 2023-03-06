@@ -23,16 +23,16 @@ class ExternalDatasetBuilder(SingleDatasetBuilder):
 
     """ Annotate the entire dataset: Create the struct data list, which is a list of (image id, val) pairs
         where the image ids are not unique and val is a binary value indicating whether the current struct property is
-        expressed in a specific caption of this image. Alternatively, if image_id=False this is a list of
+        expressed in a specific caption of this image. Alternatively, if use_image_ids=False this is a list of
         (caption id, val) pairs where the caption ids are unique.
         This is list is for all the images in the dataset (from all original splits).
     """
 
-    def get_struct_data(self, use_image_id=True):
-        if use_image_id:
-            return generate_dataset(self.struct_data_file_path, self.get_struct_data_internal, use_image_id)
+    def get_struct_data(self, use_image_ids=True):
+        if use_image_ids:
+            return generate_dataset(self.struct_data_file_path, self.get_struct_data_internal, use_image_ids)
         else:
-            return generate_dataset(self.struct_data_file_path + '_caption_ids', self.get_struct_data_internal, use_image_id)
+            return generate_dataset(self.struct_data_file_path + '_caption_ids', self.get_struct_data_internal, use_image_ids)
 
     @abc.abstractmethod
     def get_struct_data_internal(self):
