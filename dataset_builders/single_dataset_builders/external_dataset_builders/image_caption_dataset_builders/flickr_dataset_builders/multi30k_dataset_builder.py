@@ -117,7 +117,7 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
                 line_ind = 0
                 for line in fp:
                     caption = line.strip().decode('utf-8')
-                    image_id_captions_pairs.append({'image_id': line_to_image_id[line_ind], 'caption': caption})
+                    image_id_captions_pairs.append({'image_id': line_to_image_id[line_ind], 'caption': caption, 'caption_id': line_ind})
                     line_ind += 1
 
         return image_id_captions_pairs

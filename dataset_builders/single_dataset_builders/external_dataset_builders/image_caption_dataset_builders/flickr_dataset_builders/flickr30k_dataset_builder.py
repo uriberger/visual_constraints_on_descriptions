@@ -49,6 +49,16 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
         self.coord_strs = ['xmin', 'ymin', 'xmax', 'ymax']
         self.coord_str_to_ind = {self.coord_strs[x]: x for x in range(len(self.coord_strs))}
 
+    @staticmethod
+    def image_id_to_caption_id(image_id, caption_ind):
+        return 10000000000*caption_ind + image_id
+
+    @staticmethod
+    def caption_id_to_image_id(caption_id):
+        caption_ind = caption_id // 10000000000
+        image_id = caption_id % 10000000000
+        return image_id, caption_ind
+
     def get_caption_data(self):
         image_id_captions_pairs = []
         with open(self.tokens_file_path, encoding='utf-8') as fp:
@@ -56,8 +66,12 @@ class Flickr30kDatasetBuilder(ImageCaptionDatasetBuilder):
                 split_line = line.strip().split('g#')
                 img_file_name = split_line[0] + 'g'
                 image_id = self.image_file_name_to_id(img_file_name)
-                caption = split_line[1].split('\t')[1]  # The first token is caption number
-                image_id_captions_pairs.append({'image_id': image_id, 'caption': caption})
+                caption_info = split_line[1].split('\t')
+                caption = caption_info[1]  # The first token is caption number
+                caption_ind = int(caption_info[0])
+                caption_id = self.image_id_to_caption_id(image_id, caption_ind)
+                
+                image_id_captions_pairs.append({'image_id': image_id, 'caption': caption, 'caption_id': caption_id})
 
         return image_id_captions_pairs
 
