@@ -47,7 +47,7 @@ def log_print(class_name, indent, my_str):
         log_fp.write(full_str + '\n')
         log_fp.flush()
     else:
-        print(full_str)
+        print(full_str, flush=True)
 
 
 def get_timestamp_str():
