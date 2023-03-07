@@ -46,7 +46,6 @@ class CocoCNDatasetBuilder(EnglishBasedDatasetBuilder):
     
     def get_caption_data(self):
         caption_data = []
-        image_id_to_caption_count = defaultdict(int)
         external_caption_file_path = self.captions_file_path
         with open(external_caption_file_path, 'r', encoding='utf8') as caption_fp:
             for line in caption_fp:
@@ -66,8 +65,7 @@ class CocoCNDatasetBuilder(EnglishBasedDatasetBuilder):
                 else:
                     image_id = 2000000 + orig_image_id
 
-                image_id_to_caption_count[image_id] += 1
-                cur_caption_ind = image_id_to_caption_count[image_id] - 1
+                cur_caption_ind = int(line_parts[0][-1])
                 caption_id = self.image_id_to_caption_id(image_id, cur_caption_ind)
 
                 caption_data.append({'caption': caption, 'image_id': image_id, 'caption_id': caption_id})
