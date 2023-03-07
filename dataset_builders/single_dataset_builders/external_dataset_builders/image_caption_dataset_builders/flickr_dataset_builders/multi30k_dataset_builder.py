@@ -130,9 +130,10 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
         with gzip.open(caption_file_path, 'r') as fp:
             line_ind = 0
             for line in fp:
-                caption = line.strip().decode('utf-8')
+                caption = line.strip().decode('utf-8').replace(' ', '')
                 image_id = line_to_image_id[line_ind]
                 caption_list = im_to_caps[image_id]
+                caption_list = [(x[0].replace(' ', ''), x[1]) for x in caption_list]
                 caption_id = [x for x in caption_list if x['caption'] == caption][0]['caption_id']
                 line_to_caption_id.append(caption_id)
                 line_ind += 1
