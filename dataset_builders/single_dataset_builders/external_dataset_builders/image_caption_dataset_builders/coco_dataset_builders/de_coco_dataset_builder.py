@@ -41,8 +41,8 @@ class DeCocoDatasetBuilder(EnglishBasedDatasetBuilder):
             with open(caption_file_path, 'r', encoding='utf8') as caption_fp:
                 for line in caption_fp:
                     if line_ind in known_mappings[caption_file_name_prefix]:
-                        orig_image_id = known_mappings[caption_file_name_prefix][line_ind]
-                        image_id, caption_id = self.base_dataset_builder.orig_to_new_image_id(orig_image_id, 'train')
+                        orig_image_id, caption_id = known_mappings[caption_file_name_prefix][line_ind]
+                        image_id = self.base_dataset_builder.orig_to_new_image_id(orig_image_id, 'train')
                     else:
                         caption = line.strip()
                         english_coco_caption_samples = [x for x in english_coco_caption_data
