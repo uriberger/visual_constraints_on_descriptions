@@ -65,6 +65,6 @@ def create_dataset_builder(dataset_name, struct_property, language, translated):
     elif dataset_name == 'ai_challenger':
         dataset_builder = AIChallengerDatasetBuilder(root_dir, struct_property, 1)
     else:
-        assert False
+        assert False, 'Error: No such dataset: ' + dataset_name
 
     return dataset_builder
