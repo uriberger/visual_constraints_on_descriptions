@@ -1,10 +1,10 @@
 import os
+from collections import defaultdict
 import gzip
 from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
 from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.flickr_dataset_builders.flickr30k_dataset_builder import \
     Flickr30kDatasetBuilder
-from utils.text_utils import TextUtils
 
 
 class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
@@ -48,6 +48,7 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
             caption_file_name_suffix = 'de.gz'
         elif language == 'French':
             caption_file_name_suffix = 'fr.gz'
+        en_caption_file_name_suffix = 'en.gz'
         if translated:
             image_file_name_suffix = '.txt'
         else:
@@ -59,6 +60,9 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
             train_caption_file_name = f'{train_file_name_prefix}.{caption_file_name_suffix}'
             val_caption_file_name = f'{val_file_name_prefix}.{caption_file_name_suffix}'
             test_caption_file_name = f'{test_file_name_prefix}.{caption_file_name_suffix}'
+            en_train_caption_file_name = f'{train_file_name_prefix}.{en_caption_file_name_suffix}'
+            en_val_caption_file_name = f'{val_file_name_prefix}.{en_caption_file_name_suffix}'
+            en_test_caption_file_name = f'{test_file_name_prefix}.{en_caption_file_name_suffix}'
         else:
             train_caption_file_names = [f'{train_file_name_prefix}.{i}.{caption_file_name_suffix}'
                                         for i in self.caption_inds]
@@ -78,6 +82,9 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
             self.train_caption_file_paths = [os.path.join(caption_dir_path, train_caption_file_name)]
             self.val_caption_file_paths = [os.path.join(caption_dir_path, val_caption_file_name)]
             self.test_caption_file_paths = [os.path.join(caption_dir_path, test_caption_file_name)]
+            self.en_train_caption_file_path = os.path.join(caption_dir_path, en_train_caption_file_name)
+            self.en_val_caption_file_paths = [os.path.join(caption_dir_path, val_caption_file_name)]
+            self.en_test_caption_file_paths = [os.path.join(caption_dir_path, en_test_caption_file_name)]
         else:
             self.train_caption_file_paths = [os.path.join(caption_dir_path, train_caption_file_names[i])
                                              for i in range(len(self.caption_inds))]
@@ -91,7 +98,7 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
         self.val_image_file_path = os.path.join(image_dir_path, val_image_file_name)
         self.test_image_file_path = os.path.join(image_dir_path, test_image_file_name)
 
-    def get_caption_data_for_split(self, data_split_str):
+    def get_line_to_image_id(self, data_split_str):
         line_to_image_id = []
         if data_split_str == 'train':
             image_file_path = self.train_image_file_path
@@ -104,6 +111,36 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
                 image_id = int(image_file_name.split('.')[0])
                 line_to_image_id.append(image_id)
 
+        return line_to_image_id
+    
+    def get_line_to_caption_id(self, data_split_str, line_to_image_id):
+        if data_split_str == 'train':
+            caption_file_path = self.en_train_caption_file_path
+        elif data_split_str == 'val':
+            caption_file_path = self.en_val_caption_file_path
+        elif data_split_str == 'test':
+            caption_file_path = self.en_test_caption_file_path
+
+        english_coco_caption_data = self.base_dataset_builder.get_caption_data()
+        im_to_caps = defaultdict(list)
+        for sample in english_coco_caption_data:
+            im_to_caps[sample['image_id']].append({'caption': sample['caption'], 'caption_id': sample['caption_id']})
+
+        line_to_caption_id = []
+        with gzip.open(caption_file_path, 'r') as fp:
+            line_ind = 0
+            for line in fp:
+                caption = line.strip().decode('utf-8')
+                image_id = line_to_image_id[line_ind]
+                caption_list = im_to_caps[image_id]
+                caption_id = [x for x in caption_list if x['caption'] == caption][0]['caption_id']
+                line_to_caption_id.append(caption_id)
+                line_ind += 1
+
+    def get_caption_data_for_split(self, data_split_str):
+        line_to_image_id = self.get_line_to_image_id(data_split_str)
+        line_to_caption_id = self.get_line_to_caption_id(data_split_str, line_to_image_id)
+        
         image_id_captions_pairs = []
         if data_split_str == 'train':
             caption_file_paths = self.train_caption_file_paths
@@ -117,7 +154,9 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
                 line_ind = 0
                 for line in fp:
                     caption = line.strip().decode('utf-8')
-                    image_id_captions_pairs.append({'image_id': line_to_image_id[line_ind], 'caption': caption, 'caption_id': line_ind})
+                    image_id_captions_pairs.append({
+                        'image_id': line_to_image_id[line_ind], 'caption': caption, 'caption_id': line_to_caption_id[line_ind]
+                        })
                     line_ind += 1
 
         return image_id_captions_pairs
