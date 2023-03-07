@@ -180,6 +180,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 sample_nlp_data = self.nlp_data[i]
                 caption = sample['caption']
                 image_id = sample['image_id']
+                caption_id = sample['caption_id']
 
                 # We're only in interested in captions with at least a single verb
                 verbs = [x for x in sample_nlp_data if x['pos'] == 'VERB']
@@ -196,8 +197,7 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     passive_indicator_inds = [i for i in range(len(caption))
                                               if caption[i] == '被' and (i == len(caption) - 1 or caption[i+1] != '子')]
                     passive_indicator = int(len(passive_indicator_inds) > 0)
-                image_id = caption_data[caption_ind]['image_id']
-                caption_id = caption_data[caption_ind]['caption_id']
+                
                 passive_dataset.append((image_id if use_image_ids else caption_id, passive_indicator))
 
         return passive_dataset
