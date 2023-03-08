@@ -24,6 +24,8 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
             struct_property, Flickr30kDatasetBuilder, 'flickr30', indent
         )
 
+        self.translated = translated
+
         data_dir_name = 'data'
         if translated:
             task_dir_name = 'task1'
@@ -145,10 +147,13 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
                 line_ind += 1
 
         return line_to_caption_id
-
+    
     def get_caption_data_for_split(self, data_split_str):
         line_to_image_id = self.get_line_to_image_id(data_split_str)
-        line_to_caption_id = self.get_line_to_caption_id(data_split_str, line_to_image_id)
+        if self.translated:
+            line_to_caption_id = self.get_line_to_caption_id(data_split_str, line_to_image_id)
+        else:
+            image_id_to_caption_count = defaultdict(int)
         
         image_id_captions_pairs = []
         if data_split_str == 'train':
@@ -163,8 +168,15 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
                 line_ind = 0
                 for line in fp:
                     caption = line.strip().decode('utf-8')
+                    image_id = line_to_image_id[line_ind]
+                    if self.translated:
+                        caption_id = line_to_caption_id[line_ind]
+                    else:
+                        caption_ind = image_id_to_caption_count[image_id]
+                        image_id_to_caption_count[image_id] += 1
+                        caption_id = Flickr30kDatasetBuilder.image_id_to_caption_id(image_id, caption_ind)
                     image_id_captions_pairs.append({
-                        'image_id': line_to_image_id[line_ind], 'caption': caption, 'caption_id': line_to_caption_id[line_ind]
+                        'image_id': image_id, 'caption': caption, 'caption_id': caption_id
                         })
                     line_ind += 1
 
