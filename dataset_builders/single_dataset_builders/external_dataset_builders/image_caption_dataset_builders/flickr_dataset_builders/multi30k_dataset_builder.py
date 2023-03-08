@@ -83,8 +83,8 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
             self.val_caption_file_paths = [os.path.join(caption_dir_path, val_caption_file_name)]
             self.test_caption_file_paths = [os.path.join(caption_dir_path, test_caption_file_name)]
             self.en_train_caption_file_path = os.path.join(caption_dir_path, en_train_caption_file_name)
-            self.en_val_caption_file_paths = [os.path.join(caption_dir_path, val_caption_file_name)]
-            self.en_test_caption_file_paths = [os.path.join(caption_dir_path, en_test_caption_file_name)]
+            self.en_val_caption_file_path = os.path.join(caption_dir_path, en_val_caption_file_name)
+            self.en_test_caption_file_path = os.path.join(caption_dir_path, en_test_caption_file_name)
         else:
             self.train_caption_file_paths = [os.path.join(caption_dir_path, train_caption_file_names[i])
                                              for i in range(len(self.caption_inds))]
@@ -121,6 +121,9 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
         elif data_split_str == 'test':
             caption_file_path = self.en_test_caption_file_path
 
+        split_to_known_mappings = {'train': {23647: 25016890643}, 'val': {}, 'test': {}}
+        known_mappings = split_to_known_mappings[data_split_str]
+
         english_coco_caption_data = self.base_dataset_builder.get_caption_data()
         im_to_caps = defaultdict(list)
         for sample in english_coco_caption_data:
@@ -130,13 +133,18 @@ class Multi30kDatasetBuilder(EnglishBasedDatasetBuilder):
         with gzip.open(caption_file_path, 'r') as fp:
             line_ind = 0
             for line in fp:
-                caption = line.strip().decode('utf-8').replace(' ', '')
-                image_id = line_to_image_id[line_ind]
-                caption_list = im_to_caps[image_id]
-                caption_list = [(x[0].replace(' ', ''), x[1]) for x in caption_list]
-                caption_id = [x for x in caption_list if x['caption'] == caption][0]['caption_id']
+                if line_ind in known_mappings:
+                    caption_id = known_mappings[line_ind]
+                else:
+                    caption = line.strip().decode('utf-8').replace('&amp;', '&').replace(' ', '').lower()
+                    image_id = line_to_image_id[line_ind]
+                    caption_list = im_to_caps[image_id]
+                    caption_list = [{'caption': x['caption'].replace(' ', '').lower(), 'caption_id': x['caption_id']} for x in caption_list]
+                    caption_id = [x for x in caption_list if x['caption'] == caption][0]['caption_id']
                 line_to_caption_id.append(caption_id)
                 line_ind += 1
+
+        return line_to_caption_id
 
     def get_caption_data_for_split(self, data_split_str):
         line_to_image_id = self.get_line_to_image_id(data_split_str)
