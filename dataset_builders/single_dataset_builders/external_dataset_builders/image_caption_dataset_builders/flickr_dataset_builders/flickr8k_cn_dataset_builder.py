@@ -1,4 +1,5 @@
 import os
+from Levenshtein import distance
 from collections import defaultdict
 from dataset_builders.single_dataset_builders.external_dataset_builders.image_caption_dataset_builders.english_dataset_based_dataset_builder import \
     EnglishBasedDatasetBuilder
@@ -36,31 +37,36 @@ class Flickr8kCNDatasetBuilder(EnglishBasedDatasetBuilder):
     def get_flickr30_caption_id_mapping(self):
         caption_file_path = self.en_caption_file_path
 
-        known_mappings = {}
-
         english_flickr30_caption_data = self.base_dataset_builder.get_caption_data()
         im_to_caps = defaultdict(list)
         for sample in english_flickr30_caption_data:
             im_to_caps[sample['image_id']].append({'caption': sample['caption'], 'caption_id': sample['caption_id']})
 
-        flickr30_caption_id_mapping = []
+        flickr30_caption_id_mapping = {}
         with open(caption_file_path, 'r') as fp:
             line_ind = 0
             for line in fp:
-                if line_ind in known_mappings:
-                    caption_id = known_mappings[line_ind]
+                striped_line = line.strip()
+                if len(striped_line) == 0:
+                    continue
+                line_parts = striped_line.split()
+                image_id = int(line_parts[0].split('_')[0])
+                caption = ' '.join(line_parts[1:])
+                caption_ind = int(line_parts[0][-1])
+                caption_list = im_to_caps[image_id]
+                caption_list = [{'caption': x['caption'], 'caption_id': x['caption_id']} for x in caption_list]
+                no_space_caption = caption.replace(' ', '')
+                no_space_caption_list = [{'caption': x['caption'].replace(' ', ''), 'caption_id': x['caption_id']} for x in caption_list]
+                found_list = [x for x in no_space_caption_list if x['caption'] == no_space_caption]
+                if len(found_list) == 0:
+                    dist_list = [distance(x['caption'], caption) for x in caption_list]
+                    min_dist = min(dist_list)
+                    found_inds = [i for i in range(len(dist_list)) if dist_list[i] == min_dist]
+                    found_ind = found_inds[0]
+                    caption_id = caption_list[found_ind]['caption_id']
                 else:
-                    striped_line = line.strip()
-                    if len(striped_line) == 0:
-                        continue
-                    line_parts = striped_line.split()
-                    assert len(line_parts) == 2
-                    image_id = int(line_parts[0].split('_')[0])
-                    caption = line_parts[1]
-                    caption_list = im_to_caps[image_id]
-                    caption_list = [{'caption': x['caption'], 'caption_id': x['caption_id']} for x in caption_list]
-                    caption_id = [x for x in caption_list if x['caption'] == caption][0]['caption_id']
-                flickr30_caption_id_mapping.append(caption_id)
+                    caption_id = found_list[0]['caption_id']
+                flickr30_caption_id_mapping[(image_id, caption_ind)] = caption_id
                 line_ind += 1
 
         return flickr30_caption_id_mapping
@@ -77,9 +83,8 @@ class Flickr8kCNDatasetBuilder(EnglishBasedDatasetBuilder):
                 if len(striped_line) == 0:
                     continue
                 line_parts = striped_line.split()
-                assert len(line_parts) == 2
                 image_id = int(line_parts[0].split('_')[0])
-                caption = line_parts[1]
+                caption = ' '.join(line_parts[1:])
                 caption_ind = int(line_parts[0][-1])
                 if self.translated:
                     caption_id = flickr30_caption_id_mapping[(image_id, caption_ind)]
