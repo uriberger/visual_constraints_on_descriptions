@@ -49,7 +49,7 @@ def create_dataset_builder(dataset_name, struct_property, language, translated):
     elif dataset_name == 'STAIR-captions':
         dataset_builder = StairDatasetBuilder(root_dir, struct_property, 1)
     elif dataset_name == 'flickr8kcn':
-        dataset_builder = Flickr8kCNDatasetBuilder(root_dir, struct_property, 1)
+        dataset_builder = Flickr8kCNDatasetBuilder(root_dir, struct_property, translated, 1)
     elif dataset_name == 'coco-cn':
         dataset_builder = CocoCNDatasetBuilder(root_dir, struct_property, translated, 1)
     elif dataset_name == 'iaprtc12':
