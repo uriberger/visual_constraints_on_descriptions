@@ -19,3 +19,4 @@ tmv_out_*
 *.model
 *.1-2-2-ht4-hm4-kk0
 Recognizers-Text
+*_lengths.tsv
