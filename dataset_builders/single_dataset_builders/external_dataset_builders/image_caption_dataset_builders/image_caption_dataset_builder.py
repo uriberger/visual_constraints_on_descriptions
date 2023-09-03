@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 import abc
 import jieba
+import csv
 
 from dataset_builders.single_dataset_builders.external_dataset_builders.external_dataset_builder \
     import ExternalDatasetBuilder
@@ -615,6 +616,26 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                                         int(len(spatial_words_in_caption) > 0 or len(spatial_phrases_in_caption) > 0)))
 
         return spatial_dataset
+    
+    def generate_length_dataset(self, use_image_ids=True, length_type='chars'):
+        length_file_path = f'{self.name}_{self.language}_lengths.tsv'
+        length_dataset = []
+        with open(length_file_path, 'r') as fp:
+            my_reader = csv.reader(fp, delimiter='\t')
+            for row in my_reader:
+                image_id = int(row[0])
+                    
+                if length_type == 'chars':
+                    length = int(row[3])
+                elif length_type == 'words':
+                    length = int(row[4])
+                elif length_type == 'content_words':
+                    length = int(row[5])
+                else:
+                    assert False, f'Unknown length type {length_type}'
+            length_dataset.append((image_id if use_image_ids else int(row[1]), length))
+
+        return length
 
     def get_struct_data_internal(self, use_image_ids=True):
         if self.struct_property == 'passive':
@@ -629,6 +650,9 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
             struct_data = self.generate_root_pos_dataset(use_image_ids)
         elif self.struct_property == 'spatial_relations':
             struct_data = self.generate_spatial_relations_dataset(use_image_ids)
+        elif self.struct_property.startswith('length_'):
+            length_type = self.struct_property.split('length_')[1]
+            struct_data = self.generate_length_dataset(use_image_ids, length_type=length_type)
 
         return struct_data
 
