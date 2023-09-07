@@ -45,6 +45,10 @@ class SingleDatasetBuilder(DatasetBuilder):
     """
 
     def get_labeled_data(self):
+        if self.struct_property.startswith('length_'):
+            # This is a regression based structu property. Return as is
+            return self.get_struct_data()
+
         # 1. Convert the struct_data list to a mapping of image id -> probability of the relevant property, which is
         # calculated as the proportion of captions expressing this property.
         struct_data = self.get_struct_data()
@@ -121,11 +125,14 @@ class SingleDatasetBuilder(DatasetBuilder):
     """ Finally, we can now get the data for a specific split. """
 
     def get_labeled_data_for_split(self, data_split_str):
-        balanced_labeled_data = self.get_balanced_labeled_data()
+        if self.struct_property.startswith('length_'):
+            res = self.get_labeled_data()
+        else:
+            res = self.get_balanced_labeled_data()
         split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
         split_image_ids = split_to_image_ids[data_split_str]
         split_image_ids_dict = {x: True for x in split_image_ids}
-        return [x for x in balanced_labeled_data if x[0] in split_image_ids_dict]
+        return [x for x in res if x[0] in split_image_ids_dict]
 
     def generate_cross_validation_data(self, split_num):
         balanced_labeled_data = self.get_balanced_labeled_data()

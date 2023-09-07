@@ -31,8 +31,11 @@ class BackpropagationTrainer(Trainer):
 
     @staticmethod
     def get_criterion(struct_property):
-        # For now all struct properties use cross entropy loss
-        return nn.CrossEntropyLoss()
+        if struct_property.startswith('length_'):
+            # For length properties we predict the length. This is a regression problem, so we need MSE loss
+            return nn.MSELoss()
+        else:
+            return nn.CrossEntropyLoss()
 
     """ Actions that should be performed at the beginning of training. """
 

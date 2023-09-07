@@ -1,7 +1,7 @@
 import torch
 
 from model_src.image_linguistic_info_classifiers.image_linguistic_info_classifier import ImLingInfoClassifier
-from sklearn.svm import SVC
+from sklearn.svm import SVC, SVR
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
@@ -21,7 +21,10 @@ class ImLingInfoOfflineClassifier(ImLingInfoClassifier):
             self.get_backbone_model().eval()
 
         if config.classifier == 'svm':
-            self.clf = SVC(kernel=config.svm_kernel)
+            if config.struct_property.startswith('length_'):
+                self.clf = SVR(kernel=config.svm_kernel)
+            else:
+                self.clf = SVC(kernel=config.svm_kernel)
         elif config.classifier == 'random_forest':
             self.clf = RandomForestClassifier()
         elif config.classifier == 'xgboost':
