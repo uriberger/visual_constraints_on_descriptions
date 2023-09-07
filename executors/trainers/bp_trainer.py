@@ -27,7 +27,7 @@ class BackpropagationTrainer(Trainer):
         self.criterion = self.get_criterion(model_config.struct_property)
 
         self.running_loss = 0.0
-        self.accuracy_history = []
+        self.metric_history = []
 
     @staticmethod
     def get_criterion(struct_property):
@@ -54,22 +54,22 @@ class BackpropagationTrainer(Trainer):
 
         self.log_print('Evaluating after finishing the epoch...')
         self.increment_indent()
-        accuracy = self.evaluate_current_model()
+        metric = self.evaluate_current_model()
         self.decrement_indent()
-        self.accuracy_history.append(accuracy)
+        self.metric_history.append(metric)
 
         # If this is the best model, save it
         self.dump_best_model_if_needed()
 
         # We stop training when we get a result that doesn't improve for 5 consecutive epochs
         epoch_window_len = 5
-        should_continue = (len(self.accuracy_history) < epoch_window_len or
-                           max(self.accuracy_history[-epoch_window_len:]) != self.accuracy_history[-epoch_window_len])
+        should_continue = (len(self.metric_history) < epoch_window_len or
+                           max(self.metric_history[-epoch_window_len:]) != self.metric_history[-epoch_window_len])
 
         return should_continue
 
     def dump_best_model_if_needed(self):
-        if self.accuracy_history[-1] == max(self.accuracy_history):
+        if self.metric_history[-1] == max(self.metric_history):
             # Current model is the best model so far
             self.model.dump('best')
 

@@ -38,9 +38,13 @@ class Trainer(Executor):
         return
 
     def evaluate_current_model(self):
-        evaluator = Evaluator(self.test_set, self.model_dir, self.model_name, self.indent + 1)
-        accuracy = evaluator.evaluate()
-        return accuracy
+        if self.model_config.struct_property.startswith('length_'):
+            evaluation_mode = 'regression'
+        else:
+            evaluation_mode = 'binary_classification'
+        evaluator = Evaluator(evaluation_mode, self.test_set, self.model_dir, self.model_name, self.indent + 1)
+        metric = evaluator.evaluate()
+        return metric
 
     def traverse_training_set(self, batch_func):
         dataloader = data.DataLoader(self.training_set, batch_size=self.batch_size, shuffle=True)
