@@ -2,7 +2,7 @@
 
 ## Overview
 
-<!---This is the codebase of the paper [A Large-Scale Multilingual Study of Visual Constraints on Linguistic Selection of Descriptions](https://uriberger.github.io/).--->
+This is the codebase of the paper [A Large-Scale Multilingual Study of Visual Constraints on Linguistic Selection of Descriptions](https://arxiv.org/abs/2302.04811).
 We present a large, multilingual study into how vision constrains linguistic choice. We train classifiers to predict the probability of expressing a property from
 raw images. We complement this investigation with a corpus study.
 
