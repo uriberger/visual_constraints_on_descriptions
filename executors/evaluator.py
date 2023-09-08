@@ -39,7 +39,7 @@ class Evaluator(Executor):
 
             self.metric_sum += correct_num
         elif self.mode == 'regression':
-            se = torch.sum(torch.pow(predictions-labels))
+            se = torch.sum(torch.pow(predictions-labels, 2))
             self.metric_sum += se
         else:
             assert False, f'Unknown evaluation mode {self.mode}'

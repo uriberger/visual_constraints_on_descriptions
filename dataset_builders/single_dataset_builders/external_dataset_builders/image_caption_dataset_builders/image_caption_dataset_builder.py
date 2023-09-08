@@ -633,9 +633,9 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                     length = int(row[5])
                 else:
                     assert False, f'Unknown length type {length_type}'
-            length_dataset.append((image_id if use_image_ids else int(row[1]), length))
+                length_dataset.append((image_id if use_image_ids else int(row[1]), length))
 
-        return length
+        return length_dataset
 
     def get_struct_data_internal(self, use_image_ids=True):
         if self.struct_property == 'passive':
