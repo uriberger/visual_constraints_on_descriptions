@@ -47,36 +47,40 @@ class SingleDatasetBuilder(DatasetBuilder):
     def get_labeled_data(self):
         if self.struct_property.startswith('length_'):
             # This is a regression based structu property. Return as is
-            return self.get_struct_data()
-
-        # 1. Convert the struct_data list to a mapping of image id -> probability of the relevant property, which is
-        # calculated as the proportion of captions expressing this property.
-        struct_data = self.get_struct_data()
-        image_id_to_prob = get_image_id_to_prob(struct_data)
-
-        # 2. Set a threshold for the probability so the final dataset will be binary.
-        all_values = list(set(image_id_to_prob.values()))
-        assert len(all_values) > 1
-        val_to_count = {x: 0 for x in all_values}
-        for val in image_id_to_prob.values():
-            val_to_count[val] += 1
-        val_to_count_list = sorted(val_to_count.items(), key=lambda x: x[0])
-        current_count = 0
-        cur_ind = -1
-        total_count = len(image_id_to_prob)
-        while current_count < total_count / 2:
-            cur_ind += 1
-            current_count += val_to_count_list[cur_ind][1]
-
-        # Found the ind of the median, now check if this one is closer to half or the previous one
-        current_ratio = current_count / total_count
-        prev_ratio = (current_count - val_to_count_list[cur_ind][1]) / total_count
-        if abs(0.5 - current_ratio) < abs(0.5 - prev_ratio):
-            threshold = val_to_count_list[cur_ind][0]
+            labeled_data = self.get_struct_data()
         else:
-            threshold = val_to_count_list[cur_ind - 1][0]
+            # 1. Convert the struct_data list to a mapping of image id -> probability of the relevant property, which is
+            # calculated as the proportion of captions expressing this property.
+            struct_data = self.get_struct_data()
+            image_id_to_prob = get_image_id_to_prob(struct_data)
 
-        labeled_data = [(x[0], int(x[1] > threshold)) for x in image_id_to_prob.items()]
+            # 2. Set a threshold for the probability so the final dataset will be binary.
+            all_values = list(set(image_id_to_prob.values()))
+            assert len(all_values) > 1
+            val_to_count = {x: 0 for x in all_values}
+            for val in image_id_to_prob.values():
+                val_to_count[val] += 1
+                val_to_count_list = sorted(val_to_count.items(), key=lambda x: x[0])
+                current_count = 0
+                cur_ind = -1
+                total_count = len(image_id_to_prob)
+            while current_count < total_count / 2:
+                cur_ind += 1
+                current_count += val_to_count_list[cur_ind][1]
+
+            # Found the ind of the median, now check if this one is closer to half or the previous one
+            current_ratio = current_count / total_count
+            prev_ratio = (current_count - val_to_count_list[cur_ind][1]) / total_count
+            if abs(0.5 - current_ratio) < abs(0.5 - prev_ratio):
+                threshold = val_to_count_list[cur_ind][0]
+            else:
+                threshold = val_to_count_list[cur_ind - 1][0]
+
+            labeled_data = [(x[0], int(x[1] > threshold)) for x in image_id_to_prob.items()]
+
+        unwanted_image_ids = self.get_unwanted_image_ids()
+        unwanted_image_ids_dict = {image_id: True for image_id in unwanted_image_ids}  # For more efficient retrieval
+        labeled_data = [x for x in labeled_data if x[0] not in unwanted_image_ids_dict]
 
         return labeled_data
 
@@ -97,9 +101,6 @@ class SingleDatasetBuilder(DatasetBuilder):
     def get_balanced_labeled_data_internal(self):
         # Find the class with the lowest number of instances
         labeled_data = self.get_labeled_data()
-        unwanted_image_ids = self.get_unwanted_image_ids()
-        unwanted_image_ids_dict = {image_id: True for image_id in unwanted_image_ids}  # For more efficient retrieval
-        labeled_data = [x for x in labeled_data if x[0] not in unwanted_image_ids_dict]
 
         label_to_data_samples = self.find_samples_for_labels(labeled_data)
         wanted_sample_num_for_each_label = min([len(x) for x in label_to_data_samples.values()])
@@ -113,8 +114,11 @@ class SingleDatasetBuilder(DatasetBuilder):
     """ Next, automatically split the labeled and balanced data to training/val. """
 
     def create_train_val_split(self):
-        labeled_data = self.get_balanced_labeled_data()
-        image_ids = [x[0] for x in labeled_data]
+        if self.struct_property.startswith('length_'):
+            labeled_data = self.get_labeled_data()
+        else:
+            labeled_data = self.get_balanced_labeled_data()
+        image_ids = list(set([x[0] for x in labeled_data]))
         train_split_size = int(len(image_ids) * 0.8)
         train_split = random.sample(image_ids, train_split_size)
         train_split_dict = {x: True for x in train_split}

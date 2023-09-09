@@ -2,6 +2,8 @@
 cached_dataset_files*
 .idea
 2022-*
+2023-*
+2024-*
 *~
 venv
 torch_cache
