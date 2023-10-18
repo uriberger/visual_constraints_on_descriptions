@@ -108,7 +108,7 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
 
             return gt_bboxes_data
 
-    def get_labeled_data(self):
+    def get_labeled_data(self, bin_num=10):
         labeled_data = []
         for i in range(len(self.builder_list)):
             builder = self.builder_list[i]
@@ -117,7 +117,7 @@ class ConcatenatedDatasetBuilder(DatasetBuilder):
 
         return labeled_data
 
-    def get_labeled_data_for_split(self, data_split_str):
+    def get_labeled_data_for_split(self, data_split_str, bin_num=10):
         labeled_data = []
         for i in range(len(self.builder_list)):
             builder = self.builder_list[i]

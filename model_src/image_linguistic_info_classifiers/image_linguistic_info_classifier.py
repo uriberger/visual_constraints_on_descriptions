@@ -39,7 +39,7 @@ class ImLingInfoClassifier(nn.Module):
         elif config.struct_property == 'root_pos':
             self.output_size = 2
         elif config.struct_property.startswith('length_'):
-            self.output_size = 1
+            self.output_size = config.bin_num
 
         self.set_dump_path(model_dir, model_name)
         self.backbone_model = None

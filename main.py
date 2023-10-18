@@ -51,6 +51,8 @@ parser.add_argument('--delete_model', action='store_true', default=False, dest='
                     help='delete the created model at the end of training')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
                     help='only dump the captions of the dataset and exit')
+parser.add_argument('--bin_num', type=int, default=10, dest='bin_num',
+                    help='the number of bins to be used if we don\'t binarize the data')
 args = parser.parse_args()
 write_to_log = args.write_to_log
 datasets_dir = args.datasets_dir
@@ -69,6 +71,7 @@ multilingual = args.multilingual
 cross_validate = args.cross_validate
 delete_model = args.delete_model
 dump_captions = args.dump_captions
+bin_num = args.bin_num
 
 DatasetBuilder.set_datasets_dir(datasets_dir)
 
@@ -124,7 +127,8 @@ def init(cur_language, cur_dataset_name, cur_struct_property, should_write_to_lo
         classifier_layer_size=classifier_layer_size,
         classifier_activation_func=classifier_activation_func,
         use_batch_norm=use_batch_norm,
-        standardize_data=standardize_data
+        standardize_data=standardize_data,
+        bin_num=bin_num
     )
 
     log_print(function_name, indent, str(model_config))
@@ -137,22 +141,22 @@ def init(cur_language, cur_dataset_name, cur_struct_property, should_write_to_lo
     return timestamp, dataset_builder, model_config
 
 
-def prepare_train(dataset_builder, split_ind, indent):
+def prepare_train(dataset_builder, split_ind, indent, bin_num=10):
     function_name = 'prepare_train'
     log_print(function_name, indent, 'Generating datasets...')
 
     # Training set
     if cross_validate:
-        training_set = dataset_builder.build_dataset('train', split_ind)
+        training_set = dataset_builder.build_dataset('train', cross_validation_ind=split_ind, bin_num=bin_num)
     else:
-        training_set = dataset_builder.build_dataset('train')
+        training_set = dataset_builder.build_dataset('train', bin_num=bin_num)
     log_print(function_name, indent, f'Training sample num: {len(training_set)}')
 
     # Test set
     if cross_validate:
-        test_set = dataset_builder.build_dataset('val', split_ind)
+        test_set = dataset_builder.build_dataset('val', cross_validation_ind=split_ind, bin_num=bin_num)
     else:
-        test_set = dataset_builder.build_dataset('val')
+        test_set = dataset_builder.build_dataset('val', bin_num=bin_num)
     log_print(function_name, indent, f'Test sample num: {len(test_set)}')
     log_print(function_name, indent, 'datasets generated')
 
@@ -181,7 +185,7 @@ def do_train(training_set, test_set, model_config, timestamp, indent):
             os.remove(best_model_path)
 
 
-def main_for_config(cur_language, cur_dataset_name, cur_struct_property, should_write_to_log):
+def main_for_config(cur_language, cur_dataset_name, cur_struct_property, should_write_to_log, bin_num=10):
     indent = 0
     function_name = 'model_for_config'
 
@@ -200,7 +204,7 @@ def main_for_config(cur_language, cur_dataset_name, cur_struct_property, should_
 
         # 2. Prepare the training data
         training_set, test_set = \
-            prepare_train(dataset_builder, i, indent)
+            prepare_train(dataset_builder, i, indent, bin_num=bin_num)
 
         # 3. Run the trainer
         do_train(training_set, test_set, model_config, timestamp, indent)
@@ -235,10 +239,10 @@ def main(should_write_to_log):
         if multilingual:
             # Create a joint dataset from all languages
             assert user_defined_language is None
-            main_for_config(languages, dataset_name, cur_struct_property, should_write_to_log)
+            main_for_config(languages, dataset_name, cur_struct_property, should_write_to_log, bin_num=bin_num)
         else:
             for cur_language in languages:
-                main_for_config(cur_language, dataset_name, cur_struct_property, should_write_to_log)
+                main_for_config(cur_language, dataset_name, cur_struct_property, should_write_to_log, bin_num=bin_num)
 
 
 main(write_to_log)

@@ -81,8 +81,5 @@ class ImLingInfoNeuralClassifier(ImLingInfoClassifier):
     def predict(self, image_tensor):
         with torch.no_grad():
             output = self.inference(image_tensor)
-            if self.config.struct_property.startswith('length_'):
-                predictions = output.round()
-            else:
-                predictions = output.argmax(dim=1)
+            predictions = output.argmax(dim=1)
         return predictions

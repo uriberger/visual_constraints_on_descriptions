@@ -21,10 +21,7 @@ class ImLingInfoOfflineClassifier(ImLingInfoClassifier):
             self.get_backbone_model().eval()
 
         if config.classifier == 'svm':
-            if config.struct_property.startswith('length_'):
-                self.clf = SVR(kernel=config.svm_kernel)
-            else:
-                self.clf = SVC(kernel=config.svm_kernel)
+            self.clf = SVC(kernel=config.svm_kernel)
         elif config.classifier == 'random_forest':
             self.clf = RandomForestClassifier()
         elif config.classifier == 'xgboost':

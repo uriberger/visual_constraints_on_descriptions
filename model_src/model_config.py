@@ -19,6 +19,8 @@ class ModelConfig:
     struct_property: The linguistic structural property that the model is trained to predict
 
     learning_rate: The learning rate for the visual encoder's training
+
+    bin_num: The number of bins the values in the data are split to
     """
 
     def __init__(self,
@@ -31,6 +33,7 @@ class ModelConfig:
                  standardize_data=False,
                  struct_property='passive',
                  learning_rate=1e-4,
+                 bin_num=10,
                  ):
         super(ModelConfig, self).__init__()
 
@@ -43,6 +46,7 @@ class ModelConfig:
         self.standardize_data = standardize_data
         self.struct_property = struct_property
         self.learning_rate = learning_rate
+        self.bin_num = bin_num
 
     def __str__(self):
         return 'Configuration: ' + str(self.__dict__)

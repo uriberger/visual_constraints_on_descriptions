@@ -47,18 +47,18 @@ class DatasetBuilder(LoggableObject):
 
     """ Build the dataset object. """
 
-    def build_dataset(self, data_split_str, cross_validation_ind=-1):
+    def build_dataset(self, data_split_str, cross_validation_ind=-1, bin_num=10):
         self.log_print('Generating ' + self.name +
                        ' ' + data_split_str +
                        ' ' + self.struct_property + ' dataset...')
 
         self.increment_indent()
         if data_split_str == 'all':
-            labeled_data = self.get_labeled_data()
+            labeled_data = self.get_labeled_data(bin_num)
         elif cross_validation_ind >= 0:
             labeled_data = self.get_cross_validation_data(data_split_str, cross_validation_ind)
         else:
-            labeled_data = self.get_labeled_data_for_split(data_split_str)
+            labeled_data = self.get_labeled_data_for_split(data_split_str, bin_num)
         self.decrement_indent()
 
         return ImLingStructInfoDataset(labeled_data, self.get_image_path_finder())
@@ -66,13 +66,13 @@ class DatasetBuilder(LoggableObject):
     """ Get the (image id, label) pair list. """
 
     @abc.abstractmethod
-    def get_labeled_data(self):
+    def get_labeled_data(self, bin_num=0):
         return
 
     """ Get the (image id, label) pair list for the relevant split. """
 
     @abc.abstractmethod
-    def get_labeled_data_for_split(self, data_split_str):
+    def get_labeled_data_for_split(self, data_split_str, bin_num):
         return
 
     """ Create random splits for cross validation. """

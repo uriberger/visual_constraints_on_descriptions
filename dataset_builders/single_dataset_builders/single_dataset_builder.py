@@ -3,6 +3,7 @@ import os
 import random
 from utils.general_utils import generate_dataset, get_image_id_to_prob
 from dataset_builders.dataset_builder import DatasetBuilder
+from collections import defaultdict
 
 
 class SingleDatasetBuilder(DatasetBuilder):
@@ -31,8 +32,15 @@ class SingleDatasetBuilder(DatasetBuilder):
         of instances of each class in the train and val sets.
     """
 
-    """ The struct data list is a list of (image_id, val) where image ids are not unique and val is binary value
-        representing whether a specific caption (related to the image id) expresses the relevant property.
+    """ In case the property is a length property, the struct data list is a list of (image_id, val) where image ids are
+        not unique and val is an integer.
+        We want to change it to a classification problem, in the following manner:
+        1. Split all values to bins so that we'll have similar number of samples in each bin.
+        2. Create a new list of unique (image id, bin index) pairs. This is referred to as the labeled data list.
+    """
+
+    """ In all other cases, the struct data list is a list of (image_id, val) where image ids are not unique and val is
+        binary value representing whether a specific caption (related to the image id) expresses the relevant property.
         We want to:
         1. Convert this list to a mapping of image id -> probability of the relevant property, which is calculated as
         the proportion of captions expressing this property.
@@ -44,10 +52,43 @@ class SingleDatasetBuilder(DatasetBuilder):
         half 0.
     """
 
-    def get_labeled_data(self):
+    def get_labeled_data(self, bin_num=10):
         if self.struct_property.startswith('length_'):
-            # This is a regression based structu property. Return as is
-            labeled_data = self.get_struct_data()
+            struct_data = self.get_struct_data()
+            val_to_count = defaultdict(int)
+            for sample in struct_data:
+                val_to_count[sample[1]] += 1
+
+            val_count_pairs = list(val_to_count.items())
+            val_count_pairs.sort(key=lambda x:x[0])
+            frac = 1/bin_num
+            all_count = sum(val_to_count.values())
+            bin_size = all_count/bin_num
+
+            bin_start_list = [0]
+            samples_so_far = 0
+            for i in range(len(val_count_pairs)):
+                val, count = val_count_pairs[i]
+                samples_so_far += count
+                cur_bin_ind = len(bin_start_list)
+                if samples_so_far > cur_bin_ind*bin_size:
+                    # Filled current bin, now check if this one is closer to the wanted bin size or the previous one
+                    cur_fraction = samples_so_far/all_count
+                    prev_fraction = (samples_so_far - count)/all_count
+                    if abs(cur_bin_ind*frac - cur_fraction) < abs(cur_bin_ind*frac - prev_fraction):
+                        bin_start_list.append(val_count_pairs[i+1][0])
+                    else:
+                        bin_start_list.append(val_count_pairs[i][0])
+
+            val_to_bin_ind = {}
+            sorted_val_list = sorted(list(val_to_count.keys()))
+            cur_bin_ind = 0
+            for val in sorted_val_list:
+                if cur_bin_ind < (bin_num - 1) and val >= bin_start_list[cur_bin_ind+1]:
+                    cur_bin_ind += 1
+                val_to_bin_ind[val] = cur_bin_ind
+
+            labeled_data = [(x[0], val_to_bin_ind[x[1]]) for x in struct_data]
         else:
             # 1. Convert the struct_data list to a mapping of image id -> probability of the relevant property, which is
             # calculated as the proportion of captions expressing this property.
@@ -113,9 +154,9 @@ class SingleDatasetBuilder(DatasetBuilder):
 
     """ Next, automatically split the labeled and balanced data to training/val. """
 
-    def create_train_val_split(self):
+    def create_train_val_split(self, bin_num=10):
         if self.struct_property.startswith('length_'):
-            labeled_data = self.get_labeled_data()
+            labeled_data = self.get_labeled_data(bin_num)
         else:
             labeled_data = self.get_balanced_labeled_data()
         image_ids = list(set([x[0] for x in labeled_data]))
@@ -128,12 +169,12 @@ class SingleDatasetBuilder(DatasetBuilder):
 
     """ Finally, we can now get the data for a specific split. """
 
-    def get_labeled_data_for_split(self, data_split_str):
+    def get_labeled_data_for_split(self, data_split_str, bin_num=10):
         if self.struct_property.startswith('length_'):
-            res = self.get_labeled_data()
+            res = self.get_labeled_data(bin_num)
         else:
             res = self.get_balanced_labeled_data()
-        split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split)
+        split_to_image_ids = generate_dataset(self.train_val_split_file_path, self.create_train_val_split, bin_num)
         split_image_ids = split_to_image_ids[data_split_str]
         split_image_ids_dict = {x: True for x in split_image_ids}
         return [x for x in res if x[0] in split_image_ids_dict]
