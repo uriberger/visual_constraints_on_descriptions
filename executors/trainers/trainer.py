@@ -38,7 +38,10 @@ class Trainer(Executor):
         return
 
     def evaluate_current_model(self):
-        evaluation_mode = 'binary_classification' # We also have 'regression' but this is not currently supported
+        if self.model_config.struct_property.startswith('length_'):
+            evaluation_mode = 'ordered_classification'
+        else:
+            evaluation_mode = 'binary_classification' # We also have 'regression' but this is not currently supported
         evaluator = Evaluator(evaluation_mode, self.test_set, self.model_dir, self.model_name, self.indent + 1)
         metric = evaluator.evaluate()
         return metric

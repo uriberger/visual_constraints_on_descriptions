@@ -38,6 +38,9 @@ class Evaluator(Executor):
             correct_num = label_num - incorrect_num
 
             self.metric_sum += correct_num
+        elif self.mode == 'ordered_classification':
+            dist_sum = torch.sum(10 - torch.abs(predictions - labels))
+            self.metric_sum += dist_sum
         elif self.mode == 'regression':
             se = torch.sum(torch.pow(predictions-labels, 2))
             self.metric_sum += se
@@ -58,5 +61,5 @@ class Evaluator(Executor):
         self.decrement_indent()
 
         metric = self.metric_sum/self.overall_count
-        self.log_print(f'Metric res: {metric}')
+        self.log_print(f'Metric res ({self.mode}): {metric}')
         return metric
