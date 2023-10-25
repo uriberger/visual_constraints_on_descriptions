@@ -55,40 +55,57 @@ class SingleDatasetBuilder(DatasetBuilder):
     def get_labeled_data(self, bin_num=10):
         if self.struct_property.startswith('length_'):
             struct_data = self.get_struct_data()
-            val_to_count = defaultdict(int)
-            for sample in struct_data:
-                val_to_count[sample[1]] += 1
+            # val_to_count = defaultdict(int)
+            # for sample in struct_data:
+            #     val_to_count[sample[1]] += 1
 
-            val_count_pairs = list(val_to_count.items())
-            val_count_pairs.sort(key=lambda x:x[0])
-            frac = 1/bin_num
-            all_count = sum(val_to_count.values())
-            bin_size = all_count/bin_num
+            # val_count_pairs = list(val_to_count.items())
+            # val_count_pairs.sort(key=lambda x:x[0])
+            # frac = 1/bin_num
+            # all_count = sum(val_to_count.values())
+            # bin_size = all_count/bin_num
 
-            bin_start_list = [0]
-            samples_so_far = 0
-            for i in range(len(val_count_pairs)):
-                val, count = val_count_pairs[i]
-                samples_so_far += count
-                cur_bin_ind = len(bin_start_list)
-                if samples_so_far > cur_bin_ind*bin_size:
-                    # Filled current bin, now check if this one is closer to the wanted bin size or the previous one
-                    cur_fraction = samples_so_far/all_count
-                    prev_fraction = (samples_so_far - count)/all_count
-                    if abs(cur_bin_ind*frac - cur_fraction) < abs(cur_bin_ind*frac - prev_fraction):
-                        bin_start_list.append(val_count_pairs[i+1][0])
-                    else:
-                        bin_start_list.append(val_count_pairs[i][0])
+            # bin_start_list = [0]
+            # samples_so_far = 0
+            # for i in range(len(val_count_pairs)):
+            #     val, count = val_count_pairs[i]
+            #     samples_so_far += count
+            #     cur_bin_ind = len(bin_start_list)
+            #     if samples_so_far > cur_bin_ind*bin_size:
+            #         # Filled current bin, now check if this one is closer to the wanted bin size or the previous one
+            #         cur_fraction = samples_so_far/all_count
+            #         prev_fraction = (samples_so_far - count)/all_count
+            #         if abs(cur_bin_ind*frac - cur_fraction) < abs(cur_bin_ind*frac - prev_fraction):
+            #             bin_start_list.append(val_count_pairs[i+1][0])
+            #         else:
+            #             bin_start_list.append(val_count_pairs[i][0])
 
-            val_to_bin_ind = {}
-            sorted_val_list = sorted(list(val_to_count.keys()))
-            cur_bin_ind = 0
-            for val in sorted_val_list:
-                if cur_bin_ind < (bin_num - 1) and val >= bin_start_list[cur_bin_ind+1]:
-                    cur_bin_ind += 1
-                val_to_bin_ind[val] = cur_bin_ind
+            # val_to_bin_ind = {}
+            # sorted_val_list = sorted(list(val_to_count.keys()))
+            # cur_bin_ind = 0
+            # for val in sorted_val_list:
+            #     if cur_bin_ind < (bin_num - 1) and val >= bin_start_list[cur_bin_ind+1]:
+            #         cur_bin_ind += 1
+            #     val_to_bin_ind[val] = cur_bin_ind
 
-            labeled_data = [(x[0], val_to_bin_ind[x[1]]) for x in struct_data]
+            # labeled_data = [(x[0], val_to_bin_ind[x[1]]) for x in struct_data]
+            def val_to_bin_ind(val):
+                if val < 21:
+                    return 0
+                if val < 29:
+                    return 1
+                if val < 37:
+                    return 2
+                if val < 45:
+                    return 3
+                if val < 53: 
+                    return 4
+                if val < 61:
+                    return 5
+                if val < 69:
+                    return 6
+                return 7
+            labeled_data = [(x[0], val_to_bin_ind(x[1])) for x in struct_data]
         else:
             # 1. Convert the struct_data list to a mapping of image id -> probability of the relevant property, which is
             # calculated as the proportion of captions expressing this property.

@@ -51,7 +51,7 @@ parser.add_argument('--delete_model', action='store_true', default=False, dest='
                     help='delete the created model at the end of training')
 parser.add_argument('--dump_captions', action='store_true', default=False, dest='dump_captions',
                     help='only dump the captions of the dataset and exit')
-parser.add_argument('--bin_num', type=int, default=10, dest='bin_num',
+parser.add_argument('--bin_num', type=int, default=8, dest='bin_num',
                     help='the number of bins to be used if we don\'t binarize the data')
 args = parser.parse_args()
 write_to_log = args.write_to_log
