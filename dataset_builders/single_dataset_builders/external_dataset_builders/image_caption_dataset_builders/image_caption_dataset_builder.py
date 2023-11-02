@@ -5,6 +5,7 @@ from collections import defaultdict
 import abc
 import jieba
 import csv
+import statistics
 
 from dataset_builders.single_dataset_builders.external_dataset_builders.external_dataset_builder \
     import ExternalDatasetBuilder
@@ -636,6 +637,21 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
                 length_dataset.append((image_id if use_image_ids else int(row[1]), length))
 
         return length_dataset
+    
+    def generate_bin_length_dataset(self, use_image_ids=True, length_type='chars'):
+        length_dataset = self.generate_length_dataset(use_image_ids, length_type)
+        all_vals = [x[1] for x in length_dataset]
+        median = statistics.median(all_vals)
+        larger_than_median = len([x for x in all_vals if x > median])
+        larger_equal_median = len([x for x in all_vals if x >= median])
+        lt_dist = abs(0.5 - larger_than_median/len(all_vals))
+        le_dist = abs(0.5 - larger_equal_median/len(all_vals))
+        if lt_dist < le_dist:
+            bin_length_dataset = [(x[0], int(x[1] > median)) for x in length_dataset]
+        else:
+            bin_length_dataset = [(x[0], int(x[1] >= median)) for x in length_dataset]
+
+        return bin_length_dataset
 
     def get_struct_data_internal(self, use_image_ids=True):
         if self.struct_property == 'passive':
@@ -653,6 +669,9 @@ class ImageCaptionDatasetBuilder(ExternalDatasetBuilder):
         elif self.struct_property.startswith('length_'):
             length_type = self.struct_property.split('length_')[1]
             struct_data = self.generate_length_dataset(use_image_ids, length_type=length_type)
+        elif self.struct_property.startswith('bin_length_'):
+            length_type = self.struct_property.split('bin_length_')[1]
+            struct_data = self.generate_bin_length_dataset(use_image_ids, length_type=length_type)
 
         return struct_data
 
